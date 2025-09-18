@@ -249,6 +249,36 @@ namespace SlideSCI
                         ),
                     }
                 },
+                    // ===== Stata (do/ado) =====
+                {
+                    "stata",
+                    new List<(string, RegexOptions, string)>
+                    {
+                        // Comments (order matters: block, //, then leading-asterisk)
+                        (@"\/\*[\s\S]*?\*\/", RegexOptions.None, "comment"),
+                        (@"//.*?$", RegexOptions.Multiline, "comment"),
+                        (@"^\s*\*.*?$", RegexOptions.Multiline, "comment"),
+
+                        // Strings (Stata uses double quotes; allow doubled "" and simple single quotes frequently used in text/macros)
+                        (@"(?:""([^""\n]|"""")*""|'([^'\n\\]|\\.)*')", RegexOptions.None, "string"),
+
+                        // Numbers (incl. scientific)
+                        (@"\b\d*\.?\d+([eE][-+]?\d+)?\b", RegexOptions.None, "number"),
+
+                        // Macros & globals: `local' and $global
+                        (@"`[A-Za-z_]\w*'", RegexOptions.None, "property"),
+                        (@"\$\w+", RegexOptions.None, "property"),
+
+                        // Built-in functions like abs(), ln(), exp(), real(), string(), regexm(), inlist(), cond(), etc.
+                        (@"\b(abs|acos|asin|atan|atan2|ceil|floor|round|ln|log|exp|sqrt|int|real|string|substr|length|lower|upper|proper|trim|itrim|ltrim|rtrim|regexm|regexr|regexs|inlist|cond|min|max|sum|mean|sd|variance|missing|runiform|rnormal)\s*(?=\()", RegexOptions.IgnoreCase, "property"),
+
+                        // Common commands / keywords (case-insensitive)
+                        (@"\b(?i)(use|clear|set|version|cd|pwd|dir|which|do|run|quietly|noi?sy|capture|program|end|syntax|args|local|global|tempvar|tempname|tempfile|macro|display|di|if|in|by|bysort|sort|gsort|keep|drop|rename|order|label|label\s+define|label\s+values|encode|decode|tostring|destring|egen|generate|gen|replace|recode|collapse|contract|expand|append|merge|m:?1|m:?n|joinby|cross|reshape|reshape\s+wide|reshape\s+long|frame|frame\s+create|frame\s+change|frame\s+put|frame\s+drop|preserve|restore|save|saveold|use|import|import\s+excel|export|export\s+excel|insheet|outsheet|file|post|postfile|postclose|putexcel|putdocx|graph|gr\s+export|twoway|scatter|line|bar|histogram|kdensity|plot|tsset|xtset|tsline|tsplot|corr|pwcorr|tabulate|tab|tab1|tab2|tabstat|table|ttest|mean|proportion|pctile|summarize|sum|count|distinct|regress|areg|xtreg|ivregress|ivreg2|reghdfe|logit|probit|mlogit|ologit|oprobit|poisson|nbreg|qreg|sqreg|rq|anova|manova|mixed|meqrlogit|gsem|sem|margins|marginsplot|predict|estat|test|lincom|nlcom|svy|svyset|mi|mi\s+set|mi\s+register|mi\s+impute|mi\s+estimate|estimates|eststo|esttab|estout|parmest|xtdescribe|xtsum|xttest|xtoverid|xtserial)\b", RegexOptions.IgnoreCase, "keyword"),
+
+                        // Line continuation operator ///
+                        (@"\/\/\/\s*$", RegexOptions.Multiline, "selector")
+                    }
+                },
             };
         }
 
@@ -271,7 +301,12 @@ namespace SlideSCI
                 { "f08", "fortran" },
                 { "f77", "fortran" },
                 { "for", "fortran" },
-                { "f", "fortran" }
+                { "f", "fortran" },
+                // Stata aliases
+                { "stata", "stata" },
+                { "do", "stata" },
+                { "do-file", "stata" },
+                { "ado", "stata" }
             };
         }
 
