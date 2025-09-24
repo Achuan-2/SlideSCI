@@ -1,4 +1,4 @@
-## v1.1.0.0 / 2025.09.24
+## v1.1 / 2025.09.24
 
 - ✨图片添加标签新增计数器、更新标签文本功能 [#36](https://github.com/Achuan-2/my_ppt_plugin/issues/36)
 - ✨图片标签-增加更新标签功能 [#42](https://github.com/Achuan-2/my_ppt_plugin/issues/42)
