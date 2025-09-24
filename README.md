@@ -4,6 +4,9 @@
 
 </div>
 
+
+[![Star History Chart](https://api.star-history.com/svg?repos=Achuan-2/SlideSCI&type=Date)](https://www.star-history.com/#Achuan-2/SlideSCI&Date)
+
 插件功能预览
 
 <img alt="PixPin_2025-08-29_15-10-51" src="https://s2.loli.net/2025/08/29/lRWKUwJCTjrk9ec.png" />
@@ -12,7 +15,6 @@
 
 
 
-[![Star History Chart](https://api.star-history.com/svg?repos=Achuan-2/SlideSCI&type=Date)](https://www.star-history.com/#Achuan-2/SlideSCI&Date)
 
 ## 1 ❤️ 友情推荐
 
@@ -134,9 +136,7 @@ Github地址：[https://github.com/Achuan-2/SlideSCI](https://github.com/Achuan-
   按钮右击，添加到「快速访问工具栏」即可  
   ​<img alt="" src="https://s2.loli.net/2025/08/29/RdxoUpzIcZMTv6u.png" />  
   可以把「快速访问工具栏」放在下方，更方便使用
-- **添加图题的文本框只有文本宽度并且没有居中？**
 
-  - 可能是设置了默认文本框导致的，需要将图题拉宽并设置居中后，设置居中图题为默认文本框
 - **插入latex公式，显示不正常？**
 
   - 插件比较适合插入单行数学公式，对于复杂的多行语法，推荐使用IguanaTex插件

@@ -4,118 +4,104 @@ English | [简体中文](README.md)
 
 </div>
 
-![](https://fastly.jsdelivr.net/gh/Achuan-2/PicBed/assets/20250117115019-2025-01-17.png)
+[![Star History Chart](https://api.star-history.com/svg?repos=Achuan-2/SlideSCI&type=Date)](https://www.star-history.com/#Achuan-2/SlideSCI&Date)
 
-## 📄 Special Notes
+Preview of Plugin Features
 
-* Any scripts involved in the `SlideSCI` project released by this repository are for testing and learning purposes only. Commercial use is strictly prohibited. We do not guarantee the legality, accuracy, completeness, or effectiveness of these scripts. Use them at your own discretion.
+<img alt="PixPin_2025-08-29_15-10-51" src="https://s2.loli.net/2025/08/29/lRWKUwJCTjrk9ec.png" />
 
-* All resource files in this project are prohibited from being reposted or published in any form by any public accounts or self-media platforms.
+<img alt="PixPin_2025-08-29_15-11-12" src="https://s2.loli.net/2025/08/29/3dsS9UFtWL1niZx.png" />
 
-* `The author` shall not be held responsible for any issues arising from the scripts, including but not limited to losses or damages caused by script errors.
-
-* Unauthorized use of any content from the `SlideSCI` project for commercial or illegal purposes is strictly prohibited. Violators will bear all consequences.
-
-* Anyone who views this project or directly/indirectly uses any scripts from the `SlideSCI` project must read this disclaimer carefully. `The author` reserves the right to modify or supplement this disclaimer at any time. By using or copying any related scripts or the `SlideSCI` project, you are deemed to have accepted this disclaimer.
-
-* This project follows the `AGPL-3.0 License`. If there is any conflict between this Special Note and the `AGPL-3.0 License`, this Special Note shall prevail.
-
-> If you use or copy any code or projects created by this repository and `the author`, you are deemed to have `accepted` this disclaimer. Please read carefully.
-
-> If you used or copied any code or projects created by this repository and `the author` before this disclaimer was issued and are still using them, you are deemed to have `accepted` this disclaimer. Please read carefully.
 
 ## 📝 Development Background
 
-Does anyone else share my long-standing grievances with PowerPoint? 😡:
+Does anyone else share my long-standing grievances with PowerPoint?  😡:
 
-💔 **No Image Titles**: Unlike Word, you can't directly add titles to images. You have to manually insert text boxes and spend ages aligning them, only to end up with crooked results!
+💔 **No Image Titles**: Unlike Word, you can't directly add titles to images. You have to manually insert text boxes and struggle with alignment!
 
-💔 **No Copy-Paste Element Positioning**: To keep similar elements in the same position across different slides, you have to copy-paste and modify each time. No way to copy-paste positions directly!
+💔 **No Copy-Paste Element Positioning**: To keep similar elements in consistent positions across slides, you have to copy-paste and modify each time - no way to just copy-paste positions.
 
-💔 **No Auto-Align for Images**: Insert multiple images and want them neatly arranged in rows and columns? Either drag each one manually for eternity or align them column by column horizontally and then vertically.
+💔 **No Auto-Align for Images**: Insert multiple images and want them neatly arranged? Either drag each one manually for eternity or align them column by column.
 
-💔 **No Code Block Insertion**: You have to copy-paste from external editors (like VSCode) or specialized websites, or screenshot code blocks as images. So tedious!
+💔 **No Code Block Insertion**: Have to copy-paste from external editors or screenshot code blocks - so tedious!
 
-💔 **No LaTeX Math Formula Support**: Nowadays, I rely on AI to recognize and generate math formulas in LaTeX format, which can't be directly pasted into PPT.
+💔 **No LaTeX Formula Support**: Now I mainly rely on AI to recognize/generate math formulas in LaTeX format, which can't be directly pasted to PPT...
 
 ...
 
-Most PPT plugins on the market are packed with flashy but impractical features. As a graduate student, I need to create clear, content-focused progress reports quickly every week—aesthetics are secondary.
+Most PPT plugins are packed with flashy but impractical features. As a graduate student doing weekly research progress reports, I need to quickly insert content and make clear presentations - aesthetics are secondary.
 
-With AI's help, I developed solutions for these pain points swiftly! The sense of accomplishment is real! (Over 99% of this plugin's code was AI-generated. Thank you, AI sensei!)
+With AI's help, I developed solutions to these pain points quickly! (Over 99% of this plugin's code was AI-generated. Thank you AI teacher!)
 
-In the spirit of open source, this plugin is available on GitHub. Stars are appreciated! 🌟
+In the spirit of open source, this plugin is publicly available on GitHub. Stars are appreciated!  🌟
 
 GitHub: [https://github.com/Achuan-2/SlideSCI](https://github.com/Achuan-2/SlideSCI)
 
-## ✨ Key Features
+##  ✨ Key Features
 
-* **Batch Add Image Titles**: <u>Batch</u> select images and add centered captions below them. Supports auto-grouping images and titles.
+- **Batch Add Image Titles:** Supports batch selection of images to add centered captions below them. Allows configuring auto-grouping of images and captions.
+  <img alt="" src="https://s2.loli.net/2025/08/29/OoXlgpGdrtx2bEP.png" />
 
-  ![](https://fastly.jsdelivr.net/gh/Achuan-2/PicBed/assets/20250116004806-2025-01-16.png)
-* **Auto-Arrange Images**: Automatically align multiple images. Set columns per row, column spacing, row spacing (defaults to column spacing), and image dimensions.
+- **Batch Add Image Labels:** For scientific figures, supports label templates (`A`, `a`, `A)`, `a)`, `1`, `1)`). Default label font is `Arial`.
 
-  * If width/height isn't set, the first image's height is used for alignment.
-  * Enable "Arrange by Position" to auto-detect order based on manual placement. Otherwise, uses the selection order.
+- **Auto-arrange Images:** Automatically aligns multiple images with configurable:
+  - Sorting: By position or selection order
+  - Layout: 
+    - Column-max-width (for tabular layouts in academic figures)
+    - Uniform height (uses first image's height by default)
+    - Uniform width (waterfall flow, uses first image's width by default)
+    - Custom spacing between columns/rows
+  <img alt="" src="https://s2.loli.net/2025/08/29/RmxjZpTzGDL8evP.png" />
 
-  ![](https://fastly.jsdelivr.net/gh/Achuan-2/PicBed/assets/20250116004816-2025-01-16.png)
-* **Copy & Paste Formatting Features**:
-  * **Copy & Paste Format**: Copy shape and text formatting to other elements.
-    ![](https://fastly.jsdelivr.net/gh/Achuan-2/PicBed/assets/复制粘贴格式-2025-01-17.gif)
-  * **Copy & Paste Element Positions**: Copy positions of multiple elements and paste them to others (supports multi-select!). 
-  Useful for aligning elements across slides or within a slide. (Arrange one group first, then use this feature to auto-align another group before adjusting positions).
-    ![](https://fastly.jsdelivr.net/gh/Achuan-2/PicBed/assets/复制粘贴位置-2025-01-17.gif)
-    ![](https://fastly.jsdelivr.net/gh/Achuan-2/PicBed/assets/复制粘贴位置-2025-01-16.gif)
-  * **Copy & Paste Element Dimensions**: Quickly standardize image sizes via multi-select paste.
-* **Insert Syntax-Highlighted Code Blocks**:
+- **Copy-Paste Formatting:**
+  - Style copying for shapes/text
+  - Multi-element position copying (great for aligning elements across slides)
+  - Bulk dimension pasting for uniform image sizes
+  <img alt="" src="https://s2.loli.net/2025/08/29/q5vblI3nrDhewJ6.gif" />
 
-  ![](https://fastly.jsdelivr.net/gh/Achuan-2/PicBed/assets/20250116004856-2025-01-16.png)
+- **Insert Syntax-Highlighted Code Blocks:**
+  <img alt="" src="https://s2.loli.net/2025/08/29/jbSgDfnP69eZopV.png" />
+  - Supported languages: MATLAB, Python, R, JavaScript, HTML, CSS, C#
+  - Toggle between black/white background (default is black)
 
-  * **Supported Languages**: MATLAB, Python, JavaScript, HTML, CSS, C#.
-  * **Toggle Black/White Background**: Default is black. Click "Code Black Background" to deactivate for white.
-* **Insert LaTeX Math Formulas**:
+- **Insert LaTeX Math Formulas:**
+  <img alt="" src="https://s2.loli.net/2025/08/29/qz9LMCuRB7AotDv.png" />
 
-  ![](https://fastly.jsdelivr.net/gh/Achuan-2/PicBed/assets/20250116004910-2025-01-16.png)
-* **Insert Markdown Text**: Paste entire Markdown notes into PPT at once! Preserves original order!
-
-  ![](https://fastly.jsdelivr.net/gh/Achuan-2/PicBed/assets/20250116004919-2025-01-16.png)
-
-  * **Inline Formats**: Bold, underline, superscript, subscript, italic, links, inline code, inline math.
-  * **Block Formats**: Headings, lists, code blocks, tables, math formulas, blockquotes.
-
-    * **List Enhancements**:
-      * Preserves hanging indents (lost in default HTML-to-PPT pasting).
-      * Converts task lists to ☑ (completed) and ☐ (unchecked).
-    * **Code Blocks**:
-      * Independent text boxes with editable syntax highlighting (black/white themes).
-    * **Tables**:
-      * Limited to 500px width by default, with 1pt black borders.
-    * **Math Formulas**:
-      * Independent, editable text boxes.
-    * **Blockquotes**:
-      * Independent text boxes with black borders.
+- **Insert Markdown Text:**
+  <img alt="" src="https://s2.loli.net/2025/08/29/MPKOgWonijCsl4D.png" />
+  - Preserves all formatting when pasting complete markdown documents
+  - Inline formats: Bold, underline, superscript, subscript, italic, links, inline code/math
+  - Block formats: 
+    - Headings, lists (preserves hanging indents), code blocks (editable text boxes with syntax highlighting)
+    - Tables (limited to 500px width with 1pt black borders by default)
+    - Math formulas (editable text boxes)
+    - Blockquotes (text boxes with black borders)
+    - Task lists (converts to  ☑/☐ indicators)
 
 * **Batch Add Image Labels**: For scientific figures, choose label templates (`A`, `a`, `A)`, `a)`). Default font is `Arial`.
     ![](https://fastly.jsdelivr.net/gh/Achuan-2/PicBed/assets/PixPin_2025-01-23_12-14-27-2025-01-23.png)
 
 ## 🪟 Supported Environments
 
-Developed on Windows 11 using [Visual Studio Tools for Office](https://www.visualstudio.com/de/vs/office-tools/) and C#. Designed for Microsoft PowerPoint. Compatible with WPS (note: WPS does not support LaTeX formulas or Markdown insertion).
-
-**Windows only**. No Mac support.
+- Developed on Windows 11 using [Visual Studio Tools for Office](https://www.visualstudio.com/vs/office-tools/) with C#
+- Designed for Microsoft PowerPoint
+- Compatible with WPS Office (Note: WPS version doesn't support LaTex formulas or Markdown insertion - may cause crashes)
+- Windows only (Mac unsupported due to different plugin architectures)
 
 ## 🖥️ Installation
 
-1. Download `exe` file from the GitHub [Releases](https://github.com/Achuan-2/my_ppt_plugin/releases).
-2. Extract and double-click to install.
+1. Download the plugin's `.exe` installer from GitHub [Releases](https://github.com/Achuan-2/my_ppt_plugin/releases)
+2. Double-click to install
+   
+Important:
+- Close PowerPoint before installation, otherwise the plugin won't load immediately
 
-**Note**: Close PowerPoint before installation. Otherwise, the plugin won't load immediately.
+Required Dependencies (usually prompted automatically during installation):
+1. [Microsoft .NET Framework 4.0+](https://www.microsoft.com/download/details.aspx?id=17718)
+2. [Microsoft Visual Studio 2010 Tools for Office Runtime](https://www.microsoft.com/download/details.aspx?id=105522)
 
-**Required Dependencies**:
-- [Microsoft .NET Framework 4.0+](https://www.microsoft.com/zh-cn/download/details.aspx?id=17718)
-- [Microsoft Visual Studio 2010 Tools for Office Runtime](https://www.microsoft.com/zh-cn/download/details.aspx?id=105522)
-
-If the plugin fails to load (e.g., "Runtime error loading COM add-in"), install the dependencies above.
+Troubleshooting:
+- If the plugin doesn't appear in PowerPoint or shows "Runtime error loading COM add-in", install the dependencies above
 
 ## ❓ FAQs
 
