@@ -1,3 +1,10 @@
+## v1.1.0.0 / 2025.09.24
+
+- ✨图片添加标签新增计数器、更新标签文本功能 [#36](https://github.com/Achuan-2/my_ppt_plugin/issues/36)
+- ✨图片标签-增加更新标签功能 [#42](https://github.com/Achuan-2/my_ppt_plugin/issues/42)
+- ✨图片标签：标签模板新增(a)和(A) [#44](https://github.com/Achuan-2/my_ppt_plugin/issues/44)
+- ✨图片标签添加Time new Roman字体
+
 ## v1.0.2.1 / 2025.07.09
   - ✨ feat(复制大图): 复制大图支持占位符图片
 
