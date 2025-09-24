@@ -3818,5 +3818,9 @@ namespace SlideSCI
 
             return null;
         }
+
+        private void updateLabelsButton_Click(object sender, RibbonControlEventArgs e)
+        {
+        }
     }
 }
