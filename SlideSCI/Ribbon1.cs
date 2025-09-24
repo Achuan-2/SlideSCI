@@ -53,6 +53,8 @@ namespace SlideSCI
             labelFontNameEditBox.Text = Properties.Settings.Default.LabelFontName;
             labelFontSizeEditBox.Text = Properties.Settings.Default.LabelFontSize;
             labelBoldcheckBox.Checked = Properties.Settings.Default.LabelBold;
+            labelIndex.Text = "1";
+            labelIndexUpdatecheckBox.Checked = true;
 
             // Load Image Auto Align Settings
             imgAutoAlignSortTypeDropDown.SelectedItemIndex = Properties
@@ -113,6 +115,7 @@ namespace SlideSCI
             List<string> FontNames = new List<string>()
             {
                 "Arial",
+                "Time new Roman",
                 "微软雅黑",
                 "黑体",
                 "方正兰亭黑体",
@@ -2416,7 +2419,15 @@ namespace SlideSCI
             }
             string labelTemplate = labelTemplateComboBox.Text;
 
-            AddLabelsToImages(fontFamily, fontSize, labelOffsetX, labelOffsetY, labelTemplate);
+            // 获取起始编号
+            int startIndex = 1;
+            if (!string.IsNullOrEmpty(labelIndex.Text) && !int.TryParse(labelIndex.Text, out startIndex))
+            {
+                MessageBox.Show("请输入有效的起始编号。");
+                return;
+            }
+
+            AddLabelsToImages(fontFamily, fontSize, labelOffsetX, labelOffsetY, labelTemplate, startIndex, true);
         }
 
         /// <summary>
@@ -2427,18 +2438,24 @@ namespace SlideSCI
         /// <param name="labelOffsetX"></param>
         /// <param name="labelOffsetY"></param>
         /// <param name="labelTemplate">标签格式</param>
+        /// <param name="startIndex">起始编号</param>
+        /// <param name="isAddLabels">是否为添加标签模式，true为添加，false为更新</param>
         private void AddLabelsToImages(
             string fontFamily,
             float fontSize,
             float labelOffsetX,
             float labelOffsetY,
-            string labelTemplate
+            string labelTemplate,
+            int startIndex = 1,
+            bool isAddLabels = true
         )
         {
             Selection sel = app.ActiveWindow.Selection;
-            if (sel.Type != PpSelectionType.ppSelectionShapes || sel.ShapeRange.Count == 0)
+            if (sel.Type != PpSelectionType.ppSelectionShapes)
             {
-                MessageBox.Show("请选择要添加标签的图片。");
+                // 需要弹窗显示sel.Type
+                MessageBox.Show($"请选择要添加标签的图片。当前选择类型: {sel.Type}");
+                // MessageBox.Show("请选择要添加标签的图片。");
                 return;
             }
 
@@ -2448,6 +2465,8 @@ namespace SlideSCI
                 { "a", "abcdefghijklmnopqrstuvwxyz" },
                 { "A)", "ABCDEFGHIJKLMNOPQRSTUVWXYZ" },
                 { "a)", "abcdefghijklmnopqrstuvwxyz" },
+                { "(A)", "ABCDEFGHIJKLMNOPQRSTUVWXYZ" },
+                { "(a)", "abcdefghijklmnopqrstuvwxyz" },
                 { "1", "123456789" }, // Added numeric template
                 { "1)", "123456789" }, // Added numeric template with parenthesis
                 { "Ⅰ", "ⅠⅡⅢⅣⅤⅥⅦⅦⅨⅩ" },
@@ -2472,14 +2491,14 @@ namespace SlideSCI
             var selectedImgShapes = new List<Shape>();
             foreach (Shape shape in sel.ShapeRange)
             {
-                // Skip text boxes if excludeTextcheckBox is checked
-                if (
-                    shape.Type == Office.MsoShapeType.msoTextBox
-                    || shape.Type == Office.MsoShapeType.msoAutoShape
-                )
-                {
-                    continue;
-                }
+                // // Skip text boxes if excludeTextcheckBox is checked
+                // if (
+                //     shape.Type == Office.MsoShapeType.msoTextBox
+                //     || shape.Type == Office.MsoShapeType.msoAutoShape
+                // )
+                // {
+                //     continue;
+                // }
                 selectedImgShapes.Add(shape);
             }
             if (selectedImgShapes.Count == 0)
@@ -2535,16 +2554,21 @@ namespace SlideSCI
                     string label;
                     if (isNumeric)
                     {
-                        label = (i + 1).ToString();
+                        label = (startIndex + i).ToString();
                     }
                     else
                     {
-                        label = labels[i % labels.Length].ToString();
+                        int labelIndex = (startIndex - 1 + i) % labels.Length;
+                        label = labels[labelIndex].ToString();
                     }
 
-                    if (labelTemplate.EndsWith(")"))
+                    if (labelTemplate.EndsWith(")") && !labelTemplate.StartsWith("("))
                     {
                         label += ")";
+                    }
+                    else if (labelTemplate.StartsWith("(") && labelTemplate.EndsWith(")"))
+                    {
+                        label = "(" + label + ")";
                     }
 
                     var textBox = app.ActiveWindow.View.Slide.Shapes.AddTextbox(
@@ -2586,6 +2610,13 @@ namespace SlideSCI
                 {
                     MessageBox.Show($"添加标签时出错: {ex.Message}");
                 }
+            }
+            
+            // 如果开启了编号自动更新，并且是添加标签模式，则更新起始编号
+            if (isAddLabels && labelIndexUpdatecheckBox.Checked)
+            {
+                int nextIndex = startIndex + sortedShapes.Count;
+                labelIndex.Text = nextIndex.ToString();
             }
         }
 
@@ -3821,6 +3852,165 @@ namespace SlideSCI
 
         private void updateLabelsButton_Click(object sender, RibbonControlEventArgs e)
         {
+            Selection sel = app.ActiveWindow.Selection;
+            if (sel.Type != PpSelectionType.ppSelectionShapes || sel.ShapeRange.Count == 0)
+            {
+                MessageBox.Show("请选择要更新标签的文本框。");
+                return;
+            }
+
+            string fontFamily = labelFontNameEditBox.Text;
+            float fontSize;
+            if (!float.TryParse(labelFontSizeEditBox.Text, out fontSize))
+            {
+                MessageBox.Show("请输入有效的字体大小。");
+                return;
+            }
+
+            string labelTemplate = labelTemplateComboBox.Text;
+
+            var templates = new Dictionary<string, string>
+            {
+                { "A", "ABCDEFGHIJKLMNOPQRSTUVWXYZ" },
+                { "a", "abcdefghijklmnopqrstuvwxyz" },
+                { "A)", "ABCDEFGHIJKLMNOPQRSTUVWXYZ" },
+                { "a)", "abcdefghijklmnopqrstuvwxyz" },
+                { "(A)", "ABCDEFGHIJKLMNOPQRSTUVWXYZ" },
+                { "(a)", "abcdefghijklmnopqrstuvwxyz" },
+                { "1", "123456789" }, 
+                { "1)", "123456789" }, 
+                { "Ⅰ", "ⅠⅡⅢⅣⅤⅥⅦⅦⅨⅩ" },
+                { "Ⅰ)", "ⅠⅡⅢⅣⅤⅥⅦⅦⅨⅩ" },
+                { "①", "①②③④⑤⑥⑦⑧⑨⑩" },
+                { "①)", "①②③④⑤⑥⑦⑧⑨⑩" },
+                { "一", "一二三四五六七八九十" },
+                { "一)", "一二三四五六七八九十" },
+            };
+
+            if (!templates.ContainsKey(labelTemplate))
+            {
+                labelTemplate = "A";
+            }
+
+            string labels = templates[labelTemplate];
+            bool isNumeric = labelTemplate.StartsWith("1");
+
+            // 获取起始编号
+            int startIndex = 1;
+            if (!string.IsNullOrEmpty(labelIndex.Text) && !int.TryParse(labelIndex.Text, out startIndex))
+            {
+                MessageBox.Show("请输入有效的起始编号。");
+                return;
+            }
+
+            // 过滤出文本框
+            var textBoxes = new List<Shape>();
+            foreach (Shape shape in sel.ShapeRange)
+            {
+                if (shape.Type == Office.MsoShapeType.msoTextBox)
+                {
+                    textBoxes.Add(shape);
+                }
+            }
+
+            if (textBoxes.Count == 0)
+            {
+                MessageBox.Show("请选择要更新标签的文本框。");
+                return;
+            }
+
+            // 对文本框进行排序（按位置）
+            var groups = new List<ImageGroup>();
+            foreach (var textBox in textBoxes)
+            {
+                bool addedToExistingGroup = false;
+                foreach (var group in groups)
+                {
+                    if (group.OverlapsWith(textBox))
+                    {
+                        group.AddShape(textBox);
+                        addedToExistingGroup = true;
+                        break;
+                    }
+                }
+
+                if (!addedToExistingGroup)
+                {
+                    var newGroup = new ImageGroup();
+                    newGroup.AddShape(textBox);
+                    groups.Add(newGroup);
+                }
+            }
+
+            // Sort shapes within each group by x position
+            foreach (var group in groups)
+            {
+                group.Shapes.Sort((a, b) => a.Left.CompareTo(b.Left));
+            }
+
+            // Sort groups by MinTop
+            groups.Sort((a, b) => a.MinTop.CompareTo(b.MinTop));
+
+            // Create flattened list of sorted shapes
+            var sortedTextBoxes = new List<Shape>();
+            foreach (var group in groups)
+            {
+                sortedTextBoxes.AddRange(group.Shapes);
+            }
+
+            // 更新文本框的标签
+            for (int i = 0; i < sortedTextBoxes.Count; i++)
+            {
+                try
+                {
+                    var textBox = sortedTextBoxes[i];
+                    string label;
+                    if (isNumeric)
+                    {
+                        label = (startIndex + i).ToString();
+                    }
+                    else
+                    {
+                        int labelIndexValue = (startIndex - 1 + i) % labels.Length;
+                        label = labels[labelIndexValue].ToString();
+                    }
+
+                    if (labelTemplate.EndsWith(")") && !labelTemplate.StartsWith("("))
+                    {
+                        label += ")";
+                    }
+                    else if (labelTemplate.StartsWith("(") && labelTemplate.EndsWith(")"))
+                    {
+                        label = "(" + label + ")";
+                    }
+
+                    // 更新文本框内容和字体设置
+                    textBox.TextFrame.TextRange.Text = label;
+                    textBox.TextFrame.TextRange.Font.Size = fontSize;
+                    textBox.TextFrame.TextRange.Font.Name = fontFamily;
+                    
+                    // 应用加粗设置
+                    if (labelBoldcheckBox.Checked)
+                    {
+                        textBox.TextFrame.TextRange.Font.Bold = Office.MsoTriState.msoTrue;
+                    }
+                    else
+                    {
+                        textBox.TextFrame.TextRange.Font.Bold = Office.MsoTriState.msoFalse;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"更新标签时出错: {ex.Message}");
+                }
+            }
+
+            // 如果开启了编号自动更新，则更新起始编号
+            if (labelIndexUpdatecheckBox.Checked)
+            {
+                int nextIndex = startIndex + sortedTextBoxes.Count;
+                labelIndex.Text = nextIndex.ToString();
+            }
         }
     }
 }

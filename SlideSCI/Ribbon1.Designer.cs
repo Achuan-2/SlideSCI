@@ -107,6 +107,8 @@
             Microsoft.Office.Tools.Ribbon.RibbonDropDownItem ribbonDropDownItemImpl70 = this.Factory.CreateRibbonDropDownItem();
             Microsoft.Office.Tools.Ribbon.RibbonDropDownItem ribbonDropDownItemImpl71 = this.Factory.CreateRibbonDropDownItem();
             Microsoft.Office.Tools.Ribbon.RibbonDropDownItem ribbonDropDownItemImpl72 = this.Factory.CreateRibbonDropDownItem();
+            Microsoft.Office.Tools.Ribbon.RibbonDropDownItem ribbonDropDownItemImpl73 = this.Factory.CreateRibbonDropDownItem();
+            Microsoft.Office.Tools.Ribbon.RibbonDropDownItem ribbonDropDownItemImpl74 = this.Factory.CreateRibbonDropDownItem();
             this.tab2 = this.Factory.CreateRibbonTab();
             this.图片自动对齐 = this.Factory.CreateRibbonGroup();
             this.imgAutoAlign = this.Factory.CreateRibbonButton();
@@ -130,12 +132,15 @@
             this.titleCenterCheckbox = this.Factory.CreateRibbonCheckBox();
             this.group1 = this.Factory.CreateRibbonGroup();
             this.addLabelsButton = this.Factory.CreateRibbonButton();
+            this.updateLabelsButton = this.Factory.CreateRibbonButton();
             this.labelFontSizeEditBox = this.Factory.CreateRibbonComboBox();
             this.labelFontNameEditBox = this.Factory.CreateRibbonComboBox();
             this.labelTemplateComboBox = this.Factory.CreateRibbonComboBox();
             this.labelOffsetYEditBox = this.Factory.CreateRibbonComboBox();
             this.labelOffsetXEditBox = this.Factory.CreateRibbonComboBox();
             this.labelBoldcheckBox = this.Factory.CreateRibbonCheckBox();
+            this.labelIndex = this.Factory.CreateRibbonEditBox();
+            this.labelIndexUpdatecheckBox = this.Factory.CreateRibbonCheckBox();
             this.group3 = this.Factory.CreateRibbonGroup();
             this.导出原图 = this.Factory.CreateRibbonButton();
             this.复制大图 = this.Factory.CreateRibbonButton();
@@ -168,9 +173,6 @@
             this.开发者 = this.Factory.CreateRibbonButton();
             this.button3 = this.Factory.CreateRibbonButton();
             this.button5 = this.Factory.CreateRibbonButton();
-            this.labelIndex = this.Factory.CreateRibbonEditBox();
-            this.labelUpdate = this.Factory.CreateRibbonButton();
-            this.labelIndexUpdatecheckBox = this.Factory.CreateRibbonCheckBox();
             this.tab2.SuspendLayout();
             this.图片自动对齐.SuspendLayout();
             this.图片处理.SuspendLayout();
@@ -477,7 +479,7 @@
             // group1
             // 
             this.group1.Items.Add(this.addLabelsButton);
-            this.group1.Items.Add(this.labelUpdate);
+            this.group1.Items.Add(this.updateLabelsButton);
             this.group1.Items.Add(this.labelFontSizeEditBox);
             this.group1.Items.Add(this.labelFontNameEditBox);
             this.group1.Items.Add(this.labelTemplateComboBox);
@@ -493,10 +495,19 @@
             // 
             this.addLabelsButton.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
             this.addLabelsButton.Image = ((System.Drawing.Image)(resources.GetObject("addLabelsButton.Image")));
-            this.addLabelsButton.Label = "图片加标签";
+            this.addLabelsButton.Label = "添加标签";
             this.addLabelsButton.Name = "addLabelsButton";
             this.addLabelsButton.ShowImage = true;
             this.addLabelsButton.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.addLabelsButton_Click);
+            // 
+            // updateLabelsButton
+            // 
+            this.updateLabelsButton.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
+            this.updateLabelsButton.Image = ((System.Drawing.Image)(resources.GetObject("updateLabelsButton.Image")));
+            this.updateLabelsButton.Label = "更新标签";
+            this.updateLabelsButton.Name = "updateLabelsButton";
+            this.updateLabelsButton.ShowImage = true;
+            this.updateLabelsButton.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.updateLabelsButton_Click);
             // 
             // labelFontSizeEditBox
             // 
@@ -516,14 +527,16 @@
             ribbonDropDownItemImpl62.Label = "a";
             ribbonDropDownItemImpl63.Label = "A)";
             ribbonDropDownItemImpl64.Label = "a)";
-            ribbonDropDownItemImpl65.Label = "1";
-            ribbonDropDownItemImpl66.Label = "1)";
-            ribbonDropDownItemImpl67.Label = "Ⅰ";
-            ribbonDropDownItemImpl68.Label = "Ⅰ)";
-            ribbonDropDownItemImpl69.Label = "①)";
-            ribbonDropDownItemImpl70.Label = "①";
-            ribbonDropDownItemImpl71.Label = "一)";
-            ribbonDropDownItemImpl72.Label = "一";
+            ribbonDropDownItemImpl65.Label = "(A)";
+            ribbonDropDownItemImpl66.Label = "(a)";
+            ribbonDropDownItemImpl67.Label = "1";
+            ribbonDropDownItemImpl68.Label = "1)";
+            ribbonDropDownItemImpl69.Label = "Ⅰ";
+            ribbonDropDownItemImpl70.Label = "Ⅰ)";
+            ribbonDropDownItemImpl71.Label = "①)";
+            ribbonDropDownItemImpl72.Label = "①";
+            ribbonDropDownItemImpl73.Label = "一)";
+            ribbonDropDownItemImpl74.Label = "一";
             this.labelTemplateComboBox.Items.Add(ribbonDropDownItemImpl61);
             this.labelTemplateComboBox.Items.Add(ribbonDropDownItemImpl62);
             this.labelTemplateComboBox.Items.Add(ribbonDropDownItemImpl63);
@@ -536,6 +549,8 @@
             this.labelTemplateComboBox.Items.Add(ribbonDropDownItemImpl70);
             this.labelTemplateComboBox.Items.Add(ribbonDropDownItemImpl71);
             this.labelTemplateComboBox.Items.Add(ribbonDropDownItemImpl72);
+            this.labelTemplateComboBox.Items.Add(ribbonDropDownItemImpl73);
+            this.labelTemplateComboBox.Items.Add(ribbonDropDownItemImpl74);
             this.labelTemplateComboBox.Label = "模板";
             this.labelTemplateComboBox.Name = "labelTemplateComboBox";
             this.labelTemplateComboBox.Text = "A";
@@ -557,6 +572,18 @@
             this.labelBoldcheckBox.Checked = true;
             this.labelBoldcheckBox.Label = "加粗";
             this.labelBoldcheckBox.Name = "labelBoldcheckBox";
+            // 
+            // labelIndex
+            // 
+            this.labelIndex.Label = "编号";
+            this.labelIndex.Name = "labelIndex";
+            this.labelIndex.Text = "1";
+            // 
+            // labelIndexUpdatecheckBox
+            // 
+            this.labelIndexUpdatecheckBox.Checked = true;
+            this.labelIndexUpdatecheckBox.Label = "编号自动更新";
+            this.labelIndexUpdatecheckBox.Name = "labelIndexUpdatecheckBox";
             // 
             // group3
             // 
@@ -809,26 +836,6 @@
             this.button5.ShowImage = true;
             this.button5.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.current_Version);
             // 
-            // labelIndex
-            // 
-            this.labelIndex.Label = "编号";
-            this.labelIndex.Name = "labelIndex";
-            this.labelIndex.Text = "1";
-            // 
-            // labelUpdate
-            // 
-            this.labelUpdate.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
-            this.labelUpdate.Image = ((System.Drawing.Image)(resources.GetObject("labelUpdate.Image")));
-            this.labelUpdate.Label = "标签更新";
-            this.labelUpdate.Name = "labelUpdate";
-            this.labelUpdate.ShowImage = true;
-            this.labelUpdate.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.updateLabelsButton_Click);
-            // 
-            // labelIndexUpdatecheckBox
-            // 
-            this.labelIndexUpdatecheckBox.Label = "编号自动更新";
-            this.labelIndexUpdatecheckBox.Name = "labelIndexUpdatecheckBox";
-            // 
             // Ribbon1
             // 
             this.Name = "Ribbon1";
@@ -922,7 +929,7 @@
         internal Microsoft.Office.Tools.Ribbon.RibbonButton 图片上标题;
         internal Microsoft.Office.Tools.Ribbon.RibbonCheckBox titleCenterCheckbox;
         internal Microsoft.Office.Tools.Ribbon.RibbonEditBox labelIndex;
-        internal Microsoft.Office.Tools.Ribbon.RibbonButton labelUpdate;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton updateLabelsButton;
         internal Microsoft.Office.Tools.Ribbon.RibbonCheckBox labelIndexUpdatecheckBox;
     }
 
