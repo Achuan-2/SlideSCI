@@ -18,7 +18,7 @@
 
 ## 1 ❤️ 友情推荐
 
-我的Adobe illustrator插件：[https://github.com/Achuan-2/illustrator_sci_plugin](https://github.com/Achuan-2/illustrator_sci_plugin)，专为科研绘图设计，支持复制粘贴相对位置、形状尺寸批量设置、图片一键自动排列，一键添加子图label
+我的Adobe illustrator插件：[https://github.com/Achuan-2/illustrator_sci_plugin](https://github.com/Achuan-2/illustrator_sci_plugin)，专为科研组图设计，支持复制粘贴相对位置、形状尺寸批量设置、图片一键自动排列，一键添加子图label
 
 <img alt="image" src="https://s2.loli.net/2025/08/29/OxzyYpbiWrPKgfG.png" style="width: 249px;" />​
 
