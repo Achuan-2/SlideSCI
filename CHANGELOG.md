@@ -1,3 +1,8 @@
+## v1.2 / 20250929
+
+- 🐛 fix(数学公式): 修复插入Markdown，$$没有去除的问题
+
+
 ## v1.1 / 2025.09.24
 
 - ✨图片添加标签新增计数器、更新标签文本功能 [#36](https://github.com/Achuan-2/my_ppt_plugin/issues/36)
