@@ -4000,6 +4000,8 @@ namespace SlideSCI
                             svgShape.AlternativeText = $"LaTeX: {normalizedLatex}";
                             // 设置svgShape图形填充颜色为黑色
                             svgShape.Fill.ForeColor.RGB = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.Black);
+                            // svgShape 默认设置为2x大小
+                            svgShape.Width *= 2;
                             svgShape.Select();
                         }
                     }

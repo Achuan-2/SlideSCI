@@ -1,3 +1,21 @@
+// 检查依赖是否存在
+try {
+    const { mathjax } = require('mathjax-full/js/mathjax.js');
+    const { TeX } = require('mathjax-full/js/input/tex.js');
+    const { SVG } = require('mathjax-full/js/output/svg.js');
+    const { liteAdaptor } = require('mathjax-full/js/adaptors/liteAdaptor.js');
+    const { RegisterHTMLHandler } = require('mathjax-full/js/handlers/html.js');
+    const { AllPackages } = require('mathjax-full/js/input/tex/AllPackages.js');
+} catch (error) {
+    console.error('缺少必要的依赖包 mathjax-full。请按以下步骤安装：');
+    console.error('1. 确认已安装 Node.js（下载地址：https://nodejs.org/）');
+    console.error('2. 打开命令提示符，导航到当前目录：' + __dirname);
+    console.error('3. 然后运行：npm install');
+    console.error('4. 安装完成后重试LaTeX转换功能');
+    console.error('');
+    process.exit(1);
+}
+
 const { mathjax } = require('mathjax-full/js/mathjax.js');
 const { TeX } = require('mathjax-full/js/input/tex.js');
 const { SVG } = require('mathjax-full/js/output/svg.js');
@@ -85,6 +103,11 @@ function runConversion(rawLatex, explicitDisplay) {
     }
     catch (error) {
         console.error(`LaTeX 转换失败: ${error.message}`);
+        console.error('');
+        console.error('请检查：');
+        console.error('1. LaTeX 语法是否正确');
+        console.error('2. 是否包含不支持的命令或包');
+        console.error('3. 如果是首次使用，请确认已正确安装依赖（运行 npm install）');
         process.exit(1);
     }
 }
@@ -133,6 +156,9 @@ function parseArgs(argv) {
         });
         process.stdin.on('error', (error) => {
             console.error(`读取标准输入失败: ${error.message}`);
+            console.error('请确认：');
+            console.error('1. 输入的LaTeX内容格式正确');
+            console.error('2. Node.js环境正常运行');
             process.exit(1);
         });
     }
