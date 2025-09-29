@@ -159,6 +159,7 @@ Github地址：[https://github.com/Achuan-2/SlideSCI](https://github.com/Achuan-
 
 - [jph00/latex-ppt](https://github.com/jph00/latex-ppt): LaTeX in PowerPoint 支持
 - [Markdig](https://github.com/xoofx/markdig): Markdown 解析支持
+- [MathJax](https://github.com/mathjax/MathJax): 数学公式转SVG支持
 - 感谢 Visual Studio Tools For Office 提供的开发支持
 - 感谢所有提供建议反馈以及捐赠赞赏的用户
 
