@@ -137,16 +137,15 @@ namespace SlideSCI
                     throw new InvalidOperationException($"缺少必要的 Node.js 依赖包。请按以下步骤安装：\n" +
                         $"1. 打开命令提示符（以管理员身份运行）\n" +
                         $"2. 导航到插件目录：{_workingDirectory}\n" +
-                        $"3. 如果没有安装 pnpm，先运行：npm install -g pnpm\n" +
-                        $"4. 然后运行：pnpm install\n" +
-                        $"5. 安装完成后重试LaTeX转换功能\n\n" +
+                        $"3. 然后运行：npm install\n" +
+                        $"4. 安装完成后重试LaTeX转换功能\n\n" +
                         $"原始错误信息：{errorMessage}");
                 }
                 
                 throw new InvalidOperationException($"LaTeX 转 SVG 处理时出现异常：{errorMessage}\n\n" +
                     $"如果是首次使用，请确认：\n" +
                     $"1. 已安装 Node.js（https://nodejs.org/）\n" +
-                    $"2. 已在插件目录 {_workingDirectory} 中运行 'pnpm install' 安装依赖", ex);
+                    $"2. 已在插件目录 {_workingDirectory} 中运行 'npm install' 安装依赖", ex);
             }
         }
     }
