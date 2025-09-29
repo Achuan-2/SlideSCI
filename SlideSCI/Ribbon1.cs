@@ -1508,7 +1508,6 @@ namespace SlideSCI
                 return markdown; // 转换失败时返回原文本
             }
         }
-
         private void insertMarkdown_Click(object sender, RibbonControlEventArgs e)
         {
             try
@@ -1775,6 +1774,7 @@ namespace SlideSCI
             }
         }
 
+
         private void ProcessInlineMathFormulas(Shape textShape)
         {
             TextRange textRange = textShape.TextFrame.TextRange;
@@ -2000,10 +2000,18 @@ namespace SlideSCI
                         "\n",
                         content.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
                     );
+                    
+                    // Remove surrounding $$ markers like in insertEquationButton_Click
+                    string mathContent = content.Replace("\n", ""); // Remove line breaks
+                    if (mathContent.StartsWith("$$") && mathContent.EndsWith("$$"))
+                    {
+                        mathContent = mathContent.Substring(2, mathContent.Length - 4);
+                    }
+                    
                     segments.Add(
                         new MarkdownSegment
                         {
-                            Content = content.Replace("\n", ""), // Remove line breaks
+                            Content = mathContent,
                             IsCodeBlock = false,
                             IsTable = false,
                             IsMathBlock = true,
