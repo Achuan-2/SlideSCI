@@ -3,3 +3,5 @@ SlideSCI/obj/
 SlideSCI/bin/
 SlideSCI/publish/
 packages/
+node_modules/
+pnpm-lock.yaml

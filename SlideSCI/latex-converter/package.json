@@ -1,0 +1,14 @@
+{
+    "name": "slide-sci-latex-converter",
+    "version": "1.0.0",
+    "description": "Convert LaTeX formulas to SVG using MathJax for SlideSCI PowerPoint add-in.",
+    "private": true,
+    "license": "MIT",
+    "main": "latex-to-svg.js",
+    "scripts": {
+        "convert": "node latex-to-svg.js"
+    },
+    "dependencies": {
+        "mathjax-full": "^3.2.2"
+    }
+}

@@ -3857,7 +3857,220 @@ namespace SlideSCI
 
             return null;
         }
+        private void insertLatexSVG_Click(object sender, RibbonControlEventArgs e)
+        {
+            if (app == null)
+            {
+                app = Globals.ThisAddIn.Application;
+            }
 
+            if (app?.ActiveWindow == null || app.ActiveWindow.View == null)
+            {
+                MessageBox.Show("当前没有打开的演示文稿窗口。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            Slide currentSlide = null;
+            try
+            {
+                currentSlide = app.ActiveWindow.View.Slide;
+            }
+            catch (Exception)
+            {
+                // 如果无法获取当前幻灯片，则提示并返回
+            }
+
+            if (currentSlide == null)
+            {
+                MessageBox.Show("无法获取当前幻灯片，请确保已经打开并选中了幻灯片。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            using (Form inputDialog = new Form
+            {
+                Width = 520,
+                Height = 420,
+                Text = "输入 LaTeX 公式",
+                StartPosition = FormStartPosition.CenterScreen,
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                MaximizeBox = false,
+                MinimizeBox = false,
+            })
+            {
+                var infoLabel = new Label
+                {
+                    Text = "请输入 LaTeX 数学公式，不需要输入 $ 或 \\(...\\)。",
+                    Dock = DockStyle.Top,
+                    Height = 40,
+                    TextAlign = ContentAlignment.MiddleLeft,
+                    Padding = new Padding(10, 10, 10, 0),
+                };
+
+                var latexInputBox = new TextBox
+                {
+                    Multiline = true,
+                    Dock = DockStyle.Fill,
+                    Font = new Font("Consolas", 12),
+                    ScrollBars = ScrollBars.Vertical,
+                };
+
+                var buttonPanel = new FlowLayoutPanel
+                {
+                    Dock = DockStyle.Bottom,
+                    Height = 50,
+                    Padding = new Padding(10),
+                    FlowDirection = FlowDirection.RightToLeft,
+                    AutoSize = false,
+                };
+
+                var okButton = new Button
+                {
+                    Text = "确定",
+                    DialogResult = DialogResult.OK,
+                    Width = 80,
+                    Height = 30,
+                    Margin = new Padding(10, 10, 0, 0),
+                };
+
+                var cancelButton = new Button
+                {
+                    Text = "取消",
+                    DialogResult = DialogResult.Cancel,
+                    Width = 80,
+                    Height = 30,
+                    Margin = new Padding(10, 10, 0, 0),
+                };
+
+                buttonPanel.Controls.Add(okButton);
+                buttonPanel.Controls.Add(cancelButton);
+
+                inputDialog.Controls.Add(latexInputBox);
+                inputDialog.Controls.Add(buttonPanel);
+                inputDialog.Controls.Add(infoLabel);
+
+                inputDialog.AcceptButton = okButton;
+                inputDialog.CancelButton = cancelButton;
+
+                if (inputDialog.ShowDialog() != DialogResult.OK)
+                {
+                    return;
+                }
+
+                string latexInput = latexInputBox.Text?.Trim();
+                if (string.IsNullOrWhiteSpace(latexInput))
+                {
+                    return;
+                }
+
+                string normalizedLatex = NormalizeLatexInput(latexInput);
+
+                try
+                {
+                    var converter = Globals.ThisAddIn.LatexSvgConverter ?? new LatexToSvgConverter();
+                    string svgContent = converter.ConvertLatexToSvg(normalizedLatex);
+
+                    if (string.IsNullOrWhiteSpace(svgContent))
+                    {
+                        MessageBox.Show("未生成有效的 SVG 内容。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+
+                    string tempDirectory = Path.Combine(Path.GetTempPath(), "SlideSCI", "latex");
+                    Directory.CreateDirectory(tempDirectory);
+                    string tempFilePath = Path.Combine(tempDirectory, $"latex_{Guid.NewGuid():N}.svg");
+                    File.WriteAllText(tempFilePath, svgContent, Encoding.UTF8);
+
+                    try
+                    {
+                        Shape svgShape = currentSlide.Shapes.AddPicture(
+                            tempFilePath,
+                            Office.MsoTriState.msoFalse,
+                            Office.MsoTriState.msoTrue,
+                            0,
+                            0,
+                            -1,
+                            -1
+                        );
+
+                        if (svgShape != null)
+                        {
+                            svgShape.Left = (currentSlide.Master.Width - svgShape.Width) / 2;
+                            svgShape.Top = (currentSlide.Master.Height - svgShape.Height) / 2;
+                            svgShape.LockAspectRatio = Office.MsoTriState.msoTrue;
+                            svgShape.AlternativeText = $"LaTeX: {normalizedLatex}";
+                            // 设置svgShape图形填充颜色为黑色
+                            svgShape.Fill.ForeColor.RGB = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.Black);
+                            svgShape.Select();
+                        }
+                    }
+                    finally
+                    {
+                        try
+                        {
+                            if (File.Exists(tempFilePath))
+                            {
+                                File.Delete(tempFilePath);
+                            }
+                        }
+                        catch (Exception deleteEx)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"删除临时 SVG 文件失败: {deleteEx.Message}");
+                        }
+                    }
+                }
+                catch (FileNotFoundException fnfEx)
+                {
+                    MessageBox.Show(
+                        $"{fnfEx.Message}\n请在插件目录下的 latex-converter 文件夹中执行 npm install。",
+                        "脚本缺失",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error
+                    );
+                }
+                catch (InvalidOperationException invalidOpEx)
+                {
+                    MessageBox.Show(
+                        invalidOpEx.Message,
+                        "LaTeX 转换失败",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error
+                    );
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(
+                        $"插入 LaTeX SVG 时发生错误: {ex.Message}",
+                        "错误",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error
+                    );
+                }
+            }
+        }
+
+        private static string NormalizeLatexInput(string latexInput)
+        {
+            string trimmed = latexInput.Trim();
+
+            if (trimmed.StartsWith("$$") && trimmed.EndsWith("$$"))
+            {
+                trimmed = trimmed.Substring(2, trimmed.Length - 4);
+            }
+            else if (trimmed.StartsWith("$") && trimmed.EndsWith("$"))
+            {
+                trimmed = trimmed.Substring(1, trimmed.Length - 2);
+            }
+            else if (trimmed.StartsWith(@"\(") && trimmed.EndsWith(@"\)"))
+            {
+                trimmed = trimmed.Substring(2, trimmed.Length - 4);
+            }
+            else if (trimmed.StartsWith(@"\[") && trimmed.EndsWith(@"\]"))
+            {
+                trimmed = trimmed.Substring(2, trimmed.Length - 4);
+            }
+
+            return trimmed.Replace("\r", "").Trim();
+        }
         private void updateLabelsButton_Click(object sender, RibbonControlEventArgs e)
         {
             Selection sel = app.ActiveWindow.Selection;

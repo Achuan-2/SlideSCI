@@ -2,9 +2,11 @@
 {
     public partial class ThisAddIn
     {
+        public LatexToSvgConverter LatexSvgConverter { get; private set; }
+
         private void ThisAddIn_Startup(object sender, System.EventArgs e)
         {
-
+            LatexSvgConverter = new LatexToSvgConverter();
         }
 
         private void ThisAddIn_Shutdown(object sender, System.EventArgs e)

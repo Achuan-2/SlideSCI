@@ -165,6 +165,7 @@
             this.codeGroup = this.Factory.CreateRibbonGroup();
             this.button2 = this.Factory.CreateRibbonButton();
             this.insertEquationButton = this.Factory.CreateRibbonButton();
+            this.button8 = this.Factory.CreateRibbonButton();
             this.insertCodeBlockButton = this.Factory.CreateRibbonButton();
             this.toggleBackgroundCheckBox = this.Factory.CreateRibbonCheckBox();
             this.group2 = this.Factory.CreateRibbonGroup();
@@ -749,6 +750,7 @@
             // 
             this.codeGroup.Items.Add(this.button2);
             this.codeGroup.Items.Add(this.insertEquationButton);
+            this.codeGroup.Items.Add(this.button8);
             this.codeGroup.Items.Add(this.insertCodeBlockButton);
             this.codeGroup.Items.Add(this.toggleBackgroundCheckBox);
             this.codeGroup.Label = "Markdown";
@@ -770,6 +772,12 @@
             this.insertEquationButton.Name = "insertEquationButton";
             this.insertEquationButton.ShowImage = true;
             this.insertEquationButton.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.insertEquationButton_Click);
+            // 
+            // button8
+            // 
+            this.button8.Label = "插入LaTex SVG";
+            this.button8.Name = "button8";
+            this.button8.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.insertLatexSVG_Click);
             // 
             // insertCodeBlockButton
             // 
@@ -931,6 +939,7 @@
         internal Microsoft.Office.Tools.Ribbon.RibbonEditBox labelIndex;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton updateLabelsButton;
         internal Microsoft.Office.Tools.Ribbon.RibbonCheckBox labelIndexUpdatecheckBox;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton button8;
     }
 
     partial class ThisRibbonCollection
