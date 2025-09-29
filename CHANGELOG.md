@@ -1,6 +1,6 @@
 ## v1.3 / 20250929
 - ✨支持插入latex svg，以解决插入latex文字版本有些latex语法不支持的问题
-  - 安装方法
+  - 配置方法（需要node.js环境）
     - 配置Node.js环境
     - 进入插件安装文件夹的latex-converter文件夹，默认为`%APPDATA%\Achuan-2\SlideSCI\latex-converter`
     - 运行`npm install`安装
