@@ -63,9 +63,10 @@ namespace SlideSCI
                         throw new InvalidOperationException("无法启动 Node.js 进程，请确认已安装 Node.js 并可在系统 PATH 中访问。");
                     }
 
-                    using (var writer = process.StandardInput)
+                    using (var writer = new StreamWriter(process.StandardInput.BaseStream, Encoding.UTF8))
                     {
                         writer.Write(latexCode);
+                        writer.Flush();
                     }
 
                     string output = process.StandardOutput.ReadToEnd();

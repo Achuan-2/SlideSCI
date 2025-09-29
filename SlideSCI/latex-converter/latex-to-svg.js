@@ -18,11 +18,11 @@ const tex = new TeX({
         ['\\[', '\\]'],
         ['$$', '$$'],
     ],
+
 });
 
 const svg = new SVG({
     fontCache: 'none',
-    fontFamily: 'MJXZERO, MJXTEX, "Noto Sans CJK SC", "Source Han Sans SC", "Microsoft YaHei", "SimHei", sans-serif',
 });
 
 const html = mathjax.document('', {
