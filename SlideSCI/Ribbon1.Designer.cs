@@ -172,7 +172,6 @@
             this.赞赏 = this.Factory.CreateRibbonButton();
             this.button4 = this.Factory.CreateRibbonButton();
             this.开发者 = this.Factory.CreateRibbonButton();
-            this.button3 = this.Factory.CreateRibbonButton();
             this.button5 = this.Factory.CreateRibbonButton();
             this.tab2.SuspendLayout();
             this.图片自动对齐.SuspendLayout();
@@ -614,7 +613,6 @@
             this.group2.Items.Add(this.赞赏);
             this.group2.Items.Add(this.button4);
             this.group2.Items.Add(this.开发者);
-            this.group2.Items.Add(this.button3);
             this.group2.Items.Add(this.button5);
             this.group2.Label = "关于";
             this.group2.Name = "group2";
@@ -830,14 +828,6 @@
             this.开发者.ShowImage = true;
             this.开发者.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.developer_website);
             // 
-            // button3
-            // 
-            this.button3.Image = ((System.Drawing.Image)(resources.GetObject("button3.Image")));
-            this.button3.Label = "使用介绍";
-            this.button3.Name = "button3";
-            this.button3.ShowImage = true;
-            this.button3.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.openDoc_Click);
-            // 
             // button5
             // 
             this.button5.Image = ((System.Drawing.Image)(resources.GetObject("button5.Image")));
@@ -928,7 +918,6 @@
         internal Microsoft.Office.Tools.Ribbon.RibbonCheckBox toggleBackgroundCheckBox;
         internal Microsoft.Office.Tools.Ribbon.RibbonGroup group2;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton button4;
-        internal Microsoft.Office.Tools.Ribbon.RibbonButton button3;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton button5;
         internal Microsoft.Office.Tools.Ribbon.RibbonGroup group3;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton button1;
