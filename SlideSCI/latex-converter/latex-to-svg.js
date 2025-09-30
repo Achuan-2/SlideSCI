@@ -85,7 +85,12 @@ function convertLatexToSvg(latex, displayMode) {
     });
 
     const svgContent = adaptor.innerHTML(node);
-    return svgContent.replace(/\n{2,}/g, '\n').trim();
+    // 替换 currentColor 为 #000，确保在PPT中正常显示
+    const processedSvg = svgContent
+        .replace(/stroke="currentColor"/g, 'stroke="#000"')
+        .replace(/fill="currentColor"/g, 'fill="#000"');
+
+    return processedSvg.replace(/\n{2,}/g, '\n').trim();
 }
 
 function runConversion(rawLatex, explicitDisplay) {

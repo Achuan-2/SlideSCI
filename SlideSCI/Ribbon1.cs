@@ -3998,8 +3998,6 @@ namespace SlideSCI
                             svgShape.Top = (currentSlide.Master.Height - svgShape.Height) / 2;
                             svgShape.LockAspectRatio = Office.MsoTriState.msoTrue;
                             svgShape.AlternativeText = $"LaTeX: {normalizedLatex}";
-                            // 设置svgShape图形填充颜色为黑色
-                            svgShape.Fill.ForeColor.RGB = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.Black);
                             // svgShape 默认设置为2x大小
                             svgShape.Width *= 2;
                             svgShape.Select();
