@@ -86,7 +86,8 @@ Github地址：[https://github.com/Achuan-2/SlideSCI](https://github.com/Achuan-
   <img width="1889" height="1203" alt="image" src="https://github.com/user-attachments/assets/d33eba81-4241-4ec6-bc73-057087be8a5e" />
 
   如果数学公式比较复杂，PPT原生不支持，可以插入svg版本，支持更多latex公式样式，只需要配置node.js环境，而不需要像配置IguanaTeX环境还要安装很多插件才能实现latex转svg，简单很多
-  <img width="1355" height="765" alt="image" src="https://github.com/user-attachments/assets/65827a49-df1a-41b4-933d-f5b37b597845" />
+  <img width="1756" height="1202" alt="PixPin_2025-09-30_10-21-00" src="https://github.com/user-attachments/assets/4d7732b2-47da-41e1-bb22-ddfceab4604b" />
+
 
   > 配置「插入LaTeX svg」功能方法
   >
