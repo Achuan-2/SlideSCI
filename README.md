@@ -75,10 +75,26 @@ Github地址：[https://github.com/Achuan-2/SlideSCI](https://github.com/Achuan-
 - **支持插入代码块自动高亮**  
   ​<img alt="" src="https://s2.loli.net/2025/08/29/jbSgDfnP69eZopV.png" />
 
-  - **支持代码语言高亮列表**：matlab、python、r、js、html、css、csharp
+  - **支持代码语言高亮列表**：matlab、python、r、js、html、css、csharp、Fortran
   - **支持切换黑白背景色**：默认是黑色背景色，切换为背景色，只需要点击「代码黑色背景色」按钮取消激活状态即可
 - **支持插入latex数学公式**  
-  ​<img alt="" src="https://s2.loli.net/2025/08/29/qz9LMCuRB7AotDv.png" />
+  ​「插入Markdown」可以快速插入文字与数学混排
+  <img width="1926" height="1106" alt="image" src="https://github.com/user-attachments/assets/8d345baf-41af-473d-a182-3c7d2864c155" />
+
+  「插入LaTeX文字」单独插入可编辑的数学公式
+
+  <img width="1889" height="1203" alt="image" src="https://github.com/user-attachments/assets/d33eba81-4241-4ec6-bc73-057087be8a5e" />
+
+  如果数学公式比较复杂，PPT原生不支持，可以插入svg版本，支持更多latex公式样式，只需要配置node.js环境，而不需要像配置IguanaTeX环境还要安装很多插件才能实现latex转svg，简单很多
+  <img width="1355" height="765" alt="image" src="https://github.com/user-attachments/assets/65827a49-df1a-41b4-933d-f5b37b597845" />
+
+  > 配置「插入LaTeX svg」功能方法
+  >
+  > - 配置Node.js环境
+  > - 进入插件安装文件夹的latex-converter文件夹，默认为`%APPDATA%\Achuan-2\SlideSCI\latex-converter`
+  > - 运行`npm install`安装
+
+
 - **支持插入Markdown文本**：可以直接把markdown整篇笔记一口气全部粘贴到PPT里！并按原文顺序排列！  
   ​<img alt="" src="https://s2.loli.net/2025/08/29/MPKOgWonijCsl4D.png" />
 
