@@ -3997,7 +3997,7 @@ namespace SlideSCI
                             svgShape.Left = (currentSlide.Master.Width - svgShape.Width) / 2;
                             svgShape.Top = (currentSlide.Master.Height - svgShape.Height) / 2;
                             svgShape.LockAspectRatio = Office.MsoTriState.msoTrue;
-                            svgShape.AlternativeText = $"LaTeX: {normalizedLatex}";
+                            svgShape.AlternativeText = $"{normalizedLatex}";
                             // svgShape 默认设置为2x大小
                             svgShape.Width *= 2;
                             svgShape.Select();
