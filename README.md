@@ -75,10 +75,31 @@ Github地址：[https://github.com/Achuan-2/SlideSCI](https://github.com/Achuan-
 - **支持插入代码块自动高亮**  
   ​<img alt="" src="https://s2.loli.net/2025/08/29/jbSgDfnP69eZopV.png" />
 
-  - **支持代码语言高亮列表**：matlab、python、r、js、html、css、csharp
+  - **支持代码语言高亮列表**：matlab、python、r、js、html、css、csharp、Fortran
   - **支持切换黑白背景色**：默认是黑色背景色，切换为背景色，只需要点击「代码黑色背景色」按钮取消激活状态即可
 - **支持插入latex数学公式**  
-  ​<img alt="" src="https://s2.loli.net/2025/08/29/qz9LMCuRB7AotDv.png" />
+  ​「插入Markdown」可以快速插入文字与数学混排
+  <img width="1926" height="1106" alt="image" src="https://github.com/user-attachments/assets/8d345baf-41af-473d-a182-3c7d2864c155" />
+
+  「插入LaTeX文字」单独插入可编辑的数学公式
+
+  <img width="1889" height="1203" alt="image" src="https://github.com/user-attachments/assets/d33eba81-4241-4ec6-bc73-057087be8a5e" />
+
+  如果数学公式比较复杂，PPT原生不支持，可以选择「插入LaTeX svg」，支持更多latex公式样式，只需要简单配置下node.js环境即可使用，而不需要像IguanaTeX等插件除了安装LaTeX环境还要安装很多插件才能实现latex转svg，本插件的安装简单很多
+  <img width="1756" height="1202" alt="PixPin_2025-09-30_10-21-00" src="https://github.com/user-attachments/assets/4d7732b2-47da-41e1-bb22-ddfceab4604b" />
+  插入的svg的图片提示文字会保留原始LaTeX代码，方便修改后再插入
+  <img width="1768" height="979" alt="PixPin_2025-09-30_10-25-48" src="https://github.com/user-attachments/assets/b5bbeaf1-8b12-44b1-9664-4591741e83ea" />
+
+
+
+  > 配置「插入LaTeX svg」功能的方法
+  >
+  > - 配置[Node.js](https://nodejs.org/zh-cn/)环境
+  > - 进入插件安装文件夹的`latex-converter`文件夹，默认为`%APPDATA%\Achuan-2\SlideSCI\latex-converter`
+  > - 打开命令行，运行`npm install`安装环境
+  > - 配置完成，可以使用「插入LaTeX svg」功能
+
+
 - **支持插入Markdown文本**：可以直接把markdown整篇笔记一口气全部粘贴到PPT里！并按原文顺序排列！  
   ​<img alt="" src="https://s2.loli.net/2025/08/29/MPKOgWonijCsl4D.png" />
 
@@ -144,7 +165,11 @@ Github地址：[https://github.com/Achuan-2/SlideSCI](https://github.com/Achuan-
 
 ## 9 ❤️ 用爱发电
 
-开发和维护不易，如果喜欢我的插件，欢迎给GitHub仓库点star和捐赠，这会激励我继续完善此插件。
+开源与创作不易，如果喜欢我的作品，欢迎给我赞赏，这会激励我继续维护项目和持续创作新项目。
+
+开源不等于免费，我开源的目的是分享与交流学习，而不是免费给别人打工。开源的代码和插件、软件，首先都是写给自己用，顺道分享出来的，而不是为了给别人用而写。个人时间和精力有限，我不会免费帮忙实现用户提的各种功能请求、免费帮别人答疑解惑，在优先考虑个人需求的前提下，再考虑赞赏用户的使用答疑、功能建议。不考虑非赞赏用户提的需求。
+
+累积赞赏50元的朋友如果想加我微信，可以发邮件到achuan-2@outlook.com来进行好友申请（赞赏达不到50元的，我不会回复邮件和加好友哦，因为不想当免费客服）
 
 <img alt="" src="https://s2.loli.net/2025/08/29/tI4HCGzql17nr2D.png" />
 
