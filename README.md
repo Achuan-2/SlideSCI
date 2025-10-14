@@ -160,7 +160,7 @@ Github地址：[https://github.com/Achuan-2/SlideSCI](https://github.com/Achuan-
 
 - **插入latex公式，显示不正常？**
 
-  - 插件比较适合插入单行数学公式，对于复杂的多行语法，推荐使用IguanaTex插件
+  - 「插入latex文字」按钮由于调用的是PPT自带的功能，比较适合插入简单的数学公式，插入复杂的latex请使用「插入latex svg」
   - PPT特殊latex语法举例见：[#7](https://github.com/Achuan-2/SlideSCI/issues/7)
 
 ## 9 ❤️ 用爱发电
