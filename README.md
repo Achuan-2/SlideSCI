@@ -2,7 +2,10 @@
 
 [English](README.en.md) | 简体中文
 
+<a href="https://hellogithub.com/repository/Achuan-2/SlideSCI" target="_blank"><img src="https://abroad.hellogithub.com/v1/widgets/recommend.svg?rid=54e09132ba0a40cf9ff6594320e6c6ba&claim_uid=k20NpB9znZ3v6h8" alt="Featured｜HelloGitHub" style="width: 250px; height: 54px;" width="250" height="54" /></a>
+
 </div>
+
 
 
 [![Star History Chart](https://api.star-history.com/svg?repos=Achuan-2/SlideSCI&type=Date)](https://www.star-history.com/#Achuan-2/SlideSCI&Date)
@@ -160,8 +163,16 @@ Github地址：[https://github.com/Achuan-2/SlideSCI](https://github.com/Achuan-
 
 - **插入latex公式，显示不正常？**
 
-  - 插件比较适合插入单行数学公式，对于复杂的多行语法，推荐使用IguanaTex插件
+  - 「插入latex文字」按钮由于调用的是PPT自带的功能，比较适合插入简单的数学公式，插入复杂的latex请使用「插入latex svg」
   - PPT特殊latex语法举例见：[#7](https://github.com/Achuan-2/SlideSCI/issues/7)
+- **如何及时获取插件版本更新**
+
+  Github有关注功能，关注本项目的repo的release动态，当新版本发布后，Github就会自动发邮件通知
+  <img width="662" height="425" alt="PixPin_2025-10-14_20-54-44" src="https://github.com/user-attachments/assets/646144ed-8ed1-47d5-afb3-889dd0c2bfdf" />
+
+  <img width="516" height="392" alt="PixPin_2025-10-14_20-55-32" src="https://github.com/user-attachments/assets/9eefb02d-e57f-4193-a331-18ca696745e9" />
+
+
 
 ## 9 ❤️ 用爱发电
 
@@ -177,7 +188,7 @@ Github地址：[https://github.com/Achuan-2/SlideSCI](https://github.com/Achuan-
 
 如果使用过程中遇到问题，可以通过以下方式反馈:
 
-1. 在 GitHub 上提 [Issue](https://github.com/Achuan-2/my_ppt_plugin/issues)
+1. 在 GitHub 上提 [Issue](https://github.com/Achuan-2/SlideSCI/issues)
 2. 发送邮件到: [achuan-2@outlook.com](mailto:achuan-2@outlook.com)
 
 ## 11 🔍 参考项目与致谢
