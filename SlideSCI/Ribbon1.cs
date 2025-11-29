@@ -71,7 +71,6 @@ namespace SlideSCI
                 .Default
                 .imgAutoAlignAlignType;
             excludeTextcheckBox.Checked = Properties.Settings.Default.imgAutoAlighExcludeText;
-            excludeTextcheckBox2.Checked = Properties.Settings.Default.imgAddTitleExcludeText;
             titleCenterCheckbox.Checked = Properties.Settings.Default.imgAddTitleCenter;
             // insertMarkdown
             toggleBackgroundCheckBox.Checked = Properties.Settings.Default.ToggleBackground;
@@ -97,7 +96,6 @@ namespace SlideSCI
             imgHeightEditBox.TextChanged += SaveSettings;
             imgAutoAlignAlignTypeDropDown.SelectionChanged += SaveSettings;
             excludeTextcheckBox.Click += SaveSettings;
-            excludeTextcheckBox2.Click += SaveSettings;
             titleCenterCheckbox.Click += SaveSettings;
             labelBoldcheckBox.Click += SaveSettings;
 
@@ -433,7 +431,6 @@ namespace SlideSCI
             Properties.Settings.Default.imgAutoAlignAlignType =
                 imgAutoAlignAlignTypeDropDown.SelectedItemIndex;
             Properties.Settings.Default.imgAutoAlighExcludeText = excludeTextcheckBox.Checked;
-            Properties.Settings.Default.imgAddTitleExcludeText = excludeTextcheckBox2.Checked;
             Properties.Settings.Default.imgAddTitleCenter = titleCenterCheckbox.Checked;
             // Save insertMarkdwon
             Properties.Settings.Default.ToggleBackground = toggleBackgroundCheckBox.Checked;
