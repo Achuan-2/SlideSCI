@@ -490,40 +490,7 @@ namespace SlideSCI
 
             foreach (Shape shape in sel.ShapeRange)
             {
-                Office.MsoShapeType objType = shape.Type;
-                // 是否排除文本框、形状等格式。excludeTextcheckBox2.Checked，则排除
-                if (
-                    excludeTextcheckBox2.Checked
-                    && (
-                        objType is Office.MsoShapeType.msoTextBox
-                        || objType is Office.MsoShapeType.msoAutoShape
-                    )
-                )
-                {
-                    continue;
-                }
-
-                // 弹窗显示objType
-                //MessageBox.Show($"对象类型: {objType}");
-                // 检查是否为支持的类型：图片、视频、媒体对象
-                if (
-                    objType == Office.MsoShapeType.msoPicture
-                    || objType == Office.MsoShapeType.msoMedia
-                    || objType == Office.MsoShapeType.msoLinkedPicture
-                    || objType == Office.MsoShapeType.msoEmbeddedOLEObject
-                    || objType == Office.MsoShapeType.msoLinkedOLEObject
-                    || objType == Office.MsoShapeType.msoPlaceholder
-                    || (
-                        !excludeTextcheckBox2.Checked
-                        && (
-                            objType == Office.MsoShapeType.msoTextBox
-                            || objType == Office.MsoShapeType.msoAutoShape
-                        )
-                    )
-                )
-                {
-                    selectedImgShape.Add(shape);
-                }
+                selectedImgShape.Add(shape);
             }
 
             foreach (Shape selectedShape in selectedImgShape)
@@ -602,13 +569,13 @@ namespace SlideSCI
 
             if (selectedImgShape.Count == 0)
             {
-                MessageBox.Show("没有找到支持添加标题的对象。请选择图片、视频或其他媒体对象。");
+                MessageBox.Show("请选择要添加标题的对象。");
                 return;
             }
         }
         else
         {
-            MessageBox.Show("请选择需要增加标题的图片、形状、视频对象.");
+            MessageBox.Show("请选择要添加标题的对象。");
         }
 
         // 自动编组
