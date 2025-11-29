@@ -115,7 +115,7 @@ namespace SlideSCI
             List<string> FontNames = new List<string>()
             {
                 "Arial",
-                "Time new Roman",
+                "Times new Roman",
                 "微软雅黑",
                 "黑体",
                 "方正兰亭黑体",
