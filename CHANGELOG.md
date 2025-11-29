@@ -1,3 +1,9 @@
+
+## v1.4 / 20251129
+
+- 🎨任何对象都可以添加图片标题
+- 🎨子图标签设置times new roman字体修复 [#53](https://github.com/Achuan-2/my_ppt_plugin/issues/53)
+
 ## v1.3 / 20250929
 - ✨支持插入latex svg，以解决插入latex文字版本有些latex语法不支持的问题
   - 配置方法（需要node.js环境）
