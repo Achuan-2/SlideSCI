@@ -6,6 +6,7 @@
 
 </div>
 
+<img width="2406" height="753" alt="image" src="https://github.com/user-attachments/assets/1144e736-3f07-4897-96d2-f2be4ad4f604" />
 
 
 [![Star History Chart](https://api.star-history.com/svg?repos=Achuan-2/SlideSCI&type=Date)](https://www.star-history.com/#Achuan-2/SlideSCI&Date)
