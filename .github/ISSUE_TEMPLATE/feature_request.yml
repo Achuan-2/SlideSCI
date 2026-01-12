@@ -1,0 +1,56 @@
+name: ✨ 功能请求
+description: "请求新增功能或改进现有功能。"
+title: "请输入功能请求标题"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        开源只是分享，不等于我要浪费我的时间免费帮用户实现 ta 需要的功能。
+
+        我需要的功能我会慢慢改进（打赏可以催更）；有些我觉得可以改进但现阶段不必要的功能，需要打赏才考虑实现（会标注“打赏”标签和所需金额）；我不需要的功能或实现成本极高的功能会直接关闭 issue，不予考虑。
+
+        请不要不经思考随意提大量 issue，因为这会打扰到我并浪费我阅读 issue 的时间。
+  - type: checkboxes
+    attributes:
+      label: 是否已搜索现有 Issue？
+      description: |
+        请先在现有 Issue 中搜索，避免重复提单。
+      options:
+        - label: 我已搜索过现有 Issue
+          required: true
+  - type: textarea
+    attributes:
+      label: 使用场景（必须）
+      description: |
+        请详细描述你需要此功能的使用场景、目标，以及为什么现有功能无法满足需求。
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: 最佳实现方案（必须）
+      description: |
+        如果你有理想实现方式或参考软件，请说明具体行为、交互和预期效果，便于评估可行性。
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: 可接受的替代方案（必须）
+      description: |
+        若无法实现最佳方案，你能接受的替代方案是什么？请尽量描述可接受的范围与优先级。
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: 是否愿意打赏（必须，若愿意请说明金额）
+      description: |
+        为了加速实现，可选打赏支持。请说明是否愿意打赏支持及标注打赏金额，已打赏用户标注过去打赏过的金额。
+        ![打赏链接](https://fastly.jsdelivr.net/gh/Achuan-2/PicBed/assets/20241128221208-2024-11-28.png)
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: 其他信息（可选）
+      description: |
+        如有截图、示意图、或补充说明请在此处提供。
+    validations:
+      required: false
