@@ -1,4 +1,4 @@
-﻿namespace SlideSCI
+namespace SlideSCI
 {
     partial class Ribbon1 : Microsoft.Office.Tools.Ribbon.RibbonBase
     {
@@ -560,6 +560,7 @@
             this.复制图片格式.Items.Add(this.copyImgHeight);
             this.复制图片格式.Items.Add(this.pasteImgHeight);
             this.复制图片格式.Items.Add(this.separator4);
+            this.复制图片格式.Items.Add(this.lockAspectRatioCheckBox);
             this.复制图片格式.Items.Add(this.copyCrop);
             this.复制图片格式.Items.Add(this.pasteCrop);
             this.复制图片格式.Label = "复制格式";
@@ -761,6 +762,14 @@
             this.pasteCrop.ShowImage = true;
             this.pasteCrop.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.pasteCrop_Click);
             // 
+            // lockAspectRatioCheckBox
+            // 
+            this.lockAspectRatioCheckBox.Checked = true;
+            this.lockAspectRatioCheckBox.Label = "锁定纵横比";
+            this.lockAspectRatioCheckBox.Name = "lockAspectRatioCheckBox";
+            this.lockAspectRatioCheckBox.ScreenTip = "粘贴宽高时是否锁定纵横比";
+            this.lockAspectRatioCheckBox.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.lockAspectRatioCheckBox_Click);
+            // 
             // button2
             // 
             this.button2.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
@@ -900,7 +909,7 @@
         internal Microsoft.Office.Tools.Ribbon.RibbonSeparator separator4;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton copyCrop;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton pasteCrop;
-        internal Microsoft.Office.Tools.Ribbon.RibbonGroup codeGroup;
+        internal Microsoft.Office.Tools.Ribbon.RibbonCheckBox lockAspectRatioCheckBox;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton button2;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton insertEquationButton;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton insertCodeBlockButton;
