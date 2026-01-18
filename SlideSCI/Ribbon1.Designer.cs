@@ -914,6 +914,7 @@ namespace SlideSCI
         internal Microsoft.Office.Tools.Ribbon.RibbonButton insertEquationButton;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton insertCodeBlockButton;
         internal Microsoft.Office.Tools.Ribbon.RibbonCheckBox toggleBackgroundCheckBox;
+        internal Microsoft.Office.Tools.Ribbon.RibbonGroup codeGroup;
         internal Microsoft.Office.Tools.Ribbon.RibbonGroup group2;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton button4;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton button5;
