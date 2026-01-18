@@ -333,6 +333,8 @@ namespace SlideSCI.Properties {
             set {
                 this["selectedCodeLanguage"] = value;
             }
+        }
+        
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("True")]
@@ -345,5 +347,4 @@ namespace SlideSCI.Properties {
             }
         }
     }
-}
 }
