@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -74,6 +74,7 @@ namespace SlideSCI
             titleCenterCheckbox.Checked = Properties.Settings.Default.imgAddTitleCenter;
             // insertMarkdown
             toggleBackgroundCheckBox.Checked = Properties.Settings.Default.ToggleBackground;
+            lockAspectRatioCheckBox.Checked = Properties.Settings.Default.LockAspectRatio;
 
             // Add event handlers for text changed events
             fontNameEditBox.TextChanged += SaveSettings;
@@ -100,6 +101,7 @@ namespace SlideSCI
             labelBoldcheckBox.Click += SaveSettings;
 
             toggleBackgroundCheckBox.Click += SaveSettings;
+            lockAspectRatioCheckBox.Click += SaveSettings;
             // exportImageButton.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.exportImageButton_Click); // Already set in Designer.cs
             iniCombobox();
         }
@@ -434,6 +436,7 @@ namespace SlideSCI
             Properties.Settings.Default.imgAddTitleCenter = titleCenterCheckbox.Checked;
             // Save insertMarkdwon
             Properties.Settings.Default.ToggleBackground = toggleBackgroundCheckBox.Checked;
+            Properties.Settings.Default.LockAspectRatio = lockAspectRatioCheckBox.Checked;
 
             // 保存导出设置 (如果将来添加UI控件进行修改)
             // Properties.Settings.Default.ExportFormat = exportFormatComboBox.Text;
@@ -770,7 +773,14 @@ namespace SlideSCI
             {
                 foreach (Shape shape in sel.ShapeRange)
                 {
-                    shape.LockAspectRatio = Office.MsoTriState.msoTrue; // Lock aspect ratio
+                    if (lockAspectRatioCheckBox.Checked)
+                    {
+                        shape.LockAspectRatio = Office.MsoTriState.msoTrue; // Lock aspect ratio
+                    }
+                    else
+                    {
+                        shape.LockAspectRatio = Office.MsoTriState.msoFalse; // Unlock aspect ratio
+                    }
                     shape.Width = copiedWidth;
                 }
             }
@@ -808,7 +818,14 @@ namespace SlideSCI
             {
                 foreach (Shape shape in sel.ShapeRange)
                 {
-                    shape.LockAspectRatio = Office.MsoTriState.msoTrue; // Lock aspect ratio
+                    if (lockAspectRatioCheckBox.Checked)
+                    {
+                        shape.LockAspectRatio = Office.MsoTriState.msoTrue; // Lock aspect ratio
+                    }
+                    else
+                    {
+                        shape.LockAspectRatio = Office.MsoTriState.msoFalse; // Unlock aspect ratio
+                    }
                     shape.Height = copiedHeight;
                 }
             }
@@ -865,6 +882,11 @@ namespace SlideSCI
             {
                 MessageBox.Show("Please select shapes to paste positions.");
             }
+        }
+
+        private void lockAspectRatioCheckBox_Click(object sender, RibbonControlEventArgs e)
+        {
+            // Do nothing, just updated for saving settings
         }
 
         /// <summary>
