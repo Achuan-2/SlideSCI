@@ -29,7 +29,7 @@ jobs:
 
     - name: Build Solution
       run: |
-        msbuild SlideSCI.sln /p:Configuration=Release /p:Platform="Any CPU" /p:SignAssembly=false /p:SignManifests=true /p:ManifestKeyFile="SlideSCI_Temp.pfx" /p:ManifestCertificateThumbprint="" /p:ManifestTimestampUrl="" /p:Password="password"
+        msbuild SlideSCI.sln /p:Configuration=Release /p:Platform="Any CPU" /p:SignAssembly=false /p:SignManifests=true /p:ManifestCertificateThumbprint="${{ env.PFX_THUMBPRINT }}" /p:ManifestKeyFile="" /p:ManifestTimestampUrl=""
 
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v4
