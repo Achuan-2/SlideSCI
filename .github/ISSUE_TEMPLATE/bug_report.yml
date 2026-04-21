@@ -50,27 +50,11 @@ body:
       required: true
   - type: textarea
     attributes:
-      label: 截图或录像（可选）
-      description: |
-        请尽量附上截图或录屏，能更快定位问题。
-    validations:
-      required: false
-  - type: textarea
-    attributes:
       label: 版本与环境（必须）
       value: |
         - 版本：
         - 操作系统：
-        - 浏览器（若使用）：
       render: markdown
-    validations:
-      required: true
-  - type: textarea
-    attributes:
-      label: 是否愿意打赏（必须，若愿意请说明金额）
-      description: |
-        为了加速实现，可选打赏支持。请说明是否愿意打赏支持及标注打赏金额，已打赏用户标注过去打赏过的金额。
-        ![打赏链接](https://fastly.jsdelivr.net/gh/Achuan-2/PicBed/assets/20241128221208-2024-11-28.png)
     validations:
       required: true
   - type: textarea
