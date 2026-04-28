@@ -88,7 +88,7 @@ GitHub: [https://github.com/Achuan-2/SlideSCI](https://github.com/Achuan-2/Slide
 
 - Developed on Windows 11 using [Visual Studio Tools for Office](https://www.visualstudio.com/vs/office-tools/) with C#
 - Designed for Microsoft PowerPoint
-- Compatible with WPS Office (Note: WPS version doesn't support LaTex formulas or Markdown insertion - may cause crashes)
+- Compatible with WPS Office. In WPS, Markdown insertion uses a native textbox/table fallback, and LaTeX formulas are inserted as SVG images to avoid PowerPoint-only equation commands that may freeze WPS.
 - Windows only (Mac unsupported due to different plugin architectures)
 
 ## 🖥️ Installation

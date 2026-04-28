@@ -167,6 +167,7 @@
             this.button2 = this.Factory.CreateRibbonButton();
             this.insertEquationButton = this.Factory.CreateRibbonButton();
             this.button8 = this.Factory.CreateRibbonButton();
+            this.editLatexSvgButton = this.Factory.CreateRibbonButton();
             this.insertCodeBlockButton = this.Factory.CreateRibbonButton();
             this.赞赏 = this.Factory.CreateRibbonButton();
             this.button4 = this.Factory.CreateRibbonButton();
@@ -586,6 +587,7 @@
             this.codeGroup.Items.Add(this.button2);
             this.codeGroup.Items.Add(this.insertEquationButton);
             this.codeGroup.Items.Add(this.button8);
+            this.codeGroup.Items.Add(this.editLatexSvgButton);
             this.codeGroup.Items.Add(this.insertCodeBlockButton);
             this.codeGroup.Items.Add(this.toggleBackgroundCheckBox);
             this.codeGroup.Label = "Markdown";
@@ -786,6 +788,13 @@
             this.button8.ShowImage = true;
             this.button8.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.insertLatexSVG_Click);
             // 
+            // editLatexSvgButton
+            // 
+            this.editLatexSvgButton.Label = "编辑LaTeX SVG";
+            this.editLatexSvgButton.Name = "editLatexSvgButton";
+            this.editLatexSvgButton.ScreenTip = "选中已插入的 LaTeX SVG，读取原始 LaTeX 后重新生成并替换";
+            this.editLatexSvgButton.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.editLatexSVG_Click);
+            // 
             // insertCodeBlockButton
             // 
             this.insertCodeBlockButton.Image = ((System.Drawing.Image)(resources.GetObject("insertCodeBlockButton.Image")));
@@ -904,6 +913,7 @@
         internal Microsoft.Office.Tools.Ribbon.RibbonButton button2;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton insertEquationButton;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton insertCodeBlockButton;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton editLatexSvgButton;
         internal Microsoft.Office.Tools.Ribbon.RibbonCheckBox toggleBackgroundCheckBox;
         internal Microsoft.Office.Tools.Ribbon.RibbonGroup group2;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton button4;

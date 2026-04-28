@@ -2,6 +2,11 @@
 SlideSCI/obj/
 SlideSCI/bin/
 SlideSCI/publish/
+artifacts/
 packages/
 node_modules/
 pnpm-lock.yaml
+*.zip
+SlideSCI/latex-converter/test.svg
+tools/fix*.py
+tools/clear_cache_and_install.ps1

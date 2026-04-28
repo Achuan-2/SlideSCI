@@ -35,6 +35,38 @@ namespace SlideSCI
         private float originalHeight; // 添加变量存储原始图片高度
         private float currentCropedHeight;
 
+        private bool IsWpsPresentationHost()
+        {
+            var values = new List<string>();
+
+            try
+            {
+                values.Add(app?.Name);
+            }
+            catch { }
+
+            try
+            {
+                values.Add(app?.Path);
+            }
+            catch { }
+
+            try
+            {
+                values.Add(System.Diagnostics.Process.GetCurrentProcess().ProcessName);
+            }
+            catch { }
+
+            return values
+                .Where(value => !string.IsNullOrWhiteSpace(value))
+                .Any(
+                    value =>
+                        value.IndexOf("wps", StringComparison.OrdinalIgnoreCase) >= 0
+                        || value.IndexOf("wpp", StringComparison.OrdinalIgnoreCase) >= 0
+                        || value.IndexOf("kingsoft", StringComparison.OrdinalIgnoreCase) >= 0
+                );
+        }
+
         private void Ribbon1_Load(object sender, RibbonUIEventArgs e)
         {
             app = Globals.ThisAddIn.Application;
@@ -587,7 +619,7 @@ namespace SlideSCI
                     allshapes.Add(GroupObj);
                     SelectMultipleShapes(allshapes);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     try
                     {
@@ -1099,7 +1131,6 @@ namespace SlideSCI
                         referenceHeight = 0;
                     }
                     float currentX = startX;
-                    float rowMaxHeight = 0;
                     int colCount = 0;
 
                     foreach (var shape in shapesToArrange)
@@ -1406,6 +1437,18 @@ namespace SlideSCI
                 {
                     try
                     {
+                        if (IsWpsPresentationHost())
+                        {
+                            InsertLatexSvgShape(
+                                latexInput,
+                                slide,
+                                slide.Master.Width / 2 - 100,
+                                slide.Master.Height / 2 - 50,
+                                true
+                            );
+                            return;
+                        }
+
                         // Insert a new textbox in the center of the slide
                         Shape textBox = slide.Shapes.AddTextbox(
                             Office.MsoTextOrientation.msoTextOrientationHorizontal,
@@ -1522,7 +1565,11 @@ namespace SlideSCI
                             try
                             {
                                 Shape shape = null;
-                                if (segment.IsCodeBlock)
+                                if (IsWpsPresentationHost())
+                                {
+                                    shape = InsertMarkdownSegmentForWps(segment, left, currentTop);
+                                }
+                                else if (segment.IsCodeBlock)
                                 {
                                     shape = InsertCodeBlock(
                                         segment.Content,
@@ -1662,8 +1709,6 @@ namespace SlideSCI
                                                                     .Italic = Office
                                                                     .MsoTriState
                                                                     .msoFalse;
-                                                                // 弹窗输出ppBulletType是什么
-                                                                // MessageBox.Show($"Bullet type: {ppBulletType}, Start value: {startValue}, Character: {character}, Style: {stype}");
 
                                                                 string text = paragraph.Text.Trim();
                                                                 if (text.StartsWith("- [x]"))
@@ -1673,10 +1718,7 @@ namespace SlideSCI
                                                                         .ParagraphFormat
                                                                         .Bullet
                                                                         .Character = myCharacter;
-                                                                    paragraph.Text = text.Substring(
-                                                                            5
-                                                                        )
-                                                                        .Trim(); // Remove "- [x]"
+                                                                    paragraph.Text = text.Substring(5).Trim();
                                                                 }
                                                                 else if (text.StartsWith("- [ ]"))
                                                                 {
@@ -1685,10 +1727,7 @@ namespace SlideSCI
                                                                         .ParagraphFormat
                                                                         .Bullet
                                                                         .Character = myCharacter;
-                                                                    paragraph.Text = text.Substring(
-                                                                            5
-                                                                        )
-                                                                        .Trim(); // Remove "- [ ]"
+                                                                    paragraph.Text = text.Substring(5).Trim();
                                                                 }
                                                             }
                                                         }
@@ -1722,11 +1761,13 @@ namespace SlideSCI
                                 continue; // Continue with next segment
                             }
                         }
-                        inputDialog.Dispose();
-                        Clipboard.Clear();
-                        var dataObject = new DataObject();
-                        dataObject.SetData(DataFormats.UnicodeText, markdown);
-                        Clipboard.SetDataObject(dataObject, true, 3, 100); // Add retry and timeout parameters
+                        if (!IsWpsPresentationHost())
+                        {
+                            Clipboard.Clear();
+                            var dataObject = new DataObject();
+                            dataObject.SetData(DataFormats.UnicodeText, markdown);
+                            Clipboard.SetDataObject(dataObject, true, 3, 100); // Add retry and timeout parameters
+                        }
                     }
                 }
 
@@ -1818,6 +1859,206 @@ namespace SlideSCI
             textBox.TextFrame.AutoSize = PpAutoSize.ppAutoSizeShapeToFitText;
 
             return textBox;
+        }
+
+        private Shape InsertMarkdownSegmentForWps(MarkdownSegment segment, float left, float top)
+        {
+            if (segment.IsCodeBlock)
+            {
+                return InsertCodeBlock(segment.Content, segment.Language, left, top);
+            }
+
+            if (segment.IsMathBlock)
+            {
+                return InsertMathBlock(segment.Content, left, top);
+            }
+
+            if (segment.IsTable)
+            {
+                return InsertMarkdownTableForWps(segment.Content, left, top);
+            }
+
+            if (segment.IsBlockQuote)
+            {
+                return InsertMarkdownTextBoxForWps(
+                    ConvertMarkdownToPlainTextForWps(segment.Content),
+                    left,
+                    top,
+                    shape =>
+                    {
+                        shape.Fill.Visible = Office.MsoTriState.msoTrue;
+                        shape.Fill.ForeColor.RGB = ColorTranslator.ToOle(Color.FromArgb(245, 245, 245));
+                        shape.Line.Visible = Office.MsoTriState.msoTrue;
+                        shape.Line.ForeColor.RGB = ColorTranslator.ToOle(Color.FromArgb(120, 120, 120));
+                        shape.Line.Weight = 1;
+                    }
+                );
+            }
+
+            return InsertMarkdownTextBoxForWps(
+                ConvertMarkdownToPlainTextForWps(segment.Content),
+                left,
+                top,
+                null,
+                IsMarkdownHeading(segment.Content)
+            );
+        }
+
+        private Shape InsertMarkdownTextBoxForWps(
+            string text,
+            float left,
+            float top,
+            Action<Shape> configureShape,
+            bool isHeading = false
+        )
+        {
+            Slide slide = app.ActiveWindow.View.Slide;
+            Shape textBox = slide.Shapes.AddTextbox(
+                Office.MsoTextOrientation.msoTextOrientationHorizontal,
+                left,
+                top,
+                500,
+                80
+            );
+
+            textBox.TextFrame.TextRange.Text = text;
+            textBox.TextFrame.WordWrap = Office.MsoTriState.msoTrue;
+            textBox.TextFrame.MarginLeft = 8;
+            textBox.TextFrame.MarginRight = 8;
+            textBox.TextFrame.MarginTop = 6;
+            textBox.TextFrame.MarginBottom = 6;
+            textBox.TextFrame.TextRange.Font.Name = "微软雅黑";
+            textBox.TextFrame.TextRange.Font.Size = 16;
+            textBox.TextFrame.TextRange.Font.Color.RGB = ColorTranslator.ToOle(Color.Black);
+            textBox.TextFrame.TextRange.ParagraphFormat.Alignment =
+                PpParagraphAlignment.ppAlignLeft;
+
+            if (isHeading)
+            {
+                textBox.TextFrame.TextRange.Font.Bold = Office.MsoTriState.msoTrue;
+                textBox.TextFrame.TextRange.Font.Size = GetHeadingFontSize(text);
+            }
+
+            textBox.Fill.Visible = Office.MsoTriState.msoFalse;
+            textBox.Line.Visible = Office.MsoTriState.msoFalse;
+            configureShape?.Invoke(textBox);
+            textBox.TextFrame.AutoSize = PpAutoSize.ppAutoSizeShapeToFitText;
+
+            return textBox;
+        }
+
+        private Shape InsertMarkdownTableForWps(string tableContent, float left, float top)
+        {
+            var rows = ParseMarkdownTableRows(tableContent);
+            if (rows.Count < 2)
+            {
+                return InsertMarkdownTextBoxForWps(
+                    ConvertMarkdownToPlainTextForWps(tableContent),
+                    left,
+                    top,
+                    null
+                );
+            }
+
+            try
+            {
+                Slide slide = app.ActiveWindow.View.Slide;
+                int rowCount = rows.Count;
+                int colCount = rows.Max(row => row.Count);
+                Shape tableShape = slide.Shapes.AddTable(
+                    rowCount,
+                    colCount,
+                    left,
+                    top,
+                    500,
+                    Math.Max(48, rowCount * 26)
+                );
+
+                for (int r = 0; r < rowCount; r++)
+                {
+                    for (int c = 0; c < colCount; c++)
+                    {
+                        string cellText = c < rows[r].Count ? rows[r][c] : string.Empty;
+                        Shape cellShape = tableShape.Table.Cell(r + 1, c + 1).Shape;
+                        cellShape.TextFrame.TextRange.Text = cellText;
+                        cellShape.TextFrame.TextRange.Font.Name = "微软雅黑";
+                        cellShape.TextFrame.TextRange.Font.Size = 12;
+                        cellShape.TextFrame.MarginLeft = 4;
+                        cellShape.TextFrame.MarginRight = 4;
+                        cellShape.TextFrame.MarginTop = 2;
+                        cellShape.TextFrame.MarginBottom = 2;
+
+                        if (r == 0)
+                        {
+                            cellShape.TextFrame.TextRange.Font.Bold = Office.MsoTriState.msoTrue;
+                            cellShape.Fill.ForeColor.RGB = ColorTranslator.ToOle(
+                                Color.FromArgb(235, 235, 235)
+                            );
+                        }
+                    }
+                }
+
+                return tableShape;
+            }
+            catch
+            {
+                return InsertMarkdownTextBoxForWps(
+                    ConvertMarkdownToPlainTextForWps(tableContent),
+                    left,
+                    top,
+                    null
+                );
+            }
+        }
+
+        private List<List<string>> ParseMarkdownTableRows(string tableContent)
+        {
+            return tableContent
+                .Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(line => line.Trim())
+                .Where(line => line.StartsWith("|") && line.EndsWith("|"))
+                .Select(line => line.Trim('|').Split('|').Select(cell => cell.Trim()).ToList())
+                .Where(row => !row.All(cell => Regex.IsMatch(cell, @"^:?-{3,}:?$")))
+                .ToList();
+        }
+
+        private string ConvertMarkdownToPlainTextForWps(string markdown)
+        {
+            if (string.IsNullOrWhiteSpace(markdown))
+            {
+                return string.Empty;
+            }
+
+            string text = markdown.Replace("\r\n", "\n");
+            text = Regex.Replace(text, @"^\s{0,3}(#{1,6})\s+", "", RegexOptions.Multiline);
+            text = Regex.Replace(text, @"^\s*>\s?", "", RegexOptions.Multiline);
+            text = Regex.Replace(text, @"^\s*[-*+]\s+\[x\]\s+", "☑ ", RegexOptions.Multiline | RegexOptions.IgnoreCase);
+            text = Regex.Replace(text, @"^\s*[-*+]\s+\[\s\]\s+", "☐ ", RegexOptions.Multiline);
+            text = Regex.Replace(text, @"^\s*[-*+]\s+", "• ", RegexOptions.Multiline);
+            text = Regex.Replace(text, @"^\s*\d+\.\s+", match => match.Value.TrimStart(), RegexOptions.Multiline);
+            text = Regex.Replace(text, @"\[(?<label>[^\]]+)\]\((?<url>[^)]+)\)", "${label} (${url})");
+            text = Regex.Replace(text, @"`([^`]+)`", "$1");
+            text = Regex.Replace(text, @"(\*\*|__)(.*?)\1", "$2");
+            text = Regex.Replace(text, @"(\*|_)(.*?)\1", "$2");
+            text = Regex.Replace(text, @"~~(.*?)~~", "$1");
+            text = Regex.Replace(text, @"<[^>]+>", string.Empty);
+            return text.Trim();
+        }
+
+        private bool IsMarkdownHeading(string markdown)
+        {
+            if (string.IsNullOrWhiteSpace(markdown))
+            {
+                return false;
+            }
+
+            string firstLine = markdown.Split(new[] { '\r', '\n' }, StringSplitOptions.None)[0];
+            return Regex.IsMatch(firstLine, @"^\s{0,3}#{1,6}\s+");
+        }
+
+        private float GetHeadingFontSize(string text)
+        {
+            return text.Length <= 18 ? 24 : 20;
         }
 
         public class ImageGroup
@@ -2073,6 +2314,11 @@ namespace SlideSCI
         {
             Slide slide = app.ActiveWindow.View.Slide;
 
+            if (IsWpsPresentationHost())
+            {
+                return InsertLatexSvgShape(mathContent, slide, left, top, true);
+            }
+
             // Insert a new textbox
             Shape textBox = slide.Shapes.AddTextbox(
                 Office.MsoTextOrientation.msoTextOrientationHorizontal,
@@ -2113,6 +2359,9 @@ namespace SlideSCI
             equationShape.TextFrame.AutoSize = PpAutoSize.ppAutoSizeShapeToFitText;
             equationShape.Left = left;
             equationShape.Top = top;
+
+            // Delete placeholder textbox (only used to trigger focus)
+            try { textBox.Delete(); } catch { }
 
             return equationShape;
         }
@@ -2182,7 +2431,7 @@ namespace SlideSCI
             // Add table styling
             html = html.Replace(
                 "<table>",
-                "<table style='width:500px; border-collapse:collapse;border:1pt solid黑色;'>"
+                "<table style='width:500px; border-collapse:collapse;border:1pt solid black;'>"
             );
             html = html.Replace("<td>", "<td style='border:1pt solid black;'>");
             html = html.Replace("<th>", "<th style='border:1pt solid black;'>");
@@ -4010,6 +4259,289 @@ namespace SlideSCI
                     );
                 }
             }
+        }
+
+        private void editLatexSVG_Click(object sender, RibbonControlEventArgs e)
+        {
+            if (app == null)
+            {
+                app = Globals.ThisAddIn.Application;
+            }
+
+            if (app?.ActiveWindow == null || app.ActiveWindow.View == null)
+            {
+                MessageBox.Show("当前没有打开的演示文稿窗口。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            Shape selectedShape = GetSingleSelectedShape();
+            if (selectedShape == null)
+            {
+                MessageBox.Show("请先选中一个由「插入LaTeX SVG」生成的公式图片。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            string originalLatex = selectedShape.AlternativeText?.Trim();
+            if (string.IsNullOrWhiteSpace(originalLatex))
+            {
+                MessageBox.Show("选中的图片没有保存原始 LaTeX 代码，无法直接编辑。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            string editedLatex;
+            if (!ShowLatexInputDialog("编辑 LaTeX SVG", originalLatex, out editedLatex))
+            {
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(editedLatex))
+            {
+                return;
+            }
+
+            Slide currentSlide = null;
+            try
+            {
+                currentSlide = app.ActiveWindow.View.Slide;
+            }
+            catch (Exception) { }
+
+            if (currentSlide == null)
+            {
+                MessageBox.Show("无法获取当前幻灯片，请确保已经打开并选中了幻灯片。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            float oldLeft = selectedShape.Left;
+            float oldTop = selectedShape.Top;
+            float oldWidth = selectedShape.Width;
+            float oldHeight = selectedShape.Height;
+
+            Shape newShape = InsertLatexSvgShape(editedLatex, currentSlide, oldLeft, oldTop, true);
+            if (newShape == null)
+            {
+                return;
+            }
+
+            try
+            {
+                if (oldWidth > 0)
+                {
+                    newShape.Width = oldWidth;
+                }
+
+                newShape.Left = oldLeft + (oldWidth - newShape.Width) / 2;
+                newShape.Top = oldTop + (oldHeight - newShape.Height) / 2;
+                selectedShape.Delete();
+                newShape.Select();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"替换 LaTeX SVG 时发生错误: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private Shape GetSingleSelectedShape()
+        {
+            try
+            {
+                Selection selection = app.ActiveWindow.Selection;
+                if (
+                    selection.Type == PpSelectionType.ppSelectionShapes
+                    && selection.ShapeRange != null
+                    && selection.ShapeRange.Count == 1
+                )
+                {
+                    return selection.ShapeRange[1];
+                }
+            }
+            catch (Exception) { }
+
+            return null;
+        }
+
+        private bool ShowLatexInputDialog(string title, string initialLatex, out string latexInput)
+        {
+            latexInput = null;
+
+            using (Form inputDialog = new Form
+            {
+                Width = 520,
+                Height = 420,
+                Text = title,
+                StartPosition = FormStartPosition.CenterScreen,
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                MaximizeBox = false,
+                MinimizeBox = false,
+            })
+            {
+                var infoLabel = new Label
+                {
+                    Text = "请输入 LaTeX 数学公式，不需要输入 $ 或 \\(...\\)。",
+                    Dock = DockStyle.Top,
+                    Height = 40,
+                    TextAlign = ContentAlignment.MiddleLeft,
+                    Padding = new Padding(10, 10, 10, 0),
+                };
+
+                var latexInputBox = new TextBox
+                {
+                    Multiline = true,
+                    Dock = DockStyle.Fill,
+                    Font = new Font("Consolas", 12),
+                    ScrollBars = ScrollBars.Vertical,
+                    Text = initialLatex ?? string.Empty,
+                };
+
+                var buttonPanel = new FlowLayoutPanel
+                {
+                    Dock = DockStyle.Bottom,
+                    Height = 50,
+                    Padding = new Padding(10),
+                    FlowDirection = FlowDirection.RightToLeft,
+                    AutoSize = false,
+                };
+
+                var okButton = new Button
+                {
+                    Text = "确定",
+                    DialogResult = DialogResult.OK,
+                    Width = 80,
+                    Height = 30,
+                    Margin = new Padding(10, 10, 0, 0),
+                };
+
+                var cancelButton = new Button
+                {
+                    Text = "取消",
+                    DialogResult = DialogResult.Cancel,
+                    Width = 80,
+                    Height = 30,
+                    Margin = new Padding(10, 10, 0, 0),
+                };
+
+                buttonPanel.Controls.Add(okButton);
+                buttonPanel.Controls.Add(cancelButton);
+                inputDialog.Controls.Add(latexInputBox);
+                inputDialog.Controls.Add(buttonPanel);
+                inputDialog.Controls.Add(infoLabel);
+                inputDialog.AcceptButton = okButton;
+                inputDialog.CancelButton = cancelButton;
+
+                if (inputDialog.ShowDialog() != DialogResult.OK)
+                {
+                    return false;
+                }
+
+                latexInput = latexInputBox.Text?.Trim();
+                return true;
+            }
+        }
+
+        private Shape InsertLatexSvgShape(
+            string latexInput,
+            Slide currentSlide,
+            float left,
+            float top,
+            bool showErrors
+        )
+        {
+            string normalizedLatex = NormalizeLatexInput(latexInput);
+            string tempFilePath = null;
+
+            try
+            {
+                var converter = Globals.ThisAddIn.LatexSvgConverter ?? new LatexToSvgConverter();
+                string svgContent = converter.ConvertLatexToSvg(normalizedLatex);
+
+                if (string.IsNullOrWhiteSpace(svgContent))
+                {
+                    if (showErrors)
+                    {
+                        MessageBox.Show("未生成有效的 SVG 内容。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                    return null;
+                }
+
+                string tempDirectory = Path.Combine(Path.GetTempPath(), "SlideSCI", "latex");
+                Directory.CreateDirectory(tempDirectory);
+                tempFilePath = Path.Combine(tempDirectory, $"latex_{Guid.NewGuid():N}.svg");
+                File.WriteAllText(tempFilePath, svgContent, Encoding.UTF8);
+
+                Shape svgShape = currentSlide.Shapes.AddPicture(
+                    tempFilePath,
+                    Office.MsoTriState.msoFalse,
+                    Office.MsoTriState.msoTrue,
+                    left,
+                    top,
+                    -1,
+                    -1
+                );
+
+                if (svgShape != null)
+                {
+                    svgShape.LockAspectRatio = Office.MsoTriState.msoTrue;
+                    svgShape.AlternativeText = normalizedLatex;
+                    svgShape.Width *= 2;
+                    svgShape.Left = left;
+                    svgShape.Top = top;
+                    svgShape.Select();
+                }
+
+                return svgShape;
+            }
+            catch (FileNotFoundException fnfEx)
+            {
+                if (showErrors)
+                {
+                    MessageBox.Show(
+                        $"{fnfEx.Message}\n请在插件目录下的 latex-converter 文件夹中执行 npm install。",
+                        "脚本缺失",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error
+                    );
+                }
+            }
+            catch (InvalidOperationException invalidOpEx)
+            {
+                if (showErrors)
+                {
+                    MessageBox.Show(
+                        invalidOpEx.Message,
+                        "LaTeX 转换失败",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                if (showErrors)
+                {
+                    MessageBox.Show(
+                        $"插入 LaTeX SVG 时发生错误: {ex.Message}",
+                        "错误",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error
+                    );
+                }
+            }
+            finally
+            {
+                try
+                {
+                    if (!string.IsNullOrEmpty(tempFilePath) && File.Exists(tempFilePath))
+                    {
+                        File.Delete(tempFilePath);
+                    }
+                }
+                catch (Exception deleteEx)
+                {
+                    System.Diagnostics.Debug.WriteLine($"删除临时 SVG 文件失败: {deleteEx.Message}");
+                }
+            }
+
+            return null;
         }
 
         private static string NormalizeLatexInput(string latexInput)

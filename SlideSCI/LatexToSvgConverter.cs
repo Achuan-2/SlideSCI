@@ -15,13 +15,8 @@ namespace SlideSCI
         {
             _nodeExecutable = string.IsNullOrWhiteSpace(nodeExecutable) ? "node" : nodeExecutable;
 
-            string baseDirectory = AppDomain.CurrentDomain.BaseDirectory ?? AppDomain.CurrentDomain.SetupInformation.ApplicationBase;
-            if (string.IsNullOrEmpty(baseDirectory))
-            {
-                baseDirectory = AppDomain.CurrentDomain.SetupInformation?.ApplicationBase ?? string.Empty;
-            }
-
-            _workingDirectory = Path.Combine(baseDirectory, "latex-converter");
+            // 强制固定 Node.js 工作目录到指定路径，避免 ClickOnce 缓存引发的路径问题
+            _workingDirectory = @"D:\SlideSCI_WPS_PowerPoint_Compat\latex-converter";
             _scriptPath = Path.Combine(_workingDirectory, "latex-to-svg.js");
         }
 

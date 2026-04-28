@@ -9,6 +9,7 @@
         "convert": "node latex-to-svg.js"
     },
     "dependencies": {
-        "mathjax-full": "^3.2.2"
+        "mathjax-full": "^3.2.2",
+        "svgo": "^4.0.1"
     }
 }
