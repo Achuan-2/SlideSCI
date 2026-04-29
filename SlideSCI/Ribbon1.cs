@@ -1411,7 +1411,8 @@ namespace SlideSCI
 
             if (inputDialog.ShowDialog() == DialogResult.OK)
             {
-                string latexInput = NormalizeLatexInput(latexInputBox.Text ?? string.Empty);
+                string rawLatexInput = latexInputBox.Text ?? string.Empty;
+                string latexInput = NormalizeLatexInput(rawLatexInput);
 
                 if (!string.IsNullOrEmpty(latexInput))
                 {
@@ -1419,6 +1420,17 @@ namespace SlideSCI
                     {
                         if (IsWpsPresentationHost())
                         {
+                            if (ShouldRenderWpsLatexInputAsText(rawLatexInput))
+                            {
+                                InsertMixedTextForWps(
+                                    rawLatexInput,
+                                    slide,
+                                    slide.Master.Width / 2 - 250,
+                                    slide.Master.Height / 2 - 40
+                                );
+                                return;
+                            }
+
                             InsertLatexSvgShape(
                                 latexInput,
                                 slide,
@@ -1577,156 +1589,142 @@ namespace SlideSCI
                                     string html = ProcessMarkdown(segment.Content);
                                     if (!string.IsNullOrEmpty(html))
                                     {
-                                        // Add retry mechanism for clipboard operations
-                                        int retryCount = 3;
-                                        while (retryCount > 0)
+                                        ShapeRange textContent = PasteMarkdownHtmlWithRetry(
+                                            slide,
+                                            segment.Content,
+                                            html
+                                        );
+
+                                        if (textContent != null && textContent.Count > 0)
                                         {
-                                            try
+                                            Shape textShape = textContent[1];
+                                            textShape.Width = 500;
+                                            textShape.Left = left;
+                                            textShape.Top = currentTop;
+                                            currentTop += textShape.Height + 10;
+
+                                            bool segmentHasInlineMath = ContainsInlineMathFormula(segment.Content);
+                                            if (segmentHasInlineMath)
                                             {
-                                                CopyHtmlToClipBoard(segment.Content, html);
-                                                System.Threading.Thread.Sleep(100); // Add 100ms delay
-                                                ShapeRange textContent = slide.Shapes.Paste();
-
-                                                if (textContent != null && textContent.Count > 0)
+                                                // Avoid PowerPoint's in-place EquationInsertNew for Markdown
+                                                // text boxes: it can rebuild the shape and invalidate the COM
+                                                // reference. Render inline math as styled text runs instead.
+                                                ProcessInlineMathTextRuns(textShape);
+                                            }
+                                            else if (
+                                                TryMarkdownShapeStillHasText(textShape)
+                                            )
+                                            {
+                                                TextRange textRange = textShape
+                                                    .TextFrame
+                                                    .TextRange;
+                                                foreach (
+                                                    TextRange paragraph in textRange.Paragraphs(
+                                                        -1
+                                                    )
+                                                ) // Changed this line
                                                 {
-                                                    Shape textShape = textContent[1];
-                                                    textShape.Width = 500;
-                                                    textShape.Left = left;
-                                                    textShape.Top = currentTop;
-                                                    currentTop += textShape.Height + 10;
-
-                                                    // Process inline math formulas
-                                                    ProcessInlineMathFormulas(textShape);
-
                                                     if (
-                                                        textShape.TextFrame.HasText
-                                                        == Office.MsoTriState.msoTrue
+                                                        paragraph
+                                                            .ParagraphFormat
+                                                            .Bullet
+                                                            .Type
+                                                        != PpBulletType.ppBulletNone
                                                     )
                                                     {
-                                                        TextRange textRange = textShape
-                                                            .TextFrame
-                                                            .TextRange;
-                                                        foreach (
-                                                            TextRange paragraph in textRange.Paragraphs(
-                                                                -1
-                                                            )
-                                                        ) // Changed this line
+                                                        // 保存列表样式
+                                                        PpBulletType ppBulletType =
+                                                            paragraph
+                                                                .ParagraphFormat
+                                                                .Bullet
+                                                                .Type;
+                                                        int character = paragraph
+                                                            .ParagraphFormat
+                                                            .Bullet
+                                                            .Character;
+                                                        int startValue = paragraph
+                                                            .ParagraphFormat
+                                                            .Bullet
+                                                            .StartValue; // 有序列表的编号
+                                                        PpNumberedBulletStyle stype =
+                                                            paragraph
+                                                                .ParagraphFormat
+                                                                .Bullet
+                                                                .Style; // 有序列表的样式：1、A、一等
+
+                                                        // 重新设置列表样式，曲线救国来添加悬挂缩进（找不到代码的方式直接添加悬挂缩进
+                                                        //paragraph.ParagraphFormat.Bullet.Type = PpBulletType.ppBulletNone;
+                                                        paragraph
+                                                            .ParagraphFormat
+                                                            .Bullet
+                                                            .Type = ppBulletType;
+                                                        paragraph
+                                                            .ParagraphFormat
+                                                            .Bullet
+                                                            .Character = character;
+                                                        if (
+                                                            ppBulletType
+                                                            == PpBulletType.ppBulletNumbered
+                                                        )
                                                         {
-                                                            if (
-                                                                paragraph
-                                                                    .ParagraphFormat
-                                                                    .Bullet
-                                                                    .Type
-                                                                != PpBulletType.ppBulletNone
-                                                            )
-                                                            {
-                                                                // 保存列表样式
-                                                                PpBulletType ppBulletType =
-                                                                    paragraph
-                                                                        .ParagraphFormat
-                                                                        .Bullet
-                                                                        .Type;
-                                                                int character = paragraph
-                                                                    .ParagraphFormat
-                                                                    .Bullet
-                                                                    .Character;
-                                                                int startValue = paragraph
-                                                                    .ParagraphFormat
-                                                                    .Bullet
-                                                                    .StartValue; // 有序列表的编号
-                                                                PpNumberedBulletStyle stype =
-                                                                    paragraph
-                                                                        .ParagraphFormat
-                                                                        .Bullet
-                                                                        .Style; // 有序列表的样式：1、A、一等
+                                                            paragraph
+                                                                .ParagraphFormat
+                                                                .Bullet
+                                                                .StartValue = startValue;
+                                                            paragraph
+                                                                .ParagraphFormat
+                                                                .Bullet
+                                                                .Style = stype;
+                                                        }
+                                                        // 列表样式不受后面字体样式的干扰
+                                                        paragraph
+                                                            .ParagraphFormat
+                                                            .Bullet
+                                                            .UseTextFont = Office
+                                                            .MsoTriState
+                                                            .msoFalse;
+                                                        paragraph
+                                                            .ParagraphFormat
+                                                            .Bullet
+                                                            .UseTextColor = Office
+                                                            .MsoTriState
+                                                            .msoFalse;
+                                                        paragraph
+                                                            .ParagraphFormat
+                                                            .Bullet
+                                                            .Font
+                                                            .Bold = Office
+                                                            .MsoTriState
+                                                            .msoFalse;
+                                                        paragraph
+                                                            .ParagraphFormat
+                                                            .Bullet
+                                                            .Font
+                                                            .Italic = Office
+                                                            .MsoTriState
+                                                            .msoFalse;
 
-                                                                // 重新设置列表样式，曲线救国来添加悬挂缩进（找不到代码的方式直接添加悬挂缩进
-                                                                //paragraph.ParagraphFormat.Bullet.Type = PpBulletType.ppBulletNone;
-                                                                paragraph
-                                                                    .ParagraphFormat
-                                                                    .Bullet
-                                                                    .Type = ppBulletType;
-                                                                paragraph
-                                                                    .ParagraphFormat
-                                                                    .Bullet
-                                                                    .Character = character;
-                                                                if (
-                                                                    ppBulletType
-                                                                    == PpBulletType.ppBulletNumbered
-                                                                )
-                                                                {
-                                                                    paragraph
-                                                                        .ParagraphFormat
-                                                                        .Bullet
-                                                                        .StartValue = startValue;
-                                                                    paragraph
-                                                                        .ParagraphFormat
-                                                                        .Bullet
-                                                                        .Style = stype;
-                                                                }
-                                                                // 列表样式不受后面字体样式的干扰
-                                                                paragraph
-                                                                    .ParagraphFormat
-                                                                    .Bullet
-                                                                    .UseTextFont = Office
-                                                                    .MsoTriState
-                                                                    .msoFalse;
-                                                                paragraph
-                                                                    .ParagraphFormat
-                                                                    .Bullet
-                                                                    .UseTextColor = Office
-                                                                    .MsoTriState
-                                                                    .msoFalse;
-                                                                paragraph
-                                                                    .ParagraphFormat
-                                                                    .Bullet
-                                                                    .Font
-                                                                    .Bold = Office
-                                                                    .MsoTriState
-                                                                    .msoFalse;
-                                                                paragraph
-                                                                    .ParagraphFormat
-                                                                    .Bullet
-                                                                    .Font
-                                                                    .Italic = Office
-                                                                    .MsoTriState
-                                                                    .msoFalse;
-
-                                                                string text = paragraph.Text.Trim();
-                                                                if (text.StartsWith("- [x]"))
-                                                                {
-                                                                    char myCharacter = (char)9745; // ☑
-                                                                    paragraph
-                                                                        .ParagraphFormat
-                                                                        .Bullet
-                                                                        .Character = myCharacter;
-                                                                    paragraph.Text = text.Substring(5).Trim();
-                                                                }
-                                                                else if (text.StartsWith("- [ ]"))
-                                                                {
-                                                                    char myCharacter = (char)9744; // ☐
-                                                                    paragraph
-                                                                        .ParagraphFormat
-                                                                        .Bullet
-                                                                        .Character = myCharacter;
-                                                                    paragraph.Text = text.Substring(5).Trim();
-                                                                }
-                                                            }
+                                                        string text = paragraph.Text.Trim();
+                                                        if (text.StartsWith("- [x]"))
+                                                        {
+                                                            char myCharacter = (char)9745; // ☑
+                                                            paragraph
+                                                                .ParagraphFormat
+                                                                .Bullet
+                                                                .Character = myCharacter;
+                                                            paragraph.Text = text.Substring(5).Trim();
+                                                        }
+                                                        else if (text.StartsWith("- [ ]"))
+                                                        {
+                                                            char myCharacter = (char)9744; // ☐
+                                                            paragraph
+                                                                .ParagraphFormat
+                                                                .Bullet
+                                                                .Character = myCharacter;
+                                                            paragraph.Text = text.Substring(5).Trim();
                                                         }
                                                     }
-                                                    break; // Success, exit retry loop
                                                 }
-                                            }
-                                            catch (System.Runtime.InteropServices.COMException)
-                                            {
-                                                retryCount--;
-                                                if (retryCount <= 0)
-                                                {
-                                                    MessageBox.Show(
-                                                        $"无法粘贴内容: {segment.Content.Substring(0, Math.Min(30, segment.Content.Length))}..."
-                                                    );
-                                                }
-                                                System.Threading.Thread.Sleep(200); // Wait longer before retry
                                             }
                                         }
                                     }
@@ -1734,7 +1732,7 @@ namespace SlideSCI
 
                                 if (shape != null)
                                 {
-                                    currentTop += shape.Height + 10;
+                                    currentTop += GetShapeHeightOrDefault(shape, 60f) + 10;
                                 }
                             }
                             catch (Exception ex)
@@ -1761,6 +1759,33 @@ namespace SlideSCI
             }
         }
 
+
+        private ShapeRange PasteMarkdownHtmlWithRetry(Slide slide, string markdown, string html)
+        {
+            int retryCount = 3;
+            while (retryCount > 0)
+            {
+                try
+                {
+                    CopyHtmlToClipBoard(markdown, html);
+                    System.Threading.Thread.Sleep(100);
+                    return slide.Shapes.Paste();
+                }
+                catch (System.Runtime.InteropServices.COMException)
+                {
+                    retryCount--;
+                    if (retryCount <= 0)
+                    {
+                        MessageBox.Show(
+                            $"无法粘贴内容: {markdown.Substring(0, Math.Min(30, markdown.Length))}..."
+                        );
+                    }
+                    System.Threading.Thread.Sleep(200);
+                }
+            }
+
+            return null;
+        }
 
         private void ProcessInlineMathFormulas(Shape textShape)
         {
@@ -1794,6 +1819,223 @@ namespace SlideSCI
                 app.CommandBars.ExecuteMso("EquationInsertNew");
 
                 app.CommandBars.ExecuteMso("EquationProfessional");
+            }
+        }
+
+        private bool TryMarkdownShapeStillHasText(Shape textShape)
+        {
+            try
+            {
+                return textShape.TextFrame.HasText == Office.MsoTriState.msoTrue;
+            }
+            catch (System.Runtime.InteropServices.COMException ex)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"PowerPoint 刷新公式后文本框引用失效，跳过后续段落格式处理: {ex.Message}"
+                );
+                return false;
+            }
+        }
+
+        private float GetShapeHeightOrDefault(Shape shape, float defaultHeight)
+        {
+            try
+            {
+                return shape?.Height ?? defaultHeight;
+            }
+            catch (COMException ex)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"PowerPoint 刷新对象后 Shape 引用失效，使用默认段落高度继续排版: {ex.Message}"
+                );
+                return defaultHeight;
+            }
+        }
+
+        private static bool ContainsInlineMathFormula(string text)
+        {
+            return !string.IsNullOrEmpty(text)
+                && Regex.IsMatch(text, @"(?<!\\)\$[^$\r\n]+?(?<!\\)\$");
+        }
+
+        private class InlineMathText
+        {
+            public string Text { get; set; }
+            public List<TextScriptRange> ScriptRanges { get; } = new List<TextScriptRange>();
+        }
+
+        private class TextScriptRange
+        {
+            public int Start { get; set; }
+            public int Length { get; set; }
+            public bool IsSubscript { get; set; }
+        }
+
+        private void ProcessInlineMathTextRuns(Shape textShape)
+        {
+            TextRange textRange = textShape.TextFrame.TextRange;
+            string text = textRange.Text;
+            var matches = Regex.Matches(text, @"(?<!\\)\$([^$\r\n]+?)(?<!\\)\$");
+            if (matches.Count == 0)
+            {
+                return;
+            }
+
+            for (int i = matches.Count - 1; i >= 0; i--)
+            {
+                Match match = matches[i];
+                InlineMathText inlineMath = ConvertInlineLatexToText(match.Groups[1].Value);
+                int start = match.Index + 1;
+                TextRange selectedRange = textRange.Characters(start, match.Length);
+                selectedRange.Text = inlineMath.Text;
+
+                TextRange mathRange = textRange.Characters(start, inlineMath.Text.Length);
+                mathRange.Font.Name = "Cambria Math";
+                mathRange.Font.Italic = Office.MsoTriState.msoTrue;
+
+                foreach (TextScriptRange scriptRange in inlineMath.ScriptRanges)
+                {
+                    if (scriptRange.Start < 1 || scriptRange.Length <= 0)
+                    {
+                        continue;
+                    }
+
+                    TextRange scriptText = mathRange.Characters(scriptRange.Start, scriptRange.Length);
+                    if (scriptRange.IsSubscript)
+                    {
+                        scriptText.Font.Subscript = Office.MsoTriState.msoTrue;
+                    }
+                    else
+                    {
+                        scriptText.Font.Superscript = Office.MsoTriState.msoTrue;
+                    }
+                }
+            }
+        }
+
+        private static InlineMathText ConvertInlineLatexToText(string latex)
+        {
+            var result = new InlineMathText();
+            var builder = new StringBuilder();
+            int index = 0;
+
+            while (index < latex.Length)
+            {
+                char current = latex[index];
+                if ((current == '_' || current == '^') && index + 1 < latex.Length)
+                {
+                    bool isSubscript = current == '_';
+                    index++;
+                    string script = ReadLatexScriptToken(latex, ref index);
+                    if (!string.IsNullOrEmpty(script))
+                    {
+                        int start = builder.Length + 1;
+                        builder.Append(script);
+                        result.ScriptRanges.Add(
+                            new TextScriptRange
+                            {
+                                Start = start,
+                                Length = script.Length,
+                                IsSubscript = isSubscript,
+                            }
+                        );
+                    }
+                    continue;
+                }
+
+                if (current == '\\')
+                {
+                    string command = ReadLatexCommand(latex, ref index);
+                    builder.Append(ConvertInlineLatexCommand(command));
+                    continue;
+                }
+
+                if (current != '{' && current != '}')
+                {
+                    builder.Append(current);
+                }
+                index++;
+            }
+
+            result.Text = builder.ToString();
+            return result;
+        }
+
+        private static string ReadLatexScriptToken(string latex, ref int index)
+        {
+            if (index >= latex.Length)
+            {
+                return string.Empty;
+            }
+
+            if (latex[index] != '{')
+            {
+                return latex[index++].ToString();
+            }
+
+            index++;
+            int start = index;
+            int depth = 1;
+            while (index < latex.Length && depth > 0)
+            {
+                if (latex[index] == '{')
+                {
+                    depth++;
+                }
+                else if (latex[index] == '}')
+                {
+                    depth--;
+                    if (depth == 0)
+                    {
+                        string token = latex.Substring(start, index - start);
+                        index++;
+                        return token;
+                    }
+                }
+                index++;
+            }
+
+            return latex.Substring(start);
+        }
+
+        private static string ReadLatexCommand(string latex, ref int index)
+        {
+            int start = index;
+            index++;
+            while (index < latex.Length && char.IsLetter(latex[index]))
+            {
+                index++;
+            }
+
+            return latex.Substring(start, index - start);
+        }
+
+        private static string ConvertInlineLatexCommand(string command)
+        {
+            switch (command)
+            {
+                case @"\alpha": return "α";
+                case @"\beta": return "β";
+                case @"\gamma": return "γ";
+                case @"\delta": return "δ";
+                case @"\epsilon": return "ε";
+                case @"\theta": return "θ";
+                case @"\lambda": return "λ";
+                case @"\mu": return "μ";
+                case @"\pi": return "π";
+                case @"\rho": return "ρ";
+                case @"\sigma": return "σ";
+                case @"\tau": return "τ";
+                case @"\phi": return "φ";
+                case @"\omega": return "ω";
+                case @"\times": return "×";
+                case @"\cdot": return "·";
+                case @"\pm": return "±";
+                case @"\leq": return "≤";
+                case @"\geq": return "≥";
+                case @"\neq": return "≠";
+                case @"\approx": return "≈";
+                default: return command.TrimStart('\\');
             }
         }
 
@@ -1873,7 +2115,9 @@ namespace SlideSCI
                         shape.Line.Visible = Office.MsoTriState.msoTrue;
                         shape.Line.ForeColor.RGB = ColorTranslator.ToOle(Color.FromArgb(120, 120, 120));
                         shape.Line.Weight = 1;
-                    }
+                    },
+                    false,
+                    ContainsInlineMathFormula(segment.Content)
                 );
             }
 
@@ -1882,7 +2126,8 @@ namespace SlideSCI
                 left,
                 top,
                 null,
-                IsMarkdownHeading(segment.Content)
+                IsMarkdownHeading(segment.Content),
+                ContainsInlineMathFormula(segment.Content)
             );
         }
 
@@ -1891,7 +2136,8 @@ namespace SlideSCI
             float left,
             float top,
             Action<Shape> configureShape,
-            bool isHeading = false
+            bool isHeading = false,
+            bool processInlineMath = false
         )
         {
             Slide slide = app.ActiveWindow.View.Slide;
@@ -1924,6 +2170,10 @@ namespace SlideSCI
             textBox.Fill.Visible = Office.MsoTriState.msoFalse;
             textBox.Line.Visible = Office.MsoTriState.msoFalse;
             configureShape?.Invoke(textBox);
+            if (processInlineMath)
+            {
+                ProcessInlineMathTextRuns(textBox);
+            }
             textBox.TextFrame.AutoSize = PpAutoSize.ppAutoSizeShapeToFitText;
 
             return textBox;
@@ -2306,53 +2556,75 @@ namespace SlideSCI
                 return InsertLatexSvgShape(mathContent, slide, left, top, true);
             }
 
-            // Insert a new textbox
-            Shape textBox = slide.Shapes.AddTextbox(
-                Office.MsoTextOrientation.msoTextOrientationHorizontal,
-                left,
-                top,
-                500,
-                500
-            );
+            Shape textBox = null;
+            try
+            {
+                // Insert a new textbox
+                textBox = slide.Shapes.AddTextbox(
+                    Office.MsoTextOrientation.msoTextOrientationHorizontal,
+                    left,
+                    top,
+                    500,
+                    500
+                );
 
-            // Select the newly inserted textbox
-            textBox.Select();
-            app.ActiveWindow.Selection.TextRange.Select();
+                // Select the newly inserted textbox
+                textBox.Select();
+                app.ActiveWindow.Selection.TextRange.Select();
 
-            // Run SwitchLatex
-            app.CommandBars.ExecuteMso("EquationInsertNew");
-            Shape equationShape = app.ActiveWindow.Selection.ShapeRange[1];
-            equationShape
-                .TextFrame.TextRange.Characters(
-                    1,
-                    equationShape.TextFrame.TextRange.Text.Length - 1
-                )
-                .Text = "\u24C9";
+                // Run SwitchLatex
+                app.CommandBars.ExecuteMso("EquationInsertNew");
+                Shape equationShape = app.ActiveWindow.Selection.ShapeRange[1];
+                equationShape
+                    .TextFrame.TextRange.Characters(
+                        1,
+                        equationShape.TextFrame.TextRange.Text.Length - 1
+                    )
+                    .Text = "\u24C9";
 
-            app.CommandBars.ExecuteMso("EquationInsertNew");
-            app.ActiveWindow.Selection.TextRange.Select();
-            Shape equationShape2 = app.ActiveWindow.Selection.ShapeRange[1];
-            string officeEquationInput = ConvertLatexToPowerPointEquationText(mathContent);
+                app.CommandBars.ExecuteMso("EquationInsertNew");
+                app.ActiveWindow.Selection.TextRange.Select();
+                Shape equationShape2 = app.ActiveWindow.Selection.ShapeRange[1];
+                string officeEquationInput = ConvertLatexToPowerPointEquationText(mathContent);
 
-            // Set the LaTeX input to the equation shape
-            equationShape2
-                .TextFrame.TextRange.Characters(
-                    1,
-                    equationShape2.TextFrame.TextRange.Text.Length - 1
-                )
-                .Text = officeEquationInput;
+                // Set the LaTeX input to the equation shape
+                equationShape2
+                    .TextFrame.TextRange.Characters(
+                        1,
+                        equationShape2.TextFrame.TextRange.Text.Length - 1
+                    )
+                    .Text = officeEquationInput;
 
-            // Convert to professional format
-            app.CommandBars.ExecuteMso("EquationProfessional");
-            // Auto-size and position
-            equationShape2.TextFrame.AutoSize = PpAutoSize.ppAutoSizeShapeToFitText;
-            equationShape2.Left = left;
-            equationShape2.Top = top;
+                // Convert to professional format. PowerPoint may rebuild the
+                // equation shape here, so reacquire it from the current selection.
+                app.CommandBars.ExecuteMso("EquationProfessional");
+                Shape resultShape = equationShape2;
+                try
+                {
+                    resultShape = app.ActiveWindow.Selection.ShapeRange[1];
+                }
+                catch (COMException ex)
+                {
+                    System.Diagnostics.Debug.WriteLine(
+                        $"重新获取 PowerPoint 公式 Shape 失败，继续使用原引用: {ex.Message}"
+                    );
+                }
 
-            // Delete placeholder textbox (only used to trigger focus)
-            try { textBox.Delete(); } catch { }
+                // Auto-size and position
+                resultShape.TextFrame.AutoSize = PpAutoSize.ppAutoSizeShapeToFitText;
+                resultShape.Left = left;
+                resultShape.Top = top;
 
-            return equationShape2;
+                return resultShape;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"PowerPoint 原生公式插入失败，回退为 SVG 公式: {ex.Message}"
+                );
+                try { textBox?.Delete(); } catch { }
+                return InsertLatexSvgShape(mathContent, slide, left, top, true);
+            }
         }
 
         private Shape InsertBlockQuote(string content, float left, float top)
@@ -2406,10 +2678,13 @@ namespace SlideSCI
             var codeBlockRegex = new Regex(@"```.*?\r?\n(.*?)\r?\n```", RegexOptions.Singleline);
 
             markdown = codeBlockRegex.Replace(markdown, string.Empty);
+            List<string> inlineMathFormulas;
+            markdown = ProtectInlineMathPlaceholders(markdown, out inlineMathFormulas);
 
             // Convert remaining markdown to HTML
             var pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
             string html = Markdown.ToHtml(markdown, pipeline);
+            html = RestoreInlineMathPlaceholders(html, inlineMathFormulas);
 
             // Add checkbox markers after the checkboxes
             html = html.Replace(
@@ -2434,12 +2709,69 @@ namespace SlideSCI
             // 把<span class="math">\(...\)</span>转换$...$
             html = Regex.Replace(
                 html,
-                @"<span class=""math"">\\\((.+?)\\\)</span>",
-                m => $"${m.Groups[1].Value}$"
+                @"<span\s+class=""[^""]*\bmath\b[^""]*"">(?:\\\()?(.+?)(?:\\\))?</span>",
+                m => $"${m.Groups[1].Value}$",
+                RegexOptions.Singleline
             );
             // 弹窗显示
             //MessageBox.Show($"Markdown转换: {html}");
             return html;
+        }
+
+        private static string ProtectInlineMathPlaceholders(string markdown, out List<string> formulas)
+        {
+            var capturedFormulas = new List<string>();
+            if (string.IsNullOrEmpty(markdown))
+            {
+                formulas = capturedFormulas;
+                return markdown;
+            }
+
+            string protectedMarkdown = Regex.Replace(
+                markdown,
+                @"(?<!\\)\$([^$\r\n]+?)(?<!\\)\$",
+                match =>
+                {
+                    int index = capturedFormulas.Count;
+                    capturedFormulas.Add(match.Groups[1].Value);
+                    return $"SLIDESCIMATHPLACEHOLDER{index}TOKEN";
+                }
+            );
+            formulas = capturedFormulas;
+            return protectedMarkdown;
+        }
+
+        private static string RestoreInlineMathPlaceholders(string html, List<string> formulas)
+        {
+            if (string.IsNullOrEmpty(html) || formulas == null || formulas.Count == 0)
+            {
+                return html;
+            }
+
+            for (int i = 0; i < formulas.Count; i++)
+            {
+                html = html.Replace(
+                    $"SLIDESCIMATHPLACEHOLDER{i}TOKEN",
+                    $"${EscapeHtmlText(formulas[i])}$"
+                );
+            }
+
+            return html;
+        }
+
+        private static string EscapeHtmlText(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+            {
+                return string.Empty;
+            }
+
+            return text
+                .Replace("&", "&amp;")
+                .Replace("<", "&lt;")
+                .Replace(">", "&gt;")
+                .Replace("\"", "&quot;")
+                .Replace("'", "&#39;");
         }
 
         public void CopyHtmlToClipBoard(string markdown, string html)
@@ -2579,14 +2911,12 @@ namespace SlideSCI
 
         private void openGithub_Click(object sender, RibbonControlEventArgs e)
         {
-            System.Diagnostics.Process.Start("https://github.com/Achuan-2/my_ppt_plugin/");
+            System.Diagnostics.Process.Start("https://github.com/jacywallny/");
         }
 
         private void openDoc_Click(object sender, RibbonControlEventArgs e)
         {
-            System.Diagnostics.Process.Start(
-                "https://www.yuque.com/achuan-2/blog/etzcergpmb4rr2sk/"
-            );
+            System.Diagnostics.Process.Start("https://github.com/jacywallny/");
         }
 
         private void current_Version(object sender, RibbonControlEventArgs e)
@@ -2599,7 +2929,7 @@ namespace SlideSCI
         private void aboutDeveloper_Click(object sender, RibbonControlEventArgs e)
         {
             MessageBox.Show(
-                "开发者: Achuan-2\n邮箱: achuan-2@outlook.com\nGithub地址：https://github.com/Achuan-2",
+                "开发者: jacywallny\n邮箱: jacywalln@gmail.com\nGitHub: https://github.com/jacywallny/",
                 "关于开发者"
             );
         }
@@ -2985,14 +3315,9 @@ namespace SlideSCI
 
         private void excludeTextcheckBox2_Click(object sender, RibbonControlEventArgs e) { }
 
-        private void donate(object sender, RibbonControlEventArgs e)
-        {
-            System.Diagnostics.Process.Start("https://www.yuque.com/achuan-2");
-        }
-
         private void developer_website(object sender, RibbonControlEventArgs e)
         {
-            System.Diagnostics.Process.Start("https://www.github.com/achuan-2");
+            System.Diagnostics.Process.Start("https://github.com/jacywallny/");
         }
         public void ExportOriginalImage_Click(object sender, RibbonControlEventArgs e)
         {
@@ -4164,6 +4489,28 @@ namespace SlideSCI
                     return;
                 }
 
+                if (IsWpsPresentationHost() && ShouldRenderWpsLatexInputAsText(latexInput))
+                {
+                    InsertMixedTextForWps(
+                        latexInput,
+                        currentSlide,
+                        currentSlide.Master.Width / 2 - 250,
+                        currentSlide.Master.Height / 2 - 40
+                    );
+                    return;
+                }
+
+                if (!IsWpsPresentationHost() && ShouldRenderPowerPointLatexInputAsText(latexInput))
+                {
+                    InsertMixedTextForPowerPoint(
+                        latexInput,
+                        currentSlide,
+                        currentSlide.Master.Width / 2 - 250,
+                        currentSlide.Master.Height / 2 - 40
+                    );
+                    return;
+                }
+
                 string normalizedLatex = NormalizeLatexInput(latexInput);
 
                 try
@@ -4196,12 +4543,11 @@ namespace SlideSCI
 
                         if (svgShape != null)
                         {
-                            svgShape.Left = (currentSlide.Master.Width - svgShape.Width) / 2;
-                            svgShape.Top = (currentSlide.Master.Height - svgShape.Height) / 2;
                             svgShape.LockAspectRatio = Office.MsoTriState.msoTrue;
                             svgShape.AlternativeText = $"{normalizedLatex}";
-                            // svgShape 默认设置为2x大小
-                            svgShape.Width *= 2;
+                            ResizeLatexSvgShapeToFitSlide(svgShape, currentSlide);
+                            svgShape.Left = (currentSlide.Master.Width - svgShape.Width) / 2;
+                            svgShape.Top = (currentSlide.Master.Height - svgShape.Height) / 2;
                             svgShape.Select();
                         }
                     }
@@ -4435,6 +4781,21 @@ namespace SlideSCI
             bool showErrors
         )
         {
+            if (currentSlide == null)
+            {
+                return null;
+            }
+
+            if (IsWpsPresentationHost() && ShouldRenderWpsLatexInputAsText(latexInput))
+            {
+                return InsertMixedTextForWps(latexInput, currentSlide, left, top);
+            }
+
+            if (!IsWpsPresentationHost() && ShouldRenderPowerPointLatexInputAsText(latexInput))
+            {
+                return InsertMixedTextForPowerPoint(latexInput, currentSlide, left, top);
+            }
+
             string normalizedLatex = NormalizeLatexInput(latexInput);
             string tempFilePath = null;
 
@@ -4471,7 +4832,7 @@ namespace SlideSCI
                 {
                     svgShape.LockAspectRatio = Office.MsoTriState.msoTrue;
                     svgShape.AlternativeText = normalizedLatex;
-                    svgShape.Width *= 2;
+                    ResizeLatexSvgShapeToFitSlide(svgShape, currentSlide);
                     svgShape.Left = left;
                     svgShape.Top = top;
                     svgShape.Select();
@@ -4533,6 +4894,177 @@ namespace SlideSCI
             return null;
         }
 
+        private void ResizeLatexSvgShapeToFitSlide(Shape svgShape, Slide slide)
+        {
+            if (svgShape == null || slide == null)
+            {
+                return;
+            }
+
+            float slideWidth = slide.Master.Width;
+            float slideHeight = slide.Master.Height;
+            if (slideWidth <= 0 || slideHeight <= 0 || svgShape.Width <= 0 || svgShape.Height <= 0)
+            {
+                return;
+            }
+
+            bool isWps = IsWpsPresentationHost();
+            float maxWidth = Math.Max(120f, slideWidth * (isWps ? 0.48f : 0.68f));
+            float maxHeight = Math.Max(45f, slideHeight * (isWps ? 0.18f : 0.25f));
+
+            if (isWps)
+            {
+                if (svgShape.Width > maxWidth)
+                {
+                    svgShape.Width = maxWidth;
+                }
+
+                if (svgShape.Height > maxHeight)
+                {
+                    svgShape.Height = maxHeight;
+                }
+
+                return;
+            }
+
+            float originalWidth = svgShape.Width;
+            float originalHeight = svgShape.Height;
+            float aspectRatio = originalHeight > 0f ? originalWidth / originalHeight : 1f;
+
+            float preferredMaxWidth = Math.Max(180f, slideWidth * (aspectRatio >= 4f ? 0.88f : 0.78f));
+            float preferredMaxHeight = Math.Max(60f, slideHeight * (aspectRatio <= 1.2f ? 0.36f : 0.30f));
+            float preferredScale = Math.Min(preferredMaxWidth / originalWidth, preferredMaxHeight / originalHeight);
+
+            if (float.IsNaN(preferredScale) || float.IsInfinity(preferredScale) || preferredScale <= 0f)
+            {
+                return;
+            }
+
+            if (preferredScale > 1f)
+            {
+                preferredScale = Math.Min(preferredScale, aspectRatio >= 4f ? 2.4f : 1.8f);
+            }
+
+            svgShape.Width = originalWidth * preferredScale;
+
+            if (svgShape.Width > preferredMaxWidth)
+            {
+                svgShape.Width = preferredMaxWidth;
+            }
+
+            if (svgShape.Height > preferredMaxHeight)
+            {
+                svgShape.Height = preferredMaxHeight;
+            }
+
+            float readableMinWidth = Math.Max(160f, slideWidth * 0.20f);
+            float readableMinHeight = Math.Max(28f, slideHeight * 0.08f);
+            float absoluteMaxWidth = Math.Max(maxWidth, slideWidth * 0.92f);
+            float absoluteMaxHeight = Math.Max(maxHeight, slideHeight * 0.40f);
+
+            if (svgShape.Width < readableMinWidth || svgShape.Height < readableMinHeight)
+            {
+                float minReadableScale = Math.Max(
+                    readableMinWidth / svgShape.Width,
+                    readableMinHeight / svgShape.Height);
+                float safeMaxScale = Math.Min(
+                    absoluteMaxWidth / svgShape.Width,
+                    absoluteMaxHeight / svgShape.Height);
+                float appliedScale = Math.Min(minReadableScale, safeMaxScale);
+
+                if (!float.IsNaN(appliedScale) && !float.IsInfinity(appliedScale) && appliedScale > 1f)
+                {
+                    svgShape.Width *= appliedScale;
+                }
+            }
+        }
+
+        private Shape InsertMixedTextForWps(string text, Slide slide, float left, float top)
+        {
+            Shape textShape = InsertMarkdownTextBoxForWps(
+                ConvertMarkdownToPlainTextForWps(text),
+                left,
+                top,
+                null,
+                false,
+                ContainsInlineMathFormula(text)
+            );
+            textShape?.Select();
+            return textShape;
+        }
+
+        private Shape InsertMixedTextForPowerPoint(string text, Slide slide, float left, float top)
+        {
+            if (slide == null)
+            {
+                return null;
+            }
+
+            float textBoxWidth = Math.Max(360f, slide.Master.Width * 0.62f);
+            Shape textShape = slide.Shapes.AddTextbox(
+                Office.MsoTextOrientation.msoTextOrientationHorizontal,
+                left,
+                top,
+                textBoxWidth,
+                80
+            );
+
+            textShape.TextFrame.TextRange.Text = ConvertMarkdownToPlainTextForWps(text);
+            textShape.TextFrame.WordWrap = Office.MsoTriState.msoTrue;
+            textShape.TextFrame.MarginLeft = 8;
+            textShape.TextFrame.MarginRight = 8;
+            textShape.TextFrame.MarginTop = 6;
+            textShape.TextFrame.MarginBottom = 6;
+            textShape.TextFrame.TextRange.Font.Name = "微软雅黑";
+            textShape.TextFrame.TextRange.Font.Size = 16;
+            textShape.TextFrame.TextRange.Font.Color.RGB = ColorTranslator.ToOle(Color.Black);
+            textShape.TextFrame.TextRange.ParagraphFormat.Alignment =
+                PpParagraphAlignment.ppAlignLeft;
+            textShape.Fill.Visible = Office.MsoTriState.msoFalse;
+            textShape.Line.Visible = Office.MsoTriState.msoFalse;
+
+            if (ContainsInlineMathFormula(text))
+            {
+                ProcessInlineMathTextRuns(textShape);
+            }
+
+            textShape.TextFrame.AutoSize = PpAutoSize.ppAutoSizeShapeToFitText;
+            textShape.Select();
+            return textShape;
+        }
+
+        private static bool ShouldRenderWpsLatexInputAsText(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                return false;
+            }
+
+            return ContainsCjkText(input) && ContainsInlineMathFormula(input);
+        }
+
+        private static bool ShouldRenderPowerPointLatexInputAsText(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input) || !ContainsInlineMathFormula(input))
+            {
+                return false;
+            }
+
+            string remainingText = Regex.Replace(
+                input,
+                @"(?<!\\)\$[^$\r\n]+?(?<!\\)\$",
+                " "
+            );
+
+            return Regex.IsMatch(remainingText, @"[\u3400-\u9FFFA-Za-z0-9]");
+        }
+
+        private static bool ContainsCjkText(string text)
+        {
+            return !string.IsNullOrEmpty(text)
+                && Regex.IsMatch(text, @"[\u3400-\u9FFF]");
+        }
+
         private static string NormalizeLatexInput(string latexInput)
         {
             string trimmed = latexInput.Trim();
@@ -4541,9 +5073,9 @@ namespace SlideSCI
             {
                 trimmed = trimmed.Substring(2, trimmed.Length - 4);
             }
-            else if (trimmed.StartsWith("$") && trimmed.EndsWith("$"))
+            else if (ContainsInlineMathFormula(trimmed))
             {
-                trimmed = trimmed.Substring(1, trimmed.Length - 2);
+                trimmed = StripInlineMathDelimiters(trimmed);
             }
             else if (trimmed.StartsWith(@"\(") && trimmed.EndsWith(@"\)"))
             {
@@ -4556,6 +5088,7 @@ namespace SlideSCI
 
             string normalizedLineBreaks = trimmed.Replace("\r\n", "\n").Replace("\r", "\n").Trim();
             normalizedLineBreaks = NormalizeCommonLatexTypos(normalizedLineBreaks);
+            normalizedLineBreaks = StripInlineMathDelimiters(normalizedLineBreaks);
             string[] lines = normalizedLineBreaks
                 .Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(line => line.Trim())
@@ -4568,6 +5101,16 @@ namespace SlideSCI
             }
 
             return normalizedLineBreaks;
+        }
+
+        private static string StripInlineMathDelimiters(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+            {
+                return text;
+            }
+
+            return Regex.Replace(text, @"(?<!\\)\$([^$\r\n]+?)(?<!\\)\$", "$1");
         }
 
         private static string NormalizeCommonLatexTypos(string latex)

@@ -34,15 +34,15 @@
     <InstallUrl />
     <Install>true</Install>
     <TargetCulture>zh-chs</TargetCulture>
-    <ApplicationVersion>1.4.6.38</ApplicationVersion>
+    <ApplicationVersion>1.4.6.52</ApplicationVersion>
     <AutoIncrementApplicationRevision>false</AutoIncrementApplicationRevision>
     <UpdateEnabled>true</UpdateEnabled>
     <UpdateInterval>7</UpdateInterval>
     <UpdateIntervalUnits>days</UpdateIntervalUnits>
-    <ProductName>SlideSCICompat</ProductName>
-    <PublisherName>Achuan-2</PublisherName>
+    <ProductName>SlideBridge Office</ProductName>
+    <PublisherName>jacywallny</PublisherName>
     <SupportUrl />
-    <FriendlyName>SlideSCI</FriendlyName>
+    <FriendlyName>SlideBridge</FriendlyName>
     <OfficeApplicationDescription />
     <LoadBehavior>3</LoadBehavior>
   </PropertyGroup>

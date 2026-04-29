@@ -1,9 +1,9 @@
-#define AppName "SlideSCI WPS PowerPoint"
+#define AppName "SlideBridge Office"
 #define AddInKey "SlideSCICompat"
 #define VstoManifest "SlideSCICompat.vsto"
 #define SolutionId "{EDE5B327-B8B0-4044-9237-768C42B63E3E}"
 #define InclusionId "{80B4B921-FA89-4AAE-8146-62F13CCC93E4}"
-#define AppPublisher "Achuan-2"
+#define AppPublisher "jacywallny"
 #define AppVersion GetEnv("SLIDESCI_VERSION")
 #define PublishDir GetEnv("SLIDESCI_PUBLISH_DIR")
 #define DistDir GetEnv("SLIDESCI_DIST_DIR")
@@ -30,7 +30,7 @@ CreateAppDir=yes
 Uninstallable=yes
 PrivilegesRequired=lowest
 OutputDir={#DistDir}
-OutputBaseFilename=SlideSCI_WPS_PowerPoint_Compat_v{#AppVersion}
+OutputBaseFilename=SlideBridge_Office_WPS_PowerPoint_v{#AppVersion}
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
@@ -45,8 +45,8 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Source: "{#PublishDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Registry]
-Root: HKCU; Subkey: "Software\Microsoft\Office\PowerPoint\Addins\{#AddInKey}"; ValueType: string; ValueName: "Description"; ValueData: "SlideSCI"; Flags: uninsdeletekey
-Root: HKCU; Subkey: "Software\Microsoft\Office\PowerPoint\Addins\{#AddInKey}"; ValueType: string; ValueName: "FriendlyName"; ValueData: "SlideSCI"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Microsoft\Office\PowerPoint\Addins\{#AddInKey}"; ValueType: string; ValueName: "Description"; ValueData: "SlideBridge Office"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Microsoft\Office\PowerPoint\Addins\{#AddInKey}"; ValueType: string; ValueName: "FriendlyName"; ValueData: "SlideBridge"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\Microsoft\Office\PowerPoint\Addins\{#AddInKey}"; ValueType: dword; ValueName: "LoadBehavior"; ValueData: "3"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\Microsoft\Office\PowerPoint\Addins\{#AddInKey}"; ValueType: string; ValueName: "Manifest"; ValueData: "file:///{app}\{#VstoManifest}|vstolocal"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\Kingsoft\Office\WPP\AddinsWL"; ValueType: string; ValueName: "{#AddInKey}"; ValueData: ""; Flags: uninsdeletevalue
@@ -287,8 +287,8 @@ begin
   RegDeleteValue(HKCU, MetaRoot, 'file:///D:/SlideSCI_wps/SlideSCI/bin/Release/SlideSCICompat.vsto');
   RegDeleteKeyIncludingSubkeys(HKCU, InclusionKey);
 
-  RegWriteStringValue(HKCU, 'Software\Microsoft\Office\PowerPoint\Addins\{#AddInKey}', 'Description', 'SlideSCI');
-  RegWriteStringValue(HKCU, 'Software\Microsoft\Office\PowerPoint\Addins\{#AddInKey}', 'FriendlyName', 'SlideSCI');
+  RegWriteStringValue(HKCU, 'Software\Microsoft\Office\PowerPoint\Addins\{#AddInKey}', 'Description', 'SlideBridge Office');
+  RegWriteStringValue(HKCU, 'Software\Microsoft\Office\PowerPoint\Addins\{#AddInKey}', 'FriendlyName', 'SlideBridge');
   RegWriteDWordValue(HKCU, 'Software\Microsoft\Office\PowerPoint\Addins\{#AddInKey}', 'LoadBehavior', 3);
   RegWriteStringValue(HKCU, 'Software\Microsoft\Office\PowerPoint\Addins\{#AddInKey}', 'Manifest', ManifestUrl + '|vstolocal');
   RegWriteStringValue(HKCU, 'Software\Kingsoft\Office\WPP\AddinsWL', '{#AddInKey}', '');

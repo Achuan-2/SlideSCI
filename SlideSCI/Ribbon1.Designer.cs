@@ -169,7 +169,6 @@
             this.button8 = this.Factory.CreateRibbonButton();
             this.editLatexSvgButton = this.Factory.CreateRibbonButton();
             this.insertCodeBlockButton = this.Factory.CreateRibbonButton();
-            this.赞赏 = this.Factory.CreateRibbonButton();
             this.button4 = this.Factory.CreateRibbonButton();
             this.开发者 = this.Factory.CreateRibbonButton();
             this.button5 = this.Factory.CreateRibbonButton();
@@ -190,7 +189,7 @@
             this.tab2.Groups.Add(this.图片处理);
             this.tab2.Groups.Add(this.group1);
             this.tab2.Groups.Add(this.group3);
-            this.tab2.Label = "SlideSCI";
+            this.tab2.Label = "SlideBridge";
             this.tab2.Name = "tab2";
             // 
             // 图片自动对齐
@@ -544,7 +543,7 @@
             this.tab1.Groups.Add(this.复制图片格式);
             this.tab1.Groups.Add(this.codeGroup);
             this.tab1.Groups.Add(this.group2);
-            this.tab1.Label = "SlideSCI(2)";
+            this.tab1.Label = "SlideBridge(2)";
             this.tab1.Name = "tab1";
             // 
             // 复制图片格式
@@ -602,7 +601,6 @@
             // 
             // group2
             // 
-            this.group2.Items.Add(this.赞赏);
             this.group2.Items.Add(this.button4);
             this.group2.Items.Add(this.开发者);
             this.group2.Items.Add(this.button5);
@@ -803,18 +801,10 @@
             this.insertCodeBlockButton.ShowImage = true;
             this.insertCodeBlockButton.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.insertCodeBlockButton_Click);
             // 
-            // 赞赏
-            // 
-            this.赞赏.Image = ((System.Drawing.Image)(resources.GetObject("赞赏.Image")));
-            this.赞赏.Label = "赞赏";
-            this.赞赏.Name = "赞赏";
-            this.赞赏.ShowImage = true;
-            this.赞赏.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.donate);
-            // 
             // button4
             // 
             this.button4.Image = ((System.Drawing.Image)(resources.GetObject("button4.Image")));
-            this.button4.Label = "项目Github";
+            this.button4.Label = "GitHub";
             this.button4.Name = "button4";
             this.button4.ShowImage = true;
             this.button4.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.openGithub_Click);
@@ -920,7 +910,6 @@
         internal Microsoft.Office.Tools.Ribbon.RibbonButton button5;
         internal Microsoft.Office.Tools.Ribbon.RibbonGroup group3;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton button1;
-        internal Microsoft.Office.Tools.Ribbon.RibbonButton 赞赏;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton 开发者;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton 复制大图;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton 导出原图;

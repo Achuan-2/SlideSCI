@@ -52,8 +52,8 @@ namespace SlideSCI
             AddDirectory(
                 Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                    "Achuan-2",
-                    "SlideSCI",
+                    "jacywallny",
+                    "SlideBridge Office",
                     "latex-converter"
                 )
             );

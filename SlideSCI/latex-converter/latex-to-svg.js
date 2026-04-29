@@ -190,7 +190,7 @@ function serializeAttributes(attributes, excludedNames) {
         .filter(([name]) => !excludedNames.has(name))
         .filter(([name]) => name !== 'style')
         .filter(([name]) => name !== 'role' && name !== 'focusable')
-        .filter(([name]) => !name.startsWith('data-'))
+        .filter(([name]) => name === 'data-slidesci-origin' || !name.startsWith('data-'))
         .map(([name, value]) => {
             const normalizedValue = value === 'currentColor' ? '#000' : value;
             return ` ${name}="${escapeAttribute(normalizedValue)}"`;
@@ -286,6 +286,14 @@ function isIdentityMatrix(matrix) {
     return matrix.every((value, index) => value === identityMatrix()[index]);
 }
 
+function serializeMatrixTransform(matrix) {
+    return `matrix(${matrix.map(formatNumber).join(' ')})`;
+}
+
+function containsCjkText(text) {
+    return /[\u3000-\u303F\u3400-\u9FFF\uFF00-\uFFEF]/.test(text || '');
+}
+
 function transformPathData(d, matrix) {
     if (!d || isIdentityMatrix(matrix)) {
         return d;
@@ -357,6 +365,109 @@ function transformPathData(d, matrix) {
     }
 
     return output.join(' ');
+}
+
+function parseNumericAttribute(attributes, name, defaultValue) {
+    if (attributes[name] === undefined || attributes[name] === null || attributes[name] === '') {
+        return defaultValue;
+    }
+
+    const value = Number.parseFloat(attributes[name]);
+    return Number.isFinite(value) ? value : null;
+}
+
+function serializeRectAsPath(attributes, matrix) {
+    const x = parseNumericAttribute(attributes, 'x', 0);
+    const y = parseNumericAttribute(attributes, 'y', 0);
+    const width = parseNumericAttribute(attributes, 'width', null);
+    const height = parseNumericAttribute(attributes, 'height', null);
+    if (
+        x === null ||
+        y === null ||
+        width === null ||
+        height === null ||
+        width < 0 ||
+        height < 0
+    ) {
+        return null;
+    }
+
+    const topLeft = transformPoint(matrix, x, y);
+    const topRight = transformPoint(matrix, x + width, y);
+    const bottomRight = transformPoint(matrix, x + width, y + height);
+    const bottomLeft = transformPoint(matrix, x, y + height);
+    const outputAttributes = { ...attributes };
+
+    delete outputAttributes.x;
+    delete outputAttributes.y;
+    delete outputAttributes.width;
+    delete outputAttributes.height;
+    delete outputAttributes.rx;
+    delete outputAttributes.ry;
+    delete outputAttributes.transform;
+    outputAttributes['data-slidesci-origin'] = 'rect';
+
+    const isAxisAligned =
+        Math.abs(topLeft.y - topRight.y) < 0.0001 &&
+        Math.abs(bottomLeft.y - bottomRight.y) < 0.0001 &&
+        Math.abs(topLeft.x - bottomLeft.x) < 0.0001 &&
+        Math.abs(topRight.x - bottomRight.x) < 0.0001;
+
+    if (isAxisAligned) {
+        const x1 = Math.min(topLeft.x, topRight.x, bottomRight.x, bottomLeft.x);
+        const y1 = Math.min(topLeft.y, topRight.y, bottomRight.y, bottomLeft.y);
+        const x2 = Math.max(topLeft.x, topRight.x, bottomRight.x, bottomLeft.x);
+        const y2 = Math.max(topLeft.y, topRight.y, bottomRight.y, bottomLeft.y);
+        outputAttributes.d = `M${formatNumber(x1)} ${formatNumber(y1)}V${formatNumber(y2)}H${formatNumber(x2)}V${formatNumber(y1)}H${formatNumber(x1)}Z`;
+    }
+    else {
+        outputAttributes.d = [
+            `M${formatNumber(topLeft.x)} ${formatNumber(topLeft.y)}`,
+            `L${formatNumber(topRight.x)} ${formatNumber(topRight.y)}`,
+            `L${formatNumber(bottomRight.x)} ${formatNumber(bottomRight.y)}`,
+            `L${formatNumber(bottomLeft.x)} ${formatNumber(bottomLeft.y)}`,
+            'Z',
+        ].join(' ');
+    }
+
+    return `<path${serializeAttributes(outputAttributes, new Set(['transform']))}></path>`;
+}
+
+function serializeTextElement(node, attributes, currentMatrix) {
+    const textContent = adaptor.childNodes(node)
+        .map((child) => {
+            const childKind = adaptor.kind(child);
+            return childKind === '#text' ? escapeText(adaptor.value(child)) : '';
+        })
+        .join('');
+    const outputAttributes = { ...attributes };
+
+    delete outputAttributes.transform;
+    const isTranslateOnly =
+        Math.abs(currentMatrix[0] - 1) < 0.0001 &&
+        Math.abs(currentMatrix[1]) < 0.0001 &&
+        Math.abs(currentMatrix[2]) < 0.0001 &&
+        Math.abs(currentMatrix[3] - 1) < 0.0001;
+    if (isTranslateOnly && !isIdentityMatrix(currentMatrix)) {
+        const x = parseNumericAttribute(outputAttributes, 'x', 0);
+        const y = parseNumericAttribute(outputAttributes, 'y', 0);
+        if (x !== null && y !== null) {
+            outputAttributes.x = formatNumber(x + currentMatrix[4]);
+            outputAttributes.y = formatNumber(y + currentMatrix[5]);
+        }
+        else {
+            outputAttributes.transform = serializeMatrixTransform(currentMatrix);
+        }
+    }
+    else if (!isIdentityMatrix(currentMatrix)) {
+        outputAttributes.transform = serializeMatrixTransform(currentMatrix);
+    }
+
+    if (containsCjkText(textContent)) {
+        outputAttributes['font-family'] = 'Microsoft YaHei, SimSun, Noto Sans CJK SC, sans-serif';
+    }
+
+    return `<text${serializeAttributes(outputAttributes, new Set())}>${textContent}</text>`;
 }
 
 function serializeTranslatedBarPath(pathNode, translate) {
@@ -517,6 +628,17 @@ function serializeElement(node, state, flattenSvg) {
         return `<path${serializeAttributes(outputAttributes, new Set(['transform']))}></path>`;
     }
 
+    if (kind === 'rect') {
+        const rectPath = serializeRectAsPath(attributes, currentMatrix);
+        if (rectPath) {
+            return rectPath;
+        }
+    }
+
+    if (kind === 'text') {
+        return serializeTextElement(node, attributes, currentMatrix);
+    }
+
     state.matrix = currentMatrix;
     const children = childrenNodes.map((child) => serializeSvgNode(child, state)).join('');
     state.matrix = previousMatrix;
@@ -582,6 +704,9 @@ function staggerConsecutiveOverlineBars(svgMarkup) {
     while ((match = pathPattern.exec(svgMarkup)) !== null) {
         const rect = parseRectPathFromMarkup(match[0]);
         if (!rect) {
+            continue;
+        }
+        if (/\sdata-slidesci-origin="rect"/.test(match[0])) {
             continue;
         }
         if (rect.width < 80 || rect.height > 80) {
@@ -715,6 +840,7 @@ function convertLatexToSvg(latex, displayMode) {
     // bars, braces and extensible arrows. Flatten them into one SVG coordinate
     // system and add a small viewBox margin to avoid clipping accents.
     const processedSvg = addRootViewBoxPadding(staggerConsecutiveOverlineBars(serializeOfficeCompatibleSvg(node)))
+        .replace(/\sdata-slidesci-origin="rect"/g, '')
         .replace(/stroke="currentColor"/g, 'stroke="#000"')
         .replace(/fill="currentColor"/g, 'fill="#000"');
 

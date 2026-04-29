@@ -1,199 +1,27 @@
+# Changelog
 
-## v1.4 / 20251129
+## v1.4.6.52 / 2026-04-29
 
-- 🎨任何对象都可以添加图片标题
-- 🎨子图标签设置times new roman字体修复 [#53](https://github.com/Achuan-2/my_ppt_plugin/issues/53)
+- Rename the public-facing project to `SlideBridge Office`.
+- Update public contact information to:
+  - GitHub: `https://github.com/jacywallny/`
+  - Email: `jacywalln@gmail.com`
+- Remove public original-author links, video links, and funding material.
+- Keep internal VSTO compatibility identifiers unchanged for PowerPoint/WPS upgrade stability.
 
-## v1.3 / 20250929
-- ✨支持插入latex svg，以解决插入latex文字版本有些latex语法不支持的问题
-  - 配置方法（需要node.js环境）
-    - 配置Node.js环境
-    - 进入插件安装文件夹的latex-converter文件夹，默认为`%APPDATA%\Achuan-2\SlideSCI\latex-converter`
-    - 运行`npm install`安装
+## v1.4.6.51 / 2026-04-29
 
-## v1.2 / 20250929
+- Fix PowerPoint insertion of long Chinese text mixed with inline LaTeX formulas.
+- Mixed text with `$...$` is inserted as a wrapping text box instead of a single long SVG.
+- Pure formula input continues to use the SVG path.
 
-  - 🐛 fix(数学公式): 修复插入Markdown，$$没有去除的问题
+## v1.4.6.50 / 2026-04-29
 
+- Improve PowerPoint LaTeX SVG sizing for long formulas.
+- Keep WPS sizing behavior unchanged.
 
-## v1.1 / 2025.09.24
+## v1.4
 
-- ✨图片添加标签新增计数器、更新标签文本功能 [#36](https://github.com/Achuan-2/my_ppt_plugin/issues/36)
-- ✨图片标签-增加更新标签功能 [#42](https://github.com/Achuan-2/my_ppt_plugin/issues/42)
-- ✨图片标签：标签模板新增(a)和(A) [#44](https://github.com/Achuan-2/my_ppt_plugin/issues/44)
-- ✨图片标签添加Time new Roman字体
-
-## v1.0.2.1 / 2025.07.09
-  - ✨ feat(复制大图): 复制大图支持占位符图片
-
-
-## v1.0.2.0 / 2025.07.09
-- 🐛fix(图片标题): 图片通过占位符粘贴，无法添加标题
-
-## v1.0.1.9 / 2025.07.08
-
-- ✨添加图片标题优化
-  - 添加图片标题支持添加上标题
-  - 图片标题支持设置居中或居左
-
-![](https://fastly.jsdelivr.net/gh/Achuan-2/PicBed/assets/PixPin_2025-07-07_17-49-34-2025-07-07.png)
-
-## v1.0.1.8 / 2025.07.07
-- ✨ PPT便捷导出原图
-- ✨复制原图更名为复制大图
-
-
-## v1.0.1.7 / 2025.07.07
-- ✨ PPT复制原始图片到剪贴板 [#32](https://github.com/Achuan-2/my_ppt_plugin/issues/32)
-  - 实现方案：**直接复制形状+临时调整尺寸**
-
-    1. 不用export函数+临时文件复制方案，直接用shape copy复制到剪贴板
-    2. 不设置scale百分比为100，改为临时设置图片高度为幻灯片高度，复制之后，再调整回之前的宽高，这样虽然不是原始图片，但是也能用
-
-    为什么选择这个方案
-
-    - 设置这个功能就是方便自己从ppt复制图片到笔记软件，方便整理，不需要追求原始图片保存，真要保存，可以用ppt自带的复制原始图片功能
-    - 这个方案比较实用，比如512*512的tif，如果是原始图片直接复制就太小了，粘贴到笔记软件不方便查看，更别说很多笔记软件并不支持显示tif，一般图片调整到幻灯片高度都是能看的
-- ✨ feat(添加标题): 支持给视频添加标题
-- ✨ feat(代码块高亮）：支持R语言代码高亮 [#31](https://github.com/Achuan-2/my_ppt_plugin/issues/31)
-- ✨ feat(添加标题): 支持给视频添加标题
-
-## v1.0.1.6 / 2025.05.22
-
-- ✨ feat(导出功能): 统一导出页面和选中页面的命名
-
-
-## v1.0.1.5 / 2025.05.19
-- ✨ feat(导出功能): 添加PDF导出格式
-- ✨ feat(导出功能): 支持多选页面批量导出为图片和pdf
-
-
-# v1.0.1.4 / 2025.05.19
-- ✨ feat(导出功能): 添加图片导出设置对话框
-  - 实现导出范围、格式和DPI选择
-  - 添加导出后打开文件夹的选项
-  - 处理无演示文稿和无幻灯片的情况
-
-
-## v1.0.1.3 / 2025.05.04
-- 🐛 fix(列表转换): 修复有序列表编号保存问题 [#27](https://github.com/Achuan-2/my_ppt_plugin/issues/27)
-  - 保持列表编号项目符号类型（之前会把ABCD的样式变为1234）
-  - 保存列表编号起始值（之前会把开头为序号2的列表改为序号1）
-- 🐛 fix(列表转换): 避免列表样式受后续字体样式干扰
-
-## v1.0.1.2/ 2025.05.04
-- 🐛fix (公式处理): 修复行内数学公式插入吞字问题 [#26](https://github.com/Achuan-2/my_ppt_plugin/issues/26)
-
-## v1.0.1.1 / 2025.05.04
-
-- ✨ feat(图片添加标题)：添加标题终于不再受默认文本框格式的影响，始终居中，文本框宽度与图片宽度一致，自动换行
-- ✨ feat(insertMarkdown): 粘贴md位置改进，插入位置改为幻灯片中间
-- 📝 添加赞赏按钮
-
-
-## v1.0.1.0 / 2025.04.16 
-- 💄 UI(Tab): 新增一个Tab栏，操作更方便
-- ✨ feat(添加图片标题): 图片标题功能优化自动编组，处理编组失败的情况
-    - 原因：PPT复制到占位符框框产生的图片不能和其他图片、文字进行组合。
-    - 解决方案：遇到这种情况可以把图片+标题复制一份，删除原图片+标题，粘贴拷贝的图片+标题到原位置，再进行组合，如果不行，再报错。
-- ✨ feat(insertMarkdown): 粘贴md位置改进，插入位置改为PPT外侧
-
-
-## v1.0.0.55 /2025.02.23 by [zixuan203344](https://github.com/zixuan203344) ❤
-- ✨ 部分标签文字，在能理解其意思的基础上尽可能缩短，排列整齐
-- ✨ 几乎所有的可输入值，改为下拉框，可下拉选择，可手动输入
-- ✨ 列数量、列间距、行间距、图宽、图高等值的改变，会自动触发一次图片排列，可实时更改
-- ✨ 图片加标题功能，增加开关，可自定义排除文本框、形状与否
-- 🐛 图片加标题功能，修正打开编组功能后，只能增加2组标题，且编组只能编一次，现在编组功能正常，编组完成后，自动选择所有对象方便移动或同时缩放
-- ✨ 字体增加下拉框，可选择常用的PPT字体（前提是PC上要安装这些字体）
-- ✨ 格式复制粘贴，将常用的8组按钮移动到外面，方便使用
-
-## v1.0.0.54 / 2025.02.15
-- 🐛 fix：某些图片无法添加图片标题
-- ✨ 图片和文字组合支持同步缩放 [#18](https://github.com/Achuan-2/my_ppt_plugin/issues/18)
-- ✨ 图片标签和标题添加时，自动全选中添加的标签和标题，方便修改
-
-## v1.0.0.53 / 2025.01.24
-
-- ✨ 图片排列的排列方式：最大宽度排列功能完善，改为按照列最大宽度，更加实用
-- ✨ 图片标签支持自动加粗
-
-## v1.0.0.52 / 2025.01.24
-
-- 🐛 复制粘贴图片裁剪失效
-- ✨ 图片排列的排列方式支持三种选项
-- ✨ 图片排列支持设置是否排除文本框
-- ✨ 图片标签支持数字编号、自动排除文本框和形状
-- ✨ 现在插件的参数修改后，再打开能够保持之前的设置
-- ✨ 复制粘贴位置效果完善：使用中心位置粘贴，适应形状大小不同的位置粘贴
-
-
-## v1.0.0.50/2025.01.23
-
-- 🎨 插件改名为SlideSCI
-- 📝 添加未经允许，禁止商用
-- ✨ 支持添加图片标签，用于科研绘图
-- ✨ 支持复制粘贴格式：支持复制形状、文本框、选中部分文字格式并粘贴格式
-- 💄 界面调整：Ribbon使用专用选项卡（之前是默认的，有问题，其他插件也可能占用）、并使用menu来包裹复制粘贴格式的系列按钮，节省选项卡空间
-
-## v1.0.0.46/2025.01.20
-
-- ✨ 图片自动排列：支持根据位置自动排列图片
-  - 可以根据用户手动排列的图片位置，来自动判断图片的排列顺序
-
-## v1.0.0.45/2025.01.17
-
-- ✨ 插入markdown：行内数学公式支持分式
-    需要临时插入块级数学公式，否则不会正常转化？
-
-## v1.0.0.44/2025.01.17
-
-- ✨ 获取当前插件版本号
-
-
-
-## v1.0.0.43/2025.01.17
-
-- ✨ 插入markdown，支持行间数学公式
-- 
-
-## v1.0.0.42/2025.01.17
-
-- ✨ 添加帮助文档，跳转到语雀
-
-## v1.0.0.41/2025.01.16
-- ✨ 复制粘贴位置支持批量
-- ✨ 插入Markdown：优化剪贴板写入，粘贴完之后最新的剪贴板为复制的全部内容，避免内容分块导致的剪贴板污染
-
-
-
-## v1.0.0.40/ 2025.01.15
-- ✨ 支持图片复制粘贴裁剪
-- ✨ 支持打开GitHub repo页面
-- ✨ 插入markdown
-  - 默认字体设置为微软雅黑
-  - 支持列表粘贴：默认添加悬挂缩进
-  - 支持任务列表粘贴，支持转化为☑和☐
-  - 支持引述块粘贴：独立文本框，添加黑色边框
-  - 支持表格粘贴：默认限制500px宽度，添加1pt黑色边框
-  - 支持直接插入公式块
-  - 支持普通段落和代码块、公式块混排
-  - 支持粘贴行内代码：调整为暗红色字体颜色
-
-
-## v1.0.0.35 / 2025.01.13
-- ✨支持安装到WPS（注：WPS不支持插入latex公式）
-
-## v1.0.0.34 / 2025.01.13
-- ✨支持插入latex数学公式
-
-## v1.0.0.24 / 2025.01.13
-- ✨支持代码块高亮，目前已经支持python、csharp、js、matlab、css、html等代码高亮，插入的代码块默认为黑色
-
-##  v1.0.0.14 / 2025.01.13
-- ✨添加开发者信息
-
-## v1.0.0.11 / 2025.01.13
-
-- ✨ 优化图片标题添加功能，支持图片标题自定义字体名称、字体大小、距离图片下边距离，默认标题文本、是否与图片自动编组
-   ![](https://fastly.jsdelivr.net/gh/Achuan-2/PicBed/assets/
+- Add WPS and PowerPoint compatible installer flow.
+- Support image captions, image labels, image auto layout, format copy/paste, Markdown insertion, code blocks, and LaTeX SVG formulas.
+- Improve repeated install behavior and add-in load reliability.
