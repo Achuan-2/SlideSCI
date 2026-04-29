@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Text;
 
 namespace SlideSCI
@@ -8,16 +10,106 @@ namespace SlideSCI
     public class LatexToSvgConverter
     {
         private readonly string _nodeExecutable;
-        private readonly string _scriptPath;
-        private readonly string _workingDirectory;
+        private readonly string[] _candidateScriptPaths;
 
         public LatexToSvgConverter(string nodeExecutable = "node")
         {
             _nodeExecutable = string.IsNullOrWhiteSpace(nodeExecutable) ? "node" : nodeExecutable;
+            _candidateScriptPaths = GetCandidateScriptPaths();
+        }
 
-            // 强制固定 Node.js 工作目录到指定路径，避免 ClickOnce 缓存引发的路径问题
-            _workingDirectory = @"D:\SlideSCI_WPS_PowerPoint_Compat\latex-converter";
-            _scriptPath = Path.Combine(_workingDirectory, "latex-to-svg.js");
+        private static string[] GetCandidateScriptPaths()
+        {
+            var directories = new List<string>();
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            void AddDirectory(string directory)
+            {
+                if (string.IsNullOrWhiteSpace(directory))
+                {
+                    return;
+                }
+
+                string fullPath = Path.GetFullPath(directory);
+                if (seen.Add(fullPath))
+                {
+                    directories.Add(fullPath);
+                }
+            }
+
+            string assemblyDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+
+            AddDirectory(
+                Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    "Achuan-2",
+                    "SlideSCI",
+                    "latex-converter"
+                )
+            );
+
+            // 兼容当前安装脚本默认目录和历史手动部署目录。
+            AddDirectory(@"D:\SlideSCI_WPS_PowerPoint_Compat\latex-converter");
+
+            AddDirectory(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "latex-converter"));
+
+            if (!string.IsNullOrWhiteSpace(assemblyDirectory))
+            {
+                AddDirectory(Path.Combine(assemblyDirectory, "latex-converter"));
+            }
+
+            var scriptPaths = new string[directories.Count];
+            for (int i = 0; i < directories.Count; i++)
+            {
+                scriptPaths[i] = Path.Combine(directories[i], "latex-to-svg.js");
+            }
+
+            return scriptPaths;
+        }
+
+        private static string ResolveScriptPath(string[] candidateScriptPaths)
+        {
+            if (candidateScriptPaths != null)
+            {
+                foreach (string candidateScriptPath in candidateScriptPaths)
+                {
+                    if (
+                        !string.IsNullOrWhiteSpace(candidateScriptPath)
+                        && File.Exists(candidateScriptPath)
+                        && HasInstalledDependencies(candidateScriptPath)
+                    )
+                    {
+                        return candidateScriptPath;
+                    }
+                }
+
+                foreach (string candidateScriptPath in candidateScriptPaths)
+                {
+                    if (!string.IsNullOrWhiteSpace(candidateScriptPath) && File.Exists(candidateScriptPath))
+                    {
+                        return candidateScriptPath;
+                    }
+                }
+
+                if (candidateScriptPaths.Length > 0)
+                {
+                    return candidateScriptPaths[0];
+                }
+            }
+
+            return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "latex-converter", "latex-to-svg.js");
+        }
+
+        private static bool HasInstalledDependencies(string scriptPath)
+        {
+            string workingDirectory = Path.GetDirectoryName(scriptPath);
+            if (string.IsNullOrWhiteSpace(workingDirectory))
+            {
+                return false;
+            }
+
+            string mathJaxModulePath = Path.Combine(workingDirectory, "node_modules", "mathjax-full", "js", "mathjax.js");
+            return File.Exists(mathJaxModulePath);
         }
 
         public string ConvertLatexToSvg(string latexCode)
@@ -27,18 +119,27 @@ namespace SlideSCI
                 throw new ArgumentException("LaTeX 公式不能为空。", nameof(latexCode));
             }
 
-            if (!File.Exists(_scriptPath))
+            string scriptPath = ResolveScriptPath(_candidateScriptPaths);
+            string workingDirectory = Path.GetDirectoryName(scriptPath) ?? AppDomain.CurrentDomain.BaseDirectory;
+
+            Debug.WriteLine($"LaTeX SVG converter script: {scriptPath}");
+
+            if (!File.Exists(scriptPath))
             {
                 throw new FileNotFoundException(
-                    "未找到 LaTeX 转换脚本，请确认插件目录下的 latex-converter 文件夹已部署。",
-                    _scriptPath
+                    "未找到 LaTeX 转换脚本，请确认插件目录下的 latex-converter 文件夹已部署。"
+                        + Environment.NewLine
+                        + "已检查以下路径："
+                        + Environment.NewLine
+                        + string.Join(Environment.NewLine, _candidateScriptPaths),
+                    scriptPath
                 );
             }
 
             var processStartInfo = new ProcessStartInfo
             {
                 FileName = _nodeExecutable,
-                Arguments = $"\"{_scriptPath}\"",
+                Arguments = $"\"{scriptPath}\"",
                 UseShellExecute = false,
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
@@ -46,7 +147,7 @@ namespace SlideSCI
                 CreateNoWindow = true,
                 StandardOutputEncoding = Encoding.UTF8,
                 StandardErrorEncoding = Encoding.UTF8,
-                WorkingDirectory = _workingDirectory,
+                WorkingDirectory = workingDirectory,
             };
 
             try
@@ -86,7 +187,7 @@ namespace SlideSCI
                             {
                                 message = $"缺少 Node.js 依赖包。请按以下步骤安装：\n" +
                                     $"1. 打开命令提示符\n" +
-                                    $"2. 导航到插件目录：{_workingDirectory}\n" +
+                                    $"2. 导航到插件目录：{workingDirectory}\n" +
                                     $"3. 然后运行：npm install\n" +
                                     $"4. 安装完成后重试\n\n";
                             }
@@ -131,7 +232,7 @@ namespace SlideSCI
                 {
                     throw new InvalidOperationException($"缺少必要的 Node.js 依赖包。请按以下步骤安装：\n" +
                         $"1. 打开命令提示符（以管理员身份运行）\n" +
-                        $"2. 导航到插件目录：{_workingDirectory}\n" +
+                        $"2. 导航到插件目录：{workingDirectory}\n" +
                         $"3. 然后运行：npm install\n" +
                         $"4. 安装完成后重试LaTeX转换功能\n\n" +
                         $"原始错误信息：{errorMessage}");
@@ -140,7 +241,7 @@ namespace SlideSCI
                 throw new InvalidOperationException($"LaTeX 转 SVG 处理时出现异常：{errorMessage}\n\n" +
                     $"如果是首次使用，请确认：\n" +
                     $"1. 已安装 Node.js（https://nodejs.org/）\n" +
-                    $"2. 已在插件目录 {_workingDirectory} 中运行 'npm install' 安装依赖", ex);
+                    $"2. 已在插件目录 {workingDirectory} 中运行 'npm install' 安装依赖", ex);
             }
         }
     }

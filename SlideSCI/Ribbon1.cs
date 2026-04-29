@@ -1411,33 +1411,13 @@ namespace SlideSCI
 
             if (inputDialog.ShowDialog() == DialogResult.OK)
             {
-                string latexInput = latexInputBox.Text.Trim();
-
-                // Remove surrounding $...$, $$...$$, \(...\), \[...\]
-                if (latexInput.StartsWith("$") && latexInput.EndsWith("$"))
-                {
-                    latexInput = latexInput.Trim('$');
-                }
-                else if (latexInput.StartsWith("$$") && latexInput.EndsWith("$$"))
-                {
-                    latexInput = latexInput.Trim('$');
-                }
-                else if (latexInput.StartsWith(@"\(") && latexInput.EndsWith(@"\)"))
-                {
-                    latexInput = latexInput.Substring(2, latexInput.Length - 4);
-                }
-                else if (latexInput.StartsWith(@"\[") && latexInput.EndsWith(@"\]"))
-                {
-                    latexInput = latexInput.Substring(2, latexInput.Length - 4);
-                }
-
-                latexInput = latexInput.Replace("\r", "").Replace("\n", ""); // Remove line breaks
+                string latexInput = NormalizeLatexInput(latexInputBox.Text ?? string.Empty);
 
                 if (!string.IsNullOrEmpty(latexInput))
                 {
                     try
                     {
-                        if (IsWpsPresentationHost())
+                        if (IsWpsPresentationHost() || ShouldPreferSvgForLatex(latexInput))
                         {
                             InsertLatexSvgShape(
                                 latexInput,
@@ -4565,7 +4545,90 @@ namespace SlideSCI
                 trimmed = trimmed.Substring(2, trimmed.Length - 4);
             }
 
-            return trimmed.Replace("\r", "").Trim();
+            string normalizedLineBreaks = trimmed.Replace("\r\n", "\n").Replace("\r", "\n").Trim();
+            normalizedLineBreaks = NormalizeCommonLatexTypos(normalizedLineBreaks);
+            string[] lines = normalizedLineBreaks
+                .Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(line => line.Trim())
+                .Where(line => !string.IsNullOrEmpty(line))
+                .ToArray();
+
+            if (lines.Length > 1 && !HasMathEnvironment(normalizedLineBreaks))
+            {
+                return $@"\begin{{aligned}}{string.Join(@"\\", lines)}\end{{aligned}}";
+            }
+
+            return normalizedLineBreaks;
+        }
+
+        private static string NormalizeCommonLatexTypos(string latex)
+        {
+            if (string.IsNullOrWhiteSpace(latex))
+            {
+                return latex;
+            }
+
+            string normalized = latex;
+            normalized = Regex.Replace(
+                normalized,
+                @"(^|[^\\A-Za-z])xrightarrow\s*([A-Za-z0-9]+)\b",
+                "$1\\xrightarrow{$2}"
+            );
+            normalized = Regex.Replace(
+                normalized,
+                @"(^|[^\\A-Za-z])xleftarrow\s*([A-Za-z0-9]+)\b",
+                "$1\\xleftarrow{$2}"
+            );
+            normalized = Regex.Replace(
+                normalized,
+                @"\\xrightarrow\s+([A-Za-z0-9]+)\b",
+                @"\xrightarrow{$1}"
+            );
+            normalized = Regex.Replace(
+                normalized,
+                @"\\xleftarrow\s+([A-Za-z0-9]+)\b",
+                @"\xleftarrow{$1}"
+            );
+            normalized = Regex.Replace(
+                normalized,
+                @"\\xrightarrow([A-Za-z0-9]+)\b",
+                @"\xrightarrow{$1}"
+            );
+            normalized = Regex.Replace(
+                normalized,
+                @"\\xleftarrow([A-Za-z0-9]+)\b",
+                @"\xleftarrow{$1}"
+            );
+
+            return normalized;
+        }
+
+        private static bool HasMathEnvironment(string latex)
+        {
+            return Regex.IsMatch(
+                latex,
+                @"\\begin\s*\{(align|aligned|alignat|gather|gathered|multline|cases|matrix|pmatrix|bmatrix|vmatrix|Vmatrix|smallmatrix|array)\}",
+                RegexOptions.IgnoreCase
+            );
+        }
+
+        private static bool ShouldPreferSvgForLatex(string latex)
+        {
+            if (string.IsNullOrWhiteSpace(latex))
+            {
+                return false;
+            }
+
+            if (latex.Contains("\n") || HasMathEnvironment(latex))
+            {
+                return true;
+            }
+
+            return Regex.IsMatch(
+                latex,
+                @"\\(xrightarrow|xleftarrow|overbrace|underbrace|overline|underline|widehat|widetilde|vec|overset|underset)\b",
+                RegexOptions.IgnoreCase
+            );
         }
         private void updateLabelsButton_Click(object sender, RibbonControlEventArgs e)
         {

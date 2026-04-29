@@ -66,14 +66,27 @@ function normalizeLatex(latex) {
     ) {
         content = content.substring(2, content.length - 2);
     }
-    else if (
-        (content.startsWith('$') && content.endsWith('$')) ||
-        (content.startsWith('\\(') && content.endsWith('\\)'))
-    ) {
+    else if (content.startsWith('$') && content.endsWith('$')) {
         content = content.substring(1, content.length - 1);
     }
+    else if (content.startsWith('\\(') && content.endsWith('\\)')) {
+        content = content.substring(2, content.length - 2);
+    }
 
-    return content.trim();
+    return normalizeCommonLatexTypos(content.trim());
+}
+
+function normalizeCommonLatexTypos(latex) {
+    let content = latex;
+
+    content = content.replace(/(^|[^\\A-Za-z])xrightarrow\s*([A-Za-z0-9]+)\b/g, '$1\\xrightarrow{$2}');
+    content = content.replace(/(^|[^\\A-Za-z])xleftarrow\s*([A-Za-z0-9]+)\b/g, '$1\\xleftarrow{$2}');
+    content = content.replace(/\\xrightarrow\s+([A-Za-z0-9]+)\b/g, '\\xrightarrow{$1}');
+    content = content.replace(/\\xleftarrow\s+([A-Za-z0-9]+)\b/g, '\\xleftarrow{$1}');
+    content = content.replace(/\\xrightarrow([A-Za-z0-9]+)\b/g, '\\xrightarrow{$1}');
+    content = content.replace(/\\xleftarrow([A-Za-z0-9]+)\b/g, '\\xleftarrow{$1}');
+
+    return content;
 }
 
 function escapeAttribute(value) {
@@ -175,6 +188,9 @@ function parseRectPath(d) {
 function serializeAttributes(attributes, excludedNames) {
     return Object.entries(attributes)
         .filter(([name]) => !excludedNames.has(name))
+        .filter(([name]) => name !== 'style')
+        .filter(([name]) => name !== 'role' && name !== 'focusable')
+        .filter(([name]) => !name.startsWith('data-'))
         .map(([name, value]) => {
             const normalizedValue = value === 'currentColor' ? '#000' : value;
             return ` ${name}="${escapeAttribute(normalizedValue)}"`;
@@ -182,7 +198,192 @@ function serializeAttributes(attributes, excludedNames) {
         .join('');
 }
 
-function serializeClippedRectPath(pathNode, nestedSvgAttributes, viewBox) {
+function parseTranslateTransform(transform) {
+    if (!transform) {
+        return null;
+    }
+
+    const match = transform.match(
+        /^translate\(\s*([+-]?(?:\d+\.?\d*|\.\d+))(?:[\s,]+([+-]?(?:\d+\.?\d*|\.\d+)))?\s*\)$/
+    );
+    if (!match) {
+        return null;
+    }
+
+    const x = Number(match[1]);
+    const y = match[2] === undefined ? 0 : Number(match[2]);
+    if (!Number.isFinite(x) || !Number.isFinite(y)) {
+        return null;
+    }
+
+    return { x, y };
+}
+
+function identityMatrix() {
+    return [1, 0, 0, 1, 0, 0];
+}
+
+function multiplyMatrix(left, right) {
+    return [
+        left[0] * right[0] + left[2] * right[1],
+        left[1] * right[0] + left[3] * right[1],
+        left[0] * right[2] + left[2] * right[3],
+        left[1] * right[2] + left[3] * right[3],
+        left[0] * right[4] + left[2] * right[5] + left[4],
+        left[1] * right[4] + left[3] * right[5] + left[5],
+    ];
+}
+
+function transformPoint(matrix, x, y) {
+    return {
+        x: matrix[0] * x + matrix[2] * y + matrix[4],
+        y: matrix[1] * x + matrix[3] * y + matrix[5],
+    };
+}
+
+function parseTransformMatrix(transform) {
+    if (!transform) {
+        return identityMatrix();
+    }
+
+    let matrix = identityMatrix();
+    const pattern = /([a-zA-Z]+)\(([^)]*)\)/g;
+    let match;
+    let matched = false;
+
+    while ((match = pattern.exec(transform)) !== null) {
+        matched = true;
+        const name = match[1].toLowerCase();
+        const values = match[2].trim().split(/[\s,]+/).filter(Boolean).map(Number);
+        if (values.some((value) => !Number.isFinite(value))) {
+            return null;
+        }
+
+        let next = null;
+        if (name === 'translate') {
+            next = [1, 0, 0, 1, values[0] || 0, values.length > 1 ? values[1] : 0];
+        }
+        else if (name === 'scale') {
+            const scaleX = values[0];
+            const scaleY = values.length > 1 ? values[1] : scaleX;
+            next = [scaleX, 0, 0, scaleY, 0, 0];
+        }
+        else if (name === 'matrix' && values.length === 6) {
+            next = values;
+        }
+
+        if (!next) {
+            return null;
+        }
+
+        matrix = multiplyMatrix(matrix, next);
+    }
+
+    return matched ? matrix : null;
+}
+
+function isIdentityMatrix(matrix) {
+    return matrix.every((value, index) => value === identityMatrix()[index]);
+}
+
+function transformPathData(d, matrix) {
+    if (!d || isIdentityMatrix(matrix)) {
+        return d;
+    }
+
+    const tokens = d.match(/[A-Za-z]|[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/g);
+    if (!tokens) {
+        return d;
+    }
+
+    const arity = {
+        M: 2, L: 2, T: 2,
+        H: 1, V: 1,
+        C: 6, S: 4, Q: 4,
+        Z: 0,
+    };
+
+    const output = [];
+    let index = 0;
+    let command = null;
+    while (index < tokens.length) {
+        if (/^[A-Za-z]$/.test(tokens[index])) {
+            command = tokens[index++];
+            output.push(command);
+        }
+
+        if (!command) {
+            return d;
+        }
+
+        const upper = command.toUpperCase();
+        if (command !== upper || !(upper in arity)) {
+            return d;
+        }
+
+        if (upper === 'Z') {
+            command = null;
+            continue;
+        }
+
+        const count = arity[upper];
+        while (index + count <= tokens.length && !/^[A-Za-z]$/.test(tokens[index])) {
+            const values = tokens.slice(index, index + count).map(Number);
+            if (values.some((value) => !Number.isFinite(value))) {
+                return d;
+            }
+
+            if (upper === 'H') {
+                const point = transformPoint(matrix, values[0], 0);
+                output.push(formatNumber(point.x));
+            }
+            else if (upper === 'V') {
+                const point = transformPoint(matrix, 0, values[0]);
+                output.push(formatNumber(point.y));
+            }
+            else {
+                for (let i = 0; i < values.length; i += 2) {
+                    const point = transformPoint(matrix, values[i], values[i + 1]);
+                    output.push(formatNumber(point.x), formatNumber(point.y));
+                }
+            }
+
+            index += count;
+
+            if (index >= tokens.length || /^[A-Za-z]$/.test(tokens[index])) {
+                break;
+            }
+        }
+    }
+
+    return output.join(' ');
+}
+
+function serializeTranslatedBarPath(pathNode, translate) {
+    if (!translate) {
+        return null;
+    }
+
+    const pathAttributes = getAttributes(pathNode);
+    const rect = parseRectPath(pathAttributes.d);
+    if (!rect) {
+        return null;
+    }
+
+    const x1 = rect.x + translate.x;
+    const y1 = rect.y + translate.y;
+    const x2 = x1 + rect.width;
+    const y2 = y1 + rect.height;
+    const outputAttributes = {
+        ...pathAttributes,
+        d: `M${formatNumber(x1)} ${formatNumber(y1)}V${formatNumber(y2)}H${formatNumber(x2)}V${formatNumber(y1)}H${formatNumber(x1)}Z`,
+    };
+    delete outputAttributes.transform;
+
+    return `<path${serializeAttributes(outputAttributes, new Set())}></path>`;
+}
+
+function serializeClippedRectPath(pathNode, nestedSvgAttributes, viewBox, matrix) {
     const width = Number.parseFloat(nestedSvgAttributes.width);
     const height = Number.parseFloat(nestedSvgAttributes.height);
     const x = Number.parseFloat(nestedSvgAttributes.x || '0');
@@ -216,9 +417,10 @@ function serializeClippedRectPath(pathNode, nestedSvgAttributes, viewBox) {
     const pathY = y + (visibleY - viewBox.y) * scaleY;
     const pathRight = pathX + visibleWidth * scaleX;
     const pathBottom = pathY + visibleHeight * scaleY;
+    const rawD = `M${formatNumber(pathX)} ${formatNumber(pathY)}V${formatNumber(pathBottom)}H${formatNumber(pathRight)}V${formatNumber(pathY)}H${formatNumber(pathX)}Z`;
     const outputAttributes = {
         ...pathAttributes,
-        d: `M${formatNumber(pathX)} ${formatNumber(pathY)}V${formatNumber(pathBottom)}H${formatNumber(pathRight)}V${formatNumber(pathY)}H${formatNumber(pathX)}Z`,
+        d: transformPathData(rawD, matrix),
     };
     delete outputAttributes.transform;
 
@@ -237,42 +439,81 @@ function serializeNestedSvg(node, state) {
     }
 
     const children = adaptor.childNodes(node);
+    const scaleX = width / viewBox.width;
+    const scaleY = height / viewBox.height;
+    const translateX = x - viewBox.x * scaleX;
+    const translateY = y - viewBox.y * scaleY;
+    const nestedMatrix = [
+        scaleX,
+        0,
+        0,
+        scaleY,
+        translateX,
+        translateY,
+    ];
+    const previousMatrix = state.matrix;
+    const mappedMatrix = multiplyMatrix(previousMatrix, nestedMatrix);
+
     if (children.length === 1 && adaptor.kind(children[0]) === 'path') {
-        const clippedPath = serializeClippedRectPath(children[0], attributes, viewBox);
+        const clippedPath = serializeClippedRectPath(children[0], attributes, viewBox, mappedMatrix);
         if (clippedPath) {
             return clippedPath;
         }
     }
 
-    const clipId = `slidesci-clip-${state.nextClipId++}`;
-    const scaleX = width / viewBox.width;
-    const scaleY = height / viewBox.height;
-    const translateX = x - viewBox.x * scaleX;
-    const translateY = y - viewBox.y * scaleY;
-    const matrix = [
-        formatNumber(scaleX),
-        '0',
-        '0',
-        formatNumber(scaleY),
-        formatNumber(translateX),
-        formatNumber(translateY),
-    ].join(' ');
+    state.matrix = mappedMatrix;
     const content = children.map((child) => serializeSvgNode(child, state)).join('');
+    state.matrix = previousMatrix;
 
-    return [
-        `<defs><clipPath id="${clipId}" clipPathUnits="userSpaceOnUse">`,
-        `<rect x="${formatNumber(viewBox.x)}" y="${formatNumber(viewBox.y)}" width="${formatNumber(viewBox.width)}" height="${formatNumber(viewBox.height)}"></rect>`,
-        '</clipPath></defs>',
-        `<g transform="matrix(${matrix})"><g clip-path="url(#${clipId})">${content}</g></g>`,
-    ].join('');
+    return content;
+}
+
+function applyTranslateToRectPathMarkup(pathMarkup, translate) {
+    const dMatch = pathMarkup.match(/ d="([^"]+)"/);
+    if (!dMatch) {
+        return null;
+    }
+
+    const rect = parseRectPath(dMatch[1]);
+    if (!rect) {
+        return null;
+    }
+
+    const x1 = rect.x + translate.x;
+    const y1 = rect.y + translate.y;
+    const x2 = x1 + rect.width;
+    const y2 = y1 + rect.height;
+    const newD = `M${formatNumber(x1)} ${formatNumber(y1)}V${formatNumber(y2)}H${formatNumber(x2)}V${formatNumber(y1)}H${formatNumber(x1)}Z`;
+
+    return pathMarkup.replace(/ d="[^"]+"/, ` d="${newD}"`);
 }
 
 function serializeElement(node, state, flattenSvg) {
     const kind = adaptor.kind(node);
     const attributes = getAttributes(node);
-    const children = adaptor.childNodes(node).map((child) => serializeSvgNode(child, state)).join('');
+    const childrenNodes = adaptor.childNodes(node);
+    const localMatrix = parseTransformMatrix(attributes.transform) || identityMatrix();
+    const previousMatrix = state.matrix;
+    const currentMatrix = multiplyMatrix(previousMatrix, localMatrix);
+    const renderableChildren = childrenNodes.filter((child) => {
+        const childKind = adaptor.kind(child);
+        return childKind !== '#text' && childKind !== '#comment';
+    });
 
-    return `<${kind}${serializeAttributes(attributes, new Set())}>${children}</${kind}>`;
+    if (kind === 'path') {
+        const outputAttributes = {
+            ...attributes,
+            d: transformPathData(attributes.d, currentMatrix),
+        };
+        delete outputAttributes.transform;
+        return `<path${serializeAttributes(outputAttributes, new Set(['transform']))}></path>`;
+    }
+
+    state.matrix = currentMatrix;
+    const children = childrenNodes.map((child) => serializeSvgNode(child, state)).join('');
+    state.matrix = previousMatrix;
+
+    return `<${kind}${serializeAttributes(attributes, new Set(['transform']))}>${children}</${kind}>`;
 }
 
 function serializeSvgNode(node, state) {
@@ -301,6 +542,7 @@ function serializeSvgNode(node, state) {
 
 function serializeOfficeCompatibleSvg(containerNode) {
     const state = {
+        matrix: identityMatrix(),
         nextClipId: 1,
         svgDepth: 0,
     };
@@ -318,7 +560,12 @@ function convertLatexToSvg(latex, displayMode) {
         containerWidth: 80 * 20,
     });
 
-    const processedSvg = serializeOfficeCompatibleSvg(node);
+    // Preserve MathJax's native SVG structure. The previous full flattening logic
+    // fixed some nested nodes, but it also distorted glyph placement and caused
+    // poorer WPS compatibility than the original MathJax output.
+    const processedSvg = adaptor.innerHTML(node)
+        .replace(/stroke="currentColor"/g, 'stroke="#000"')
+        .replace(/fill="currentColor"/g, 'fill="#000"');
 
     return processedSvg.replace(/\n{2,}/g, '\n').trim();
 }

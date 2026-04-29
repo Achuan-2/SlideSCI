@@ -32,8 +32,9 @@
     <BootstrapperEnabled>true</BootstrapperEnabled>
     <PublishUrl>D:\Code\SlideSCI\SlideSCI\publish\</PublishUrl>
     <InstallUrl />
+    <Install>true</Install>
     <TargetCulture>zh-chs</TargetCulture>
-    <ApplicationVersion>1.4.6.8</ApplicationVersion>
+    <ApplicationVersion>1.4.6.24</ApplicationVersion>
     <AutoIncrementApplicationRevision>false</AutoIncrementApplicationRevision>
     <UpdateEnabled>true</UpdateEnabled>
     <UpdateInterval>7</UpdateInterval>
@@ -246,10 +247,16 @@
     <Content Include="latex-converter\latex-to-svg.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="latex-converter\package-lock.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="latex-converter\package.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+  <PropertyGroup>
+    <SlideSciDevLatexConverterDir Condition="'$(SlideSciDevLatexConverterDir)' == '' and Exists('D:\SlideSCI_WPS_PowerPoint_Compat')">D:\SlideSCI_WPS_PowerPoint_Compat\latex-converter</SlideSciDevLatexConverterDir>
+  </PropertyGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
@@ -271,6 +278,20 @@
   </PropertyGroup>
   <!-- Include the build rules for a C# project. -->
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <ItemGroup Condition="'$(SlideSciDevLatexConverterDir)' != ''">
+    <SlideSciDevLatexConverterFiles Include="latex-converter\latex-to-svg.js" />
+    <SlideSciDevLatexConverterFiles Include="latex-converter\package.json" />
+    <SlideSciDevLatexConverterFiles Include="latex-converter\package-lock.json" />
+  </ItemGroup>
+  <Target Name="SyncDevLatexConverter" AfterTargets="Build" Condition="'$(SlideSciDevLatexConverterDir)' != ''">
+    <MakeDir Directories="$(SlideSciDevLatexConverterDir)" />
+    <Copy
+      SourceFiles="@(SlideSciDevLatexConverterFiles)"
+      DestinationFiles="@(SlideSciDevLatexConverterFiles->'$(SlideSciDevLatexConverterDir)\%(Filename)%(Extension)')"
+      SkipUnchangedFiles="true"
+    />
+    <Message Text="Synced latex-converter files to $(SlideSciDevLatexConverterDir)." Importance="high" />
+  </Target>
   <!-- Include additional build rules for an Office application add-in. -->
   <Import Project="$(VSToolsPath)\OfficeTools\Microsoft.VisualStudio.Tools.Office.targets" Condition="'$(VSToolsPath)' != ''" />
   <!-- This section defines VSTO properties that describe the host-changeable project properties. -->

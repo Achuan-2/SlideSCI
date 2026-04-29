@@ -89,6 +89,26 @@ begin
   Result := Pos('SlideSCI', Text) > 0;
 end;
 
+procedure StopOfficeHosts;
+var
+  ResultCode: Integer;
+begin
+  Exec(
+    ExpandConstant('{cmd}'),
+    '/C powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "Stop-Process -Name POWERPNT,WPP,WPS -Force -ErrorAction SilentlyContinue"',
+    '',
+    SW_HIDE,
+    ewWaitUntilTerminated,
+    ResultCode
+  );
+end;
+
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+begin
+  StopOfficeHosts;
+  Result := '';
+end;
+
 procedure CleanupStaleVstoRegistry(CurrentManifestUrl: string);
 var
   InclusionRoot: string;
@@ -163,31 +183,108 @@ begin
   end;
 end;
 
+procedure CleanupStalePowerPointAddinPaths(CurrentManifestUrl: string);
+var
+  AddinsRoot: string;
+  Names: TArrayOfString;
+  I: Integer;
+  KeyPath: string;
+  ManifestValue: string;
+  Description: string;
+  FriendlyName: string;
+  KeepCurrent: Boolean;
+begin
+  AddinsRoot := 'Software\Microsoft\Office\PowerPoint\Addins';
+
+  if RegGetSubkeyNames(HKCU, AddinsRoot, Names) then
+  begin
+    for I := 0 to GetArrayLength(Names) - 1 do
+    begin
+      KeyPath := AddinsRoot + '\' + Names[I];
+      ManifestValue := '';
+      Description := '';
+      FriendlyName := '';
+      RegQueryStringValue(HKCU, KeyPath, 'Manifest', ManifestValue);
+      RegQueryStringValue(HKCU, KeyPath, 'Description', Description);
+      RegQueryStringValue(HKCU, KeyPath, 'FriendlyName', FriendlyName);
+
+      KeepCurrent := False;
+      if ManifestValue <> '' then
+      begin
+        KeepCurrent :=
+          (CompareText(ManifestValue, CurrentManifestUrl) = 0) or
+          (CompareText(ManifestValue, CurrentManifestUrl + '|vstolocal') = 0);
+      end;
+
+      if
+        (
+          ContainsSlideSci(Names[I]) or
+          ContainsSlideSci(ManifestValue) or
+          ContainsSlideSci(Description) or
+          ContainsSlideSci(FriendlyName)
+        )
+        and (not KeepCurrent)
+      then
+      begin
+        RegDeleteKeyIncludingSubkeys(HKCU, KeyPath);
+      end;
+    end;
+  end;
+end;
+
+procedure CleanupWpsAddinState;
+var
+  LegacyAddinsRoot: string;
+  Names: TArrayOfString;
+  I: Integer;
+  KeyPath: string;
+begin
+  RegDeleteValue(HKCU, 'Software\Kingsoft\Office\WPP\AddinsWL', 'SlideSCI');
+  RegDeleteValue(HKCU, 'Software\Kingsoft\Office\WPP\AddinsWL', '{#AddInKey}');
+  RegDeleteValue(HKCU, 'Software\Kingsoft\Office\WPP\AddinsBL', 'SlideSCI');
+  RegDeleteValue(HKCU, 'Software\Kingsoft\Office\WPP\AddinsBL', '{#AddInKey}');
+  RegDeleteValue(HKCU, 'Software\Kingsoft\Office\WPP\AddinsCL', 'SlideSCI');
+  RegDeleteValue(HKCU, 'Software\Kingsoft\Office\WPP\AddinsCL', '{#AddInKey}');
+
+  RegDeleteKeyIncludingSubkeys(HKCU, 'Software\Kingsoft\Office\6.0\WPP\AddIns\SlideSCI');
+  RegDeleteKeyIncludingSubkeys(HKCU, 'Software\Kingsoft\Office\6.0\WPP\AddIns\{#AddInKey}');
+
+  LegacyAddinsRoot := 'Software\Kingsoft\Office\6.0\WPP\AddIns';
+  if RegGetSubkeyNames(HKCU, LegacyAddinsRoot, Names) then
+  begin
+    for I := 0 to GetArrayLength(Names) - 1 do
+    begin
+      if ContainsSlideSci(Names[I]) then
+      begin
+        KeyPath := LegacyAddinsRoot + '\' + Names[I];
+        RegDeleteKeyIncludingSubkeys(HKCU, KeyPath);
+      end;
+    end;
+  end;
+end;
+
 procedure RegisterVstoTrust;
 var
   ManifestUrl: string;
   ManifestPath: string;
   PublicKey: string;
   MetaRoot: string;
-  SolutionKey: string;
   InclusionKey: string;
 begin
   ManifestPath := ExpandConstant('{app}\{#VstoManifest}');
   ManifestUrl := FileUrl(ManifestPath);
   PublicKey := ExtractPublicKey(ManifestPath);
   MetaRoot := 'Software\Microsoft\VSTO\SolutionMetadata';
-  SolutionKey := MetaRoot + '\{#SolutionId}';
   InclusionKey := 'Software\Microsoft\VSTO\Security\Inclusion\{#InclusionId}';
 
   CleanupStaleVstoRegistry(ManifestUrl);
+  CleanupStalePowerPointAddinPaths(ManifestUrl);
+  CleanupWpsAddinState;
 
   RegDeleteKeyIncludingSubkeys(HKCU, 'Software\Microsoft\Office\PowerPoint\Addins\SlideSCI');
   RegDeleteKeyIncludingSubkeys(HKCU, 'Software\Microsoft\Office\PowerPoint\Addins\{#AddInKey}');
-  RegDeleteValue(HKCU, 'Software\Kingsoft\Office\WPP\AddinsWL', 'SlideSCI');
-  RegDeleteValue(HKCU, 'Software\Kingsoft\Office\WPP\AddinsWL', '{#AddInKey}');
   RegDeleteValue(HKCU, MetaRoot, 'file:///D:/codex_cli/SlideSCI/SlideSCI/bin/Release/SlideSCICompat.vsto');
   RegDeleteValue(HKCU, MetaRoot, 'file:///D:/SlideSCI_wps/SlideSCI/bin/Release/SlideSCICompat.vsto');
-  RegDeleteKeyIncludingSubkeys(HKCU, SolutionKey);
   RegDeleteKeyIncludingSubkeys(HKCU, InclusionKey);
 
   RegWriteStringValue(HKCU, 'Software\Microsoft\Office\PowerPoint\Addins\{#AddInKey}', 'Description', 'SlideSCI');
@@ -202,19 +299,25 @@ begin
     RegWriteStringValue(HKCU, InclusionKey, 'Url', ManifestUrl);
     RegWriteStringValue(HKCU, InclusionKey, 'PublicKey', PublicKey);
   end;
+end;
 
-  RegWriteStringValue(HKCU, MetaRoot, ManifestUrl, '{#SolutionId}');
-  RegWriteStringValue(HKCU, SolutionKey, 'addInName', '{#AddInKey}');
-  RegWriteStringValue(HKCU, SolutionKey, 'officeApplication', 'PowerPoint');
-  RegWriteStringValue(HKCU, SolutionKey, 'friendlyName', 'SlideSCI');
-  RegWriteStringValue(HKCU, SolutionKey, 'description', '{#AddInKey}');
-  RegWriteDWordValue(HKCU, SolutionKey, 'loadBehavior', 3);
-  RegWriteStringValue(
-    HKCU,
-    SolutionKey,
-    'compatibleFrameworks',
-    '<compatibleFrameworks xmlns="urn:schemas-microsoft-com:clickonce.v2"><framework targetVersion="4.7.2" profile="Full" supportedRuntime="4.0.30319" /></compatibleFrameworks>'
-  );
+procedure ResetCurrentVstoMetadata;
+var
+  ManifestUrl: string;
+  ManifestPath: string;
+  MetaRoot: string;
+  SolutionId: string;
+begin
+  ManifestPath := ExpandConstant('{app}\{#VstoManifest}');
+  ManifestUrl := FileUrl(ManifestPath);
+  MetaRoot := 'Software\Microsoft\VSTO\SolutionMetadata';
+
+  if RegQueryStringValue(HKCU, MetaRoot, ManifestUrl, SolutionId) then
+  begin
+    RegDeleteKeyIncludingSubkeys(HKCU, MetaRoot + '\' + SolutionId);
+  end;
+
+  RegDeleteValue(HKCU, MetaRoot, ManifestUrl);
 end;
 
 procedure ExpandDeployFiles(Dir: string);
@@ -277,15 +380,63 @@ begin
   end;
 end;
 
+procedure CopyRuntimeFilesToAppRoot;
+var
+  FindRec: TFindRec;
+  ApplicationFilesDir: string;
+  CurrentVersionDir: string;
+  SourceDir: string;
+  SourcePath: string;
+  DestPath: string;
+  VersionPart: string;
+  Ext: string;
+begin
+  ApplicationFilesDir := ExpandConstant('{app}\Application Files');
+  VersionPart := '{#AppVersion}';
+  StringChangeEx(VersionPart, '.', '_', True);
+  CurrentVersionDir := 'SlideSCICompat_' + VersionPart;
+  SourceDir := ApplicationFilesDir + '\' + CurrentVersionDir;
+
+  if FindFirst(SourceDir + '\*', FindRec) then
+  begin
+    try
+      repeat
+        if ((FindRec.Attributes and FILE_ATTRIBUTE_DIRECTORY) = 0) then
+        begin
+          Ext := ExtractFileExt(FindRec.Name);
+          if
+            (CompareText(Ext, '.dll') = 0) or
+            (CompareText(Ext, '.config') = 0) or
+            (CompareText(Ext, '.manifest') = 0)
+          then
+          begin
+            SourcePath := SourceDir + '\' + FindRec.Name;
+            DestPath := ExpandConstant('{app}') + '\' + FindRec.Name;
+            CopyFile(SourcePath, DestPath, False);
+          end;
+        end;
+      until not FindNext(FindRec);
+    finally
+      FindClose(FindRec);
+    end;
+  end;
+end;
+
 procedure CurStepChanged(CurStep: TSetupStep);
 begin
   if CurStep = ssPostInstall then
   begin
     ExpandDeployFiles(ExpandConstant('{app}'));
     CleanupOldApplicationFiles;
+    CopyRuntimeFilesToAppRoot;
+    RegisterVstoTrust;
+  end;
+
+  if CurStep = ssDone then
+  begin
     RegisterVstoTrust;
   end;
 end;
 
-[Run]
-Filename: "{app}\SlideSCICompat.vsto"; Flags: shellexec waituntilterminated; Description: "注册并安装 SlideSCI 插件 (如弹出安全提示请点击安装)";
+// Runtime DLLs are copied to the app root so VSTO can resolve the entry assembly.
+// RegisterVstoTrust enforces Manifest, trust metadata and LoadBehavior.
