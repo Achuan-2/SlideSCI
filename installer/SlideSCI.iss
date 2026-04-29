@@ -422,6 +422,49 @@ begin
   end;
 end;
 
+procedure CopyLatexConverterFilesToAppRoot;
+var
+  FindRec: TFindRec;
+  ApplicationFilesDir: string;
+  CurrentVersionDir: string;
+  SourceDir: string;
+  DestDir: string;
+  SourcePath: string;
+  DestPath: string;
+  VersionPart: string;
+begin
+  ApplicationFilesDir := ExpandConstant('{app}\Application Files');
+  VersionPart := '{#AppVersion}';
+  StringChangeEx(VersionPart, '.', '_', True);
+  CurrentVersionDir := 'SlideSCICompat_' + VersionPart;
+  SourceDir := ApplicationFilesDir + '\' + CurrentVersionDir + '\latex-converter';
+  DestDir := ExpandConstant('{app}\latex-converter');
+
+  if not DirExists(SourceDir) then
+  begin
+    exit;
+  end;
+
+  ForceDirectories(DestDir);
+
+  if FindFirst(SourceDir + '\*', FindRec) then
+  begin
+    try
+      repeat
+        if ((FindRec.Attributes and FILE_ATTRIBUTE_DIRECTORY) = 0) and
+           (CompareText(ExtractFileExt(FindRec.Name), '.deploy') <> 0) then
+        begin
+          SourcePath := SourceDir + '\' + FindRec.Name;
+          DestPath := DestDir + '\' + FindRec.Name;
+          CopyFile(SourcePath, DestPath, False);
+        end;
+      until not FindNext(FindRec);
+    finally
+      FindClose(FindRec);
+    end;
+  end;
+end;
+
 procedure CurStepChanged(CurStep: TSetupStep);
 begin
   if CurStep = ssPostInstall then
@@ -429,6 +472,7 @@ begin
     ExpandDeployFiles(ExpandConstant('{app}'));
     CleanupOldApplicationFiles;
     CopyRuntimeFilesToAppRoot;
+    CopyLatexConverterFilesToAppRoot;
     RegisterVstoTrust;
   end;
 

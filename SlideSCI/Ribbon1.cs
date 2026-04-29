@@ -1417,7 +1417,7 @@ namespace SlideSCI
                 {
                     try
                     {
-                        if (IsWpsPresentationHost() || ShouldPreferSvgForLatex(latexInput))
+                        if (IsWpsPresentationHost())
                         {
                             InsertLatexSvgShape(
                                 latexInput,
@@ -1455,13 +1455,15 @@ namespace SlideSCI
                         app.CommandBars.ExecuteMso("EquationInsertNew");
                         app.ActiveWindow.Selection.TextRange.Select();
                         Shape equationShape2 = app.ActiveWindow.Selection.ShapeRange[1];
+                        string officeEquationInput = ConvertLatexToPowerPointEquationText(latexInput);
+
                         // Set the LaTeX input to the equation shape
                         equationShape2
                             .TextFrame.TextRange.Characters(
                                 1,
                                 equationShape2.TextFrame.TextRange.Text.Length - 1
                             )
-                            .Text = latexInput;
+                            .Text = officeEquationInput;
 
                         // Convert to professional format
                         app.CommandBars.ExecuteMso("EquationProfessional");
@@ -2096,16 +2098,21 @@ namespace SlideSCI
             // 1. Tables must start with a header line
             // 2. Followed by a separator line
             // 3. Then one or more data lines
+            var codeBlockPattern = @"(?:```(\w*)\r?\n([\s\S]*?)\r?\n```)";
+            var tablePattern =
+                @"(?:^[ \t]*\|[^\r\n]*\|[ \t]*\r?\n^[ \t]*\|[ \t:|-]*\|[ \t]*\r?\n(?:^[ \t]*\|[^\r\n]*\|[ \t]*(?:\r?\n|$))+)";
+            var mathBlockPattern = @"(\$\$[\s\S]*?\$\$)";
+            var blockQuotePattern = @"(?:^[ \t]*>[^\r\n]*(?:\r?\n[ \t]*>[^\r\n]*)*)";
             var pattern =
-                @"(?:```(\w*)\r?\n(.*?)\r?\n```)|"
-                + // Code blocks
-                @"(?:\|[^\n]*\|\r?\n\|[-|\s]*\|\r?\n(?:\|[^\n]*\|\r?\n)*\|[^\n]*\|?)|"
-                + // Tables
-                @"(\$\$[\s\S]*?\$\$)|"
-                + // Math blocks
-                @"(?:(?:^|\n)(?:>[^\n]*(?:\r?\n>[^\n]*)*))"; // 引述块（修改后的模式）
+                codeBlockPattern
+                + "|"
+                + tablePattern
+                + "|"
+                + mathBlockPattern
+                + "|"
+                + blockQuotePattern;
 
-            var regex = new Regex(pattern, RegexOptions.Multiline | RegexOptions.Singleline);
+            var regex = new Regex(pattern, RegexOptions.Multiline);
 
             var matches = regex.Matches(markdown);
 
@@ -2325,25 +2332,27 @@ namespace SlideSCI
             app.CommandBars.ExecuteMso("EquationInsertNew");
             app.ActiveWindow.Selection.TextRange.Select();
             Shape equationShape2 = app.ActiveWindow.Selection.ShapeRange[1];
+            string officeEquationInput = ConvertLatexToPowerPointEquationText(mathContent);
+
             // Set the LaTeX input to the equation shape
             equationShape2
                 .TextFrame.TextRange.Characters(
                     1,
                     equationShape2.TextFrame.TextRange.Text.Length - 1
                 )
-                .Text = mathContent;
+                .Text = officeEquationInput;
 
             // Convert to professional format
             app.CommandBars.ExecuteMso("EquationProfessional");
             // Auto-size and position
-            equationShape.TextFrame.AutoSize = PpAutoSize.ppAutoSizeShapeToFitText;
-            equationShape.Left = left;
-            equationShape.Top = top;
+            equationShape2.TextFrame.AutoSize = PpAutoSize.ppAutoSizeShapeToFitText;
+            equationShape2.Left = left;
+            equationShape2.Top = top;
 
             // Delete placeholder textbox (only used to trigger focus)
             try { textBox.Delete(); } catch { }
 
-            return equationShape;
+            return equationShape2;
         }
 
         private Shape InsertBlockQuote(string content, float left, float top)
@@ -4629,6 +4638,27 @@ namespace SlideSCI
                 @"\\(xrightarrow|xleftarrow|overbrace|underbrace|overline|underline|widehat|widetilde|vec|overset|underset)\b",
                 RegexOptions.IgnoreCase
             );
+        }
+
+        private static string ConvertLatexToPowerPointEquationText(string latex)
+        {
+            if (string.IsNullOrWhiteSpace(latex))
+            {
+                return latex;
+            }
+
+            string converted = Regex.Replace(
+                latex,
+                @"\\xrightarrow\s*\{([^{}]*)\}",
+                m => $"->\\above({m.Groups[1].Value})"
+            );
+            converted = Regex.Replace(
+                converted,
+                @"\\xleftarrow\s*\{([^{}]*)\}",
+                m => $"<-\\above({m.Groups[1].Value})"
+            );
+
+            return converted;
         }
         private void updateLabelsButton_Click(object sender, RibbonControlEventArgs e)
         {

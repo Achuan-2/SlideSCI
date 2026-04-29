@@ -4,6 +4,286 @@
 
 ## 2026-04-29
 
+### 1.4.6.38
+
+- 升级版本号到 `1.4.6.38`
+  - `SlideSCI/SlideSCI.csproj`
+  - `SlideSCI/Properties/AssemblyInfo.cs`
+- 按反馈继续放大「插入LaTeX SVG」三层取反线垂直间距
+  - 将连续 overline 组阶梯步距从 `Math.max(120, thickness * 3.2)` 翻倍为 `Math.max(240, thickness * 6.4)`
+  - 保留 `1.4.6.37` 的最终横线坐标扫描与 `viewBox` 自适应扩展，避免最高线被 SVG 裁掉
+- 转换验证
+  - `\overline{A}\overline{B}\overline{A}B` 输出 3 条横线，y 坐标约为 `-1413/-1173/-933`
+  - 根 SVG `viewBox` 为 `0 -1495.64 3018 1578.28`，最高横线仍在可见范围内
+- 重新编译并生成安装包
+  - `artifacts/dist/SlideSCI_WPS_PowerPoint_Compat_v1.4.6.38.exe`
+- 轻量验证
+  - 使用 `/VERYSILENT /LOG` 执行 `1.4.6.38`，日志显示 `Installation process succeeded`
+  - 安装后 `{app}\latex-converter\latex-to-svg.js` 包含 `Math.max(240, thickness * 6.4)` 与 `rectBounds`
+  - 注册表显示 PowerPoint `LoadBehavior=3`
+  - 注册表显示当前安装版本为 `SlideSCI WPS PowerPoint version 1.4.6.38`
+
+### 1.4.6.37
+
+- 升级版本号到 `1.4.6.37`
+  - `SlideSCI/SlideSCI.csproj`
+  - `SlideSCI/Properties/AssemblyInfo.cs`
+- 修复「插入LaTeX SVG」三层取反线最高线被裁剪的问题
+  - 根因：`1.4.6.36` 把第一条 overline 上移后，根 SVG `viewBox` 仍按原始 MathJax 高度扩展，PowerPoint/WPS 导入时会裁掉超出 viewBox 的最高线
+  - `addRootViewBoxPadding` 改为扫描最终 SVG 中的矩形横线坐标，按最终 `rectBounds` 重新扩展 viewBox
+  - 继续保留三条高度不一的取反线：第一条覆盖第 1-3 个变量，第二条覆盖第 2-3 个变量，第三条只覆盖第 3 个变量
+- 转换验证
+  - `\overline{A}\overline{B}\overline{A}B` 输出 3 条横线，y 坐标约为 `-1173/-1053/-933`
+  - 根 SVG `viewBox` 从 `0 -1115.64 3018 1198.28` 扩为 `0 -1255.64 3018 1338.28`，最高横线已在可见范围内
+- 重新编译并生成安装包
+  - `artifacts/dist/SlideSCI_WPS_PowerPoint_Compat_v1.4.6.37.exe`
+- 轻量验证
+  - 使用 `/VERYSILENT /LOG` 执行 `1.4.6.37`，日志显示 `Installation process succeeded`
+  - 安装后 `{app}\latex-converter\latex-to-svg.js` 长度为 `25809`，包含 `targetEndIndex = index === 0` 与 `rectBounds`
+  - 注册表显示 PowerPoint `LoadBehavior=3`
+  - 注册表显示当前安装版本为 `SlideSCI WPS PowerPoint version 1.4.6.37`
+
+### 1.4.6.36
+
+- 升级版本号到 `1.4.6.36`
+  - `SlideSCI/SlideSCI.csproj`
+  - `SlideSCI/Properties/AssemblyInfo.cs`
+- 继续优化「插入LaTeX SVG」连续取反横线覆盖范围
+  - 针对 `\overline{A}\overline{B}\overline{A}B` 这类连续单变量 overline 组，改为按用户确认的 LaTeX 风格覆盖：
+    - 第一条横线覆盖第 1-3 个变量
+    - 第二条横线覆盖第 2-3 个变量
+    - 第三条横线只覆盖第 3 个变量
+  - 将阶梯垂直间距从 `Math.max(70, thickness * 1.8)` 增加到 `Math.max(120, thickness * 3.2)`，避免三层高度差过小
+- 转换验证
+  - `\overline{A}\overline{B}\overline{A}B` 输出单层 SVG，无嵌套 SVG
+  - 3 条横线坐标约为：
+    - `x=170-2089, y=-1173`
+    - `x=920-2089, y=-1053`
+    - `x=1679-2089, y=-933`
+- 重新编译并生成安装包
+  - `artifacts/dist/SlideSCI_WPS_PowerPoint_Compat_v1.4.6.36.exe`
+- 轻量验证
+  - 使用 `/VERYSILENT /LOG` 执行 `1.4.6.36`，日志显示 `Installation process succeeded`
+  - 安装后 `{app}\latex-converter\latex-to-svg.js` 长度为 `24469`，包含 `targetEndIndex = index === 0` 与 `Math.max(120, thickness * 3.2)`
+  - 注册表显示 PowerPoint `LoadBehavior=3`
+  - 注册表显示当前安装版本为 `SlideSCI WPS PowerPoint version 1.4.6.36`
+
+### 1.4.6.35
+
+- 升级版本号到 `1.4.6.35`
+  - `SlideSCI/SlideSCI.csproj`
+  - `SlideSCI/Properties/AssemblyInfo.cs`
+- 继续优化「插入LaTeX SVG」连续取反横线视觉
+  - `staggerConsecutiveOverlineBars` 不再只做 y 方向错开
+  - 对连续 3 条及以上 overline 横线组，前面的横线会扩展为覆盖相邻变量窗口
+  - `\overline{A}\overline{B}\overline{A}B` 转换后：
+    - 第一条横线覆盖第 1-2 个变量
+    - 第二条横线覆盖第 2-3 个变量
+    - 第三条横线覆盖第 3 个变量
+    - 同时保持阶梯 y 位置
+- 转换验证
+  - `\overline{A}\overline{B}\overline{A}B` 输出单层 SVG，无嵌套 SVG
+  - 3 条横线宽度分别约为 `1169/1169/410`，位置为阶梯分布
+- 重新编译并生成安装包
+  - `artifacts/dist/SlideSCI_WPS_PowerPoint_Compat_v1.4.6.35.exe`
+- 轻量验证
+  - 使用 `/VERYSILENT /LOG` 执行 `1.4.6.35`，日志显示 `Installation process succeeded`
+  - 安装后 `{app}\latex-converter\latex-to-svg.js` 长度为 `24365`，包含当前版本的连续取反覆盖窗口逻辑
+  - 注册表显示 PowerPoint `LoadBehavior=3`
+  - 注册表显示当前安装版本为 `SlideSCI WPS PowerPoint version 1.4.6.35`
+
+### 1.4.6.34
+
+- 升级版本号到 `1.4.6.34`
+  - `SlideSCI/SlideSCI.csproj`
+  - `SlideSCI/Properties/AssemblyInfo.cs`
+- 修复「插入LaTeX SVG」实际加载旧版 `latex-to-svg.js` 的问题
+  - 根因：安装器只同步 DLL/config/manifest 到 `{app}` 根目录，没有同步当前版本的 `latex-converter`
+  - `LatexToSvgConverter.cs` 调整脚本搜索顺序，优先使用 `AppDomain.CurrentDomain.BaseDirectory` 和程序集目录下的 `latex-converter`，再兼容固定安装目录和 AppData
+  - `installer/SlideSCI.iss` 新增 `CopyLatexConverterFilesToAppRoot`，安装后把当前版本 `Application Files\SlideSCICompat_x_y_z\latex-converter` 下的 `latex-to-svg.js`、`package.json`、`package-lock.json` 同步到 `{app}\latex-converter`
+- 重新编译并生成安装包
+  - `artifacts/dist/SlideSCI_WPS_PowerPoint_Compat_v1.4.6.34.exe`
+- 轻量验证
+  - 使用 `/VERYSILENT /LOG` 执行 `1.4.6.34`，日志显示 `Installation process succeeded`
+  - 安装后 `D:\SlideSCI_WPS_PowerPoint_Compat\latex-converter\latex-to-svg.js` 长度为 `24037`，包含 `staggerConsecutiveOverlineBars`
+  - 注册表显示 PowerPoint `LoadBehavior=3`
+  - 注册表显示当前安装版本为 `SlideSCI WPS PowerPoint version 1.4.6.34`
+
+### 1.4.6.33
+
+- 升级版本号到 `1.4.6.33`
+  - `SlideSCI/SlideSCI.csproj`
+  - `SlideSCI/Properties/AssemblyInfo.cs`
+- 优化「插入LaTeX SVG」连续单变量取反线的垂直层次
+  - 新增 `staggerConsecutiveOverlineBars`，在 SVG 后处理中识别相邻很近的 overline 横线组
+  - 对 3 条及以上的连续横线组做阶梯式 y 偏移，保留“第一条最高、第二条中间、第三条最低”的 LaTeX 视觉
+  - 间隔较远的独立取反项不参与分组，避免影响 `\overline{A}C\overline{A}B` 这类普通表达式
+- 转换验证
+  - `\overline{A}\overline{B}\overline{A}B` 输出单层 SVG，无嵌套 SVG
+  - 该样例 3 条横线 y 位置为阶梯分布
+- 重新编译并生成安装包
+  - `artifacts/dist/SlideSCI_WPS_PowerPoint_Compat_v1.4.6.33.exe`
+- 轻量验证
+  - 使用 `/VERYSILENT /LOG` 执行 `1.4.6.33`，日志显示 `Installation process succeeded`
+  - 注册表显示 PowerPoint `LoadBehavior=3`
+  - 注册表显示当前安装版本为 `SlideSCI WPS PowerPoint version 1.4.6.33`
+
+### 1.4.6.32
+
+- 升级版本号到 `1.4.6.32`
+  - `SlideSCI/SlideSCI.csproj`
+  - `SlideSCI/Properties/AssemblyInfo.cs`
+- 调整「插入LaTeX SVG」单变量取反线策略
+  - 撤销 `1.4.6.31` 中将 `\overline{A}` 归一化为 `\bar{A}` 的处理，避免改变 MathJax/LaTeX 的原始排版模型
+  - 保留 `\overline{A}` 原始语义，让 A/B 的取反线保留自然高度差
+  - 将 overline 横线内缩从 `18%/120` 调整为 `24%/170`，使横线更接近字母宽度并减少相邻重叠
+- 转换验证
+  - `=\overline{A}\overline{B}\overline{A}B+\overline{A}C\overline{A}B` 输出单层 SVG，无嵌套 SVG
+  - 该样例中取反线宽度约从 510 缩至 410，A/B 横线保留不同 y 位置
+- 重新编译并生成安装包
+  - `artifacts/dist/SlideSCI_WPS_PowerPoint_Compat_v1.4.6.32.exe`
+- 轻量验证
+  - 使用 `/VERYSILENT /LOG` 执行 `1.4.6.32`，日志显示 `Installation process succeeded`
+  - 注册表显示 PowerPoint `LoadBehavior=3`
+  - 注册表显示当前安装版本为 `SlideSCI WPS PowerPoint version 1.4.6.32`
+
+### 1.4.6.31
+
+- 升级版本号到 `1.4.6.31`
+  - `SlideSCI/SlideSCI.csproj`
+  - `SlideSCI/Properties/AssemblyInfo.cs`
+- 优化「插入LaTeX SVG」中单字母取反横线宽度/对齐问题
+  - 在 `latex-converter/latex-to-svg.js` 中新增 `normalizeSingleTokenOverline`
+  - 将单字符 `\overline{A}`、`\overline{B}` 这类布尔变量取反归一化为 `\bar{A}`、`\bar{B}`
+  - 多字符和嵌套表达式仍保留 `\overline{...}`，例如 `\overline{AB}`、`\overline{\bar{A}B}`
+  - 目标是让单变量取反线跟字母宽度更接近，避免 MathJax 的 token 盒子宽度导致横线过宽或相邻重合
+- 转换验证
+  - `=\overline{A}\overline{B}\overline{A}B+\overline{A}C\overline{A}B` 输出单层 SVG，无嵌套 SVG
+  - `\overline{\overline{A}B}+...` 输出单层 SVG，无嵌套 SVG
+- 重新编译并生成安装包
+  - `artifacts/dist/SlideSCI_WPS_PowerPoint_Compat_v1.4.6.31.exe`
+- 轻量验证
+  - 使用 `/VERYSILENT /LOG` 执行 `1.4.6.31`，日志显示 `Installation process succeeded`
+  - 注册表显示 PowerPoint `LoadBehavior=3`
+  - 注册表显示当前安装版本为 `SlideSCI WPS PowerPoint version 1.4.6.31`
+
+### 1.4.6.30
+
+- 升级版本号到 `1.4.6.30`
+  - `SlideSCI/SlideSCI.csproj`
+  - `SlideSCI/Properties/AssemblyInfo.cs`
+- 修复 Markdown 插入时复杂文档只剩表格、普通段落/列表/加粗丢失的问题
+  - 收紧 `SplitMarkdownIntoSegments` 的表格正则，避免表格分隔行中的 `\s` 跨行吞掉后续 Markdown
+  - 修复引用块正则允许空匹配的问题，避免分段器产生无意义匹配
+  - 用用户提供的 Markdown 结构验证分段结果为 `普通文本 -> 表格 -> 普通文本`
+- 继续优化「插入LaTeX SVG」连续取反横线
+  - 将 `\overline` 横线内缩从 `8%/28` 调整为 `18%/120`
+  - `=\overline{A}\overline{B}\overline{A}B` 转换后 3 条横线间距明显拉开，仍保持单层 SVG
+- 重新编译并生成安装包
+  - `artifacts/dist/SlideSCI_WPS_PowerPoint_Compat_v1.4.6.30.exe`
+- 轻量验证
+  - 使用 `/VERYSILENT /LOG` 执行 `1.4.6.30`，日志显示 `Installation process succeeded`
+  - 注册表显示 PowerPoint `LoadBehavior=3`
+  - 注册表显示当前安装版本为 `SlideSCI WPS PowerPoint version 1.4.6.30`
+
+### 1.4.6.29
+
+- 升级版本号到 `1.4.6.29`
+  - `SlideSCI/SlideSCI.csproj`
+  - `SlideSCI/Properties/AssemblyInfo.cs`
+- 修复 Markdown 插入 `$$...$$` 公式块时偶发 `Shape (unknown member): Object does not exist` 的问题
+  - `InsertMathBlock` 原来返回的是用于触发公式插入流程的旧 `equationShape`
+  - 改为返回真正写入公式内容并执行 `EquationProfessional` 后的 `equationShape2`
+  - Markdown 排版后续读取 `shape.Height` 时不再访问失效 COM 对象
+  - Markdown 公式块也复用 `ConvertLatexToPowerPointEquationText`，保持 `\xrightarrow{}` 等转换一致
+- 继续优化「插入LaTeX SVG」的取反横线
+  - 修正嵌套 SVG 扁平化时对内部 viewBox 偏移的双重平移，避免横线位置整体偏移
+  - 对 MathJax overline 使用的 `data-c="2013"` 横线做轻微左右内缩，避免相邻 `\overline{A}\overline{B}\overline{A}` 被 Office/WPS 渲染成一条连续长线
+- 转换验证
+  - `=\overline{A}\overline{B}\overline{A}B` 输出 3 条独立取反横线，且只有 1 个 `<svg>`
+  - 用户提供的完整公式样例输出只有 1 个 `<svg>`，无嵌套 SVG
+- 重新编译并生成安装包
+  - `artifacts/dist/SlideSCI_WPS_PowerPoint_Compat_v1.4.6.29.exe`
+- 轻量验证
+  - 使用 `/VERYSILENT /LOG` 执行 `1.4.6.29`，日志显示 `Installation process succeeded`
+  - 注册表显示 PowerPoint `LoadBehavior=3`
+  - 注册表显示当前安装版本为 `SlideSCI WPS PowerPoint version 1.4.6.29`
+
+### 1.4.6.28
+
+- 升级版本号到 `1.4.6.28`
+  - `SlideSCI/SlideSCI.csproj`
+  - `SlideSCI/Properties/AssemblyInfo.cs`
+- 优化「插入LaTeX SVG」中上划线/取反嵌套和高度裁剪问题
+  - `latex-converter/latex-to-svg.js` 改为输出 Office/WPS 更稳定的单层 SVG
+  - 将 MathJax 用于 `\overline`、`\overbrace`、扩展箭头等结构的内部 `<svg>` 扁平化到同一个坐标系
+  - 根 SVG 增加 `overflow="visible"`，并给 `viewBox` 上下增加安全边距，降低上划线/重音被裁剪的概率
+- 转换验证
+  - `=\overline{A}\overline{B}\overline{A}B` 输出只有 1 个 `<svg>`，无嵌套 SVG
+  - 用户提供的完整公式样例输出只有 1 个 `<svg>`，无嵌套 SVG
+- 重新编译并生成安装包
+  - `artifacts/dist/SlideSCI_WPS_PowerPoint_Compat_v1.4.6.28.exe`
+- 轻量验证
+  - 使用 `/VERYSILENT /LOG` 执行 `1.4.6.28`，日志显示 `Installation process succeeded`
+  - 注册表显示 PowerPoint `LoadBehavior=3`
+  - 注册表显示当前安装版本为 `SlideSCI WPS PowerPoint version 1.4.6.28`
+
+### 1.4.6.27
+
+- 升级版本号到 `1.4.6.27`
+  - `SlideSCI/SlideSCI.csproj`
+  - `SlideSCI/Properties/AssemblyInfo.cs`
+- 修复 PowerPoint「插入LaTeX文字」仍会因为 `\xrightarrow{}` / `\xleftarrow{}` 回退 SVG 的问题
+  - PowerPoint 下该按钮现在只在 WPS 宿主时走 SVG；PowerPoint 宿主始终插入可编辑公式
+  - 新增 `ConvertLatexToPowerPointEquationText`，在写入 PowerPoint 原生公式前将 `\xrightarrow{abc}` 转为 Office 公式编辑器可解析的 `->\above(abc)`
+  - 同理将 `\xleftarrow{abc}` 转为 `<-\above(abc)`
+- 重新编译并生成安装包
+  - `artifacts/dist/SlideSCI_WPS_PowerPoint_Compat_v1.4.6.27.exe`
+- 轻量验证
+  - 使用 `/VERYSILENT /LOG` 执行 `1.4.6.27`，日志显示 `Installation process succeeded`
+  - 注册表显示 PowerPoint `LoadBehavior=3`
+  - 注册表显示当前安装版本为 `SlideSCI WPS PowerPoint version 1.4.6.27`
+
+### 1.4.6.26
+
+- 升级版本号到 `1.4.6.26`
+  - `SlideSCI/SlideSCI.csproj`
+  - `SlideSCI/Properties/AssemblyInfo.cs`
+- 修复 PowerPoint「插入LaTeX文字」中 `\xrightarrow{}` / `\xleftarrow{}` 原样显示的问题
+  - PowerPoint 原生公式不支持这类 amsmath 扩展箭头命令，保留原生路径会显示为 `\xrightarrow` 文本
+  - 新增 `RequiresSvgForPowerPointLatex`，仅对 `\xrightarrow` / `\xleftarrow` 自动回退 SVG
+  - 普通 LaTeX 仍走 PowerPoint 原生公式文本路径，避免再次把「插入LaTeX文字」整体变成 SVG
+- 重新编译并生成安装包
+  - `artifacts/dist/SlideSCI_WPS_PowerPoint_Compat_v1.4.6.26.exe`
+- 轻量验证
+  - MathJax 转换 `\xrightarrow{abc}` 输出 SVG 成功
+  - 使用 `/VERYSILENT /LOG` 执行 `1.4.6.26`，日志显示 `Installation process succeeded`
+  - 注册表显示 PowerPoint `LoadBehavior=3`
+  - 注册表显示当前安装版本为 `SlideSCI WPS PowerPoint version 1.4.6.26`
+
+### 1.4.6.25
+
+- 升级版本号到 `1.4.6.25`
+  - `SlideSCI/SlideSCI.csproj`
+  - `SlideSCI/Properties/AssemblyInfo.cs`
+- 修复 PowerPoint 插入 Markdown 报 `System.Memory, Version=4.0.1.2` 找不到的问题
+  - `packages.config` 已声明 `System.Memory`、`System.Buffers`、`System.Numerics.Vectors`，但 `SlideSCI.csproj` 未引用这些运行时 DLL，VSTO 发布目录不会带出依赖
+  - 在项目文件中补齐 `System.Memory.dll`、`System.Buffers.dll`、`System.Numerics.Vectors.dll` 引用，并显式 `Private=True`
+  - 同步将 `System.Runtime.CompilerServices.Unsafe.dll` 显式设为 `Private=True`
+- 修复 PowerPoint「插入LaTeX文字」被复杂公式判断改走 SVG 的问题
+  - PowerPoint 下始终走原生公式文本插入路径
+  - WPS 下仍保留 SVG 兼容路径，避免调用 PowerPoint 专用公式命令
+- 重新编译并生成安装包
+  - `artifacts/dist/SlideSCI_WPS_PowerPoint_Compat_v1.4.6.25.exe`
+- 安装验证
+  - 发布目录包含 `System.Memory.dll.deploy`、`System.Buffers.dll.deploy`、`System.Numerics.Vectors.dll.deploy`
+  - 使用 `/VERYSILENT /LOG` 执行 `1.4.6.25`，日志显示 `Installation process succeeded`
+  - 等待安装器进程退出后重复静默安装 2 次，均 `ExitCode=0`，日志无 fatal/uninstall rollback
+  - 注册表显示 PowerPoint `LoadBehavior=3`
+  - 注册表显示当前安装版本为 `SlideSCI WPS PowerPoint version 1.4.6.25`
+  - 安装根目录存在 `System.Memory.dll`、`System.Buffers.dll`、`System.Numerics.Vectors.dll`、`System.Runtime.CompilerServices.Unsafe.dll`
+  - 安装后无残留 `SlideSCI_WPS_PowerPoint_Compat_v*` 安装器进程
+
 ### 1.4.6.24
 
 - 升级版本号到 `1.4.6.24`

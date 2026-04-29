@@ -39,6 +39,16 @@ namespace SlideSCI
 
             string assemblyDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
+            AddDirectory(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "latex-converter"));
+
+            if (!string.IsNullOrWhiteSpace(assemblyDirectory))
+            {
+                AddDirectory(Path.Combine(assemblyDirectory, "latex-converter"));
+            }
+
+            // 兼容当前安装脚本默认目录和历史手动部署目录。
+            AddDirectory(@"D:\SlideSCI_WPS_PowerPoint_Compat\latex-converter");
+
             AddDirectory(
                 Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
@@ -47,16 +57,6 @@ namespace SlideSCI
                     "latex-converter"
                 )
             );
-
-            // 兼容当前安装脚本默认目录和历史手动部署目录。
-            AddDirectory(@"D:\SlideSCI_WPS_PowerPoint_Compat\latex-converter");
-
-            AddDirectory(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "latex-converter"));
-
-            if (!string.IsNullOrWhiteSpace(assemblyDirectory))
-            {
-                AddDirectory(Path.Combine(assemblyDirectory, "latex-converter"));
-            }
 
             var scriptPaths = new string[directories.Count];
             for (int i = 0; i < directories.Count; i++)

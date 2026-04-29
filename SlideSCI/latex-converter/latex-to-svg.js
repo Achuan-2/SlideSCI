@@ -409,11 +409,19 @@ function serializeClippedRectPath(pathNode, nestedSvgAttributes, viewBox, matrix
     const visibleY = Math.max(scaledRect.y, viewBox.y);
     const visibleRight = Math.min(scaledRect.x + scaledRect.width, viewBox.x + viewBox.width);
     const visibleBottom = Math.min(scaledRect.y + scaledRect.height, viewBox.y + viewBox.height);
-    const visibleWidth = Math.max(0, visibleRight - visibleX);
+    let adjustedVisibleX = visibleX;
+    let adjustedVisibleRight = visibleRight;
+    if (pathAttributes['data-c'] === '2013' && visibleRight - visibleX > 80) {
+        const inset = Math.min(170, (visibleRight - visibleX) * 0.24);
+        adjustedVisibleX += inset;
+        adjustedVisibleRight -= inset;
+    }
+
+    const visibleWidth = Math.max(0, adjustedVisibleRight - adjustedVisibleX);
     const visibleHeight = Math.max(0, visibleBottom - visibleY);
     const scaleX = width / viewBox.width;
     const scaleY = height / viewBox.height;
-    const pathX = x + (visibleX - viewBox.x) * scaleX;
+    const pathX = x + (adjustedVisibleX - viewBox.x) * scaleX;
     const pathY = y + (visibleY - viewBox.y) * scaleY;
     const pathRight = pathX + visibleWidth * scaleX;
     const pathBottom = pathY + visibleHeight * scaleY;
@@ -455,7 +463,7 @@ function serializeNestedSvg(node, state) {
     const mappedMatrix = multiplyMatrix(previousMatrix, nestedMatrix);
 
     if (children.length === 1 && adaptor.kind(children[0]) === 'path') {
-        const clippedPath = serializeClippedRectPath(children[0], attributes, viewBox, mappedMatrix);
+        const clippedPath = serializeClippedRectPath(children[0], attributes, viewBox, previousMatrix);
         if (clippedPath) {
             return clippedPath;
         }
@@ -552,6 +560,149 @@ function serializeOfficeCompatibleSvg(containerNode) {
         .join('');
 }
 
+function parseRectPathFromMarkup(pathMarkup) {
+    const dMatch = pathMarkup.match(/\sd="([^"]+)"/);
+    if (!dMatch) {
+        return null;
+    }
+
+    return parseRectPath(dMatch[1]);
+}
+
+function replaceRectPathInMarkup(pathMarkup, rect) {
+    const d = `M${formatNumber(rect.x)} ${formatNumber(rect.y)}V${formatNumber(rect.y + rect.height)}H${formatNumber(rect.x + rect.width)}V${formatNumber(rect.y)}H${formatNumber(rect.x)}Z`;
+    return pathMarkup.replace(/\sd="[^"]+"/, ` d="${d}"`);
+}
+
+function staggerConsecutiveOverlineBars(svgMarkup) {
+    const pathPattern = /<path\b[^>]*><\/path>/g;
+    const matches = [];
+    let match;
+
+    while ((match = pathPattern.exec(svgMarkup)) !== null) {
+        const rect = parseRectPathFromMarkup(match[0]);
+        if (!rect) {
+            continue;
+        }
+        if (rect.width < 80 || rect.height > 80) {
+            continue;
+        }
+
+        matches.push({
+            index: match.index,
+            markup: match[0],
+            rect,
+        });
+    }
+
+    if (matches.length < 3) {
+        return svgMarkup;
+    }
+
+    const replacements = new Map();
+    let group = [];
+    const flushGroup = () => {
+        if (group.length < 3) {
+            group = [];
+            return;
+        }
+
+        const top = Math.min(...group.map((item) => item.rect.y));
+        const thickness = Math.max(...group.map((item) => item.rect.height));
+        const step = Math.max(240, thickness * 6.4);
+
+        group.forEach((item, index) => {
+            let targetX = item.rect.x;
+            let targetWidth = item.rect.width;
+            if (index < group.length - 1) {
+                const targetEndIndex = index === 0 ? group.length - 1 : index + 1;
+                const targetEnd = group[targetEndIndex].rect;
+                targetWidth = (targetEnd.x + targetEnd.width) - item.rect.x;
+            }
+
+            const targetY = top - step * (group.length - 1 - index);
+            replacements.set(item.index, replaceRectPathInMarkup(item.markup, {
+                ...item.rect,
+                x: targetX,
+                width: targetWidth,
+                y: targetY,
+            }));
+        });
+        group = [];
+    };
+
+    matches.forEach((item) => {
+        if (group.length === 0) {
+            group.push(item);
+            return;
+        }
+
+        const previous = group[group.length - 1];
+        const gap = item.rect.x - (previous.rect.x + previous.rect.width);
+        const averageWidth = (item.rect.width + previous.rect.width) / 2;
+        if (gap >= 0 && gap <= averageWidth * 0.9) {
+            group.push(item);
+        }
+        else {
+            flushGroup();
+            group.push(item);
+        }
+    });
+    flushGroup();
+
+    if (replacements.size === 0) {
+        return svgMarkup;
+    }
+
+    return svgMarkup.replace(pathPattern, (pathMarkup, offset) => replacements.get(offset) || pathMarkup);
+}
+
+function addRootViewBoxPadding(svgMarkup) {
+    return svgMarkup.replace(/<svg\b([^>]*)\bviewBox="([^"]+)"([^>]*)>/, (match, before, viewBoxValue, after) => {
+        const viewBox = parseViewBox(viewBoxValue);
+        if (!viewBox) {
+            return match;
+        }
+
+        const verticalPadding = Math.max(60, viewBox.height * 0.08);
+        const rectBounds = [];
+        const pathPattern = /<path\b[^>]*><\/path>/g;
+        let pathMatch;
+        while ((pathMatch = pathPattern.exec(svgMarkup)) !== null) {
+            const rect = parseRectPathFromMarkup(pathMatch[0]);
+            if (rect) {
+                rectBounds.push(rect);
+            }
+        }
+
+        const currentLeft = viewBox.x;
+        const currentTop = viewBox.y;
+        const currentRight = viewBox.x + viewBox.width;
+        const currentBottom = viewBox.y + viewBox.height;
+        const rectLeft = rectBounds.length > 0 ? Math.min(...rectBounds.map((rect) => rect.x)) : currentLeft;
+        const rectTop = rectBounds.length > 0 ? Math.min(...rectBounds.map((rect) => rect.y)) : currentTop;
+        const rectRight = rectBounds.length > 0
+            ? Math.max(...rectBounds.map((rect) => rect.x + rect.width))
+            : currentRight;
+        const rectBottom = rectBounds.length > 0
+            ? Math.max(...rectBounds.map((rect) => rect.y + rect.height))
+            : currentBottom;
+
+        const paddedLeft = Math.min(currentLeft, rectLeft);
+        const paddedTop = Math.min(currentTop - verticalPadding, rectTop - verticalPadding);
+        const paddedRight = Math.max(currentRight, rectRight);
+        const paddedBottom = Math.max(currentBottom + verticalPadding, rectBottom + verticalPadding);
+        const paddedViewBox = [
+            formatNumber(paddedLeft),
+            formatNumber(paddedTop),
+            formatNumber(paddedRight - paddedLeft),
+            formatNumber(paddedBottom - paddedTop),
+        ].join(' ');
+
+        return `<svg${before} viewBox="${paddedViewBox}"${after} overflow="visible">`;
+    });
+}
+
 function convertLatexToSvg(latex, displayMode) {
     const node = html.convert(latex, {
         display: displayMode,
@@ -560,10 +711,10 @@ function convertLatexToSvg(latex, displayMode) {
         containerWidth: 80 * 20,
     });
 
-    // Preserve MathJax's native SVG structure. The previous full flattening logic
-    // fixed some nested nodes, but it also distorted glyph placement and caused
-    // poorer WPS compatibility than the original MathJax output.
-    const processedSvg = adaptor.innerHTML(node)
+    // Office/WPS can misplace MathJax's nested SVG nodes that are used for
+    // bars, braces and extensible arrows. Flatten them into one SVG coordinate
+    // system and add a small viewBox margin to avoid clipping accents.
+    const processedSvg = addRootViewBoxPadding(staggerConsecutiveOverlineBars(serializeOfficeCompatibleSvg(node)))
         .replace(/stroke="currentColor"/g, 'stroke="#000"')
         .replace(/fill="currentColor"/g, 'fill="#000"');
 
