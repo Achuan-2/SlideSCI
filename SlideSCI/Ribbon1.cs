@@ -1068,45 +1068,77 @@ namespace SlideSCI
 
         private void alignHorizontalCenter_Click(object sender, RibbonControlEventArgs e)
         {
-            Selection sel = app.ActiveWindow.Selection;
-            if (sel.Type == PpSelectionType.ppSelectionShapes && sel.ShapeRange.Count > 1)
+            try
             {
-                Shape firstShape = GetFirstSelectedShape(sel);
-                float refX = firstShape.Left + firstShape.Width / 2f;
-
-                foreach (Shape shape in sel.ShapeRange)
+                Selection sel = app.ActiveWindow.Selection;
+                if (sel.Type == PpSelectionType.ppSelectionShapes && sel.ShapeRange.Count > 0)
                 {
-                    if (shape.Id != firstShape.Id)
+                    Slide slide = app.ActiveWindow.View.Slide;
+                    if (sel.ShapeRange.Count == 1)
                     {
-                        shape.Left = refX - shape.Width / 2f;
+                        Shape shape = sel.ShapeRange[1];
+                        shape.Left = (slide.Master.Width - shape.Width) / 2f;
+                    }
+                    else
+                    {
+                        Shape firstShape = GetFirstSelectedShape(sel);
+                        float refX = firstShape.Left + firstShape.Width / 2f;
+
+                        foreach (Shape shape in sel.ShapeRange)
+                        {
+                            if (shape.Id != firstShape.Id)
+                            {
+                                shape.Left = refX - shape.Width / 2f;
+                            }
+                        }
                     }
                 }
+                else
+                {
+                    MessageBox.Show("请先选择要对齐的形状。");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                MessageBox.Show("请选择至少两个对象进行对齐。");
+                MessageBox.Show($"对齐过程中出错: {ex.Message}");
             }
         }
 
         private void alignVerticalCenter_Click(object sender, RibbonControlEventArgs e)
         {
-            Selection sel = app.ActiveWindow.Selection;
-            if (sel.Type == PpSelectionType.ppSelectionShapes && sel.ShapeRange.Count > 1)
+            try
             {
-                Shape firstShape = GetFirstSelectedShape(sel);
-                float refY = firstShape.Top + firstShape.Height / 2f;
-
-                foreach (Shape shape in sel.ShapeRange)
+                Selection sel = app.ActiveWindow.Selection;
+                if (sel.Type == PpSelectionType.ppSelectionShapes && sel.ShapeRange.Count > 0)
                 {
-                    if (shape.Id != firstShape.Id)
+                    Slide slide = app.ActiveWindow.View.Slide;
+                    if (sel.ShapeRange.Count == 1)
                     {
-                        shape.Top = refY - shape.Height / 2f;
+                        Shape shape = sel.ShapeRange[1];
+                        shape.Top = (slide.Master.Height - shape.Height) / 2f;
+                    }
+                    else
+                    {
+                        Shape firstShape = GetFirstSelectedShape(sel);
+                        float refY = firstShape.Top + firstShape.Height / 2f;
+
+                        foreach (Shape shape in sel.ShapeRange)
+                        {
+                            if (shape.Id != firstShape.Id)
+                            {
+                                shape.Top = refY - shape.Height / 2f;
+                            }
+                        }
                     }
                 }
+                else
+                {
+                    MessageBox.Show("请先选择要对齐的形状。");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                MessageBox.Show("请选择至少两个对象进行对齐。");
+                MessageBox.Show($"对齐过程中出错: {ex.Message}");
             }
         }
 
@@ -1754,222 +1786,11 @@ namespace SlideSCI
                     {
                         Slide slide = app.ActiveWindow.View.Slide;
 
-                        var segments = SplitMarkdownIntoSegments(markdown);
-                        var insertedShapes = new List<Shape>();
-
                         float currentTop = slide.Master.Height / 2; // Starting position
                         float left = (slide.Master.Width - 500) / 2; // Center horizontally
+                        float width = 500;
 
-                        foreach (var segment in segments)
-                        {
-                            try
-                            {
-                                Shape shape = null;
-                                if (segment.IsSvg)
-                                {
-                                    shape = InsertSvgBlock(segment.Content, left, currentTop);
-                                }
-                                else if (segment.IsCodeBlock)
-                                {
-                                    shape = InsertCodeBlock(
-                                        segment.Content,
-                                        segment.Language,
-                                        left,
-                                        currentTop
-                                    );
-                                }
-                                else if (segment.IsTable)
-                                {
-                                    shape = InsertTable(segment.Content, left, currentTop);
-                                }
-                                else if (segment.IsMathBlock)
-                                {
-                                    shape = InsertMathBlock(segment.Content, left, currentTop);
-                                }
-                                else if (segment.IsBlockQuote)
-                                {
-                                    shape = InsertBlockQuote(segment.Content, left, currentTop);
-                                }
-                                else
-                                {
-                                    string html = ProcessMarkdown(segment.Content);
-                                    if (!string.IsNullOrEmpty(html))
-                                    {
-                                        // Add retry mechanism for clipboard operations
-                                        int retryCount = 3;
-                                        while (retryCount > 0)
-                                        {
-                                            try
-                                            {
-                                                CopyHtmlToClipBoard(segment.Content, html);
-                                                System.Threading.Thread.Sleep(100); // Add 100ms delay
-                                                ShapeRange textContent = slide.Shapes.Paste();
-
-                                                if (textContent != null && textContent.Count > 0)
-                                                {
-                                                    Shape textShape = textContent[1];
-                                                    textShape.Width = 500;
-                                                    textShape.Left = left;
-                                                    textShape.Top = currentTop;
-                                                    shape = textShape;
-
-                                                    // Process inline math formulas
-                                                    ProcessInlineMathFormulas(textShape);
-
-                                                    if (
-                                                        textShape.TextFrame.HasText
-                                                        == Office.MsoTriState.msoTrue
-                                                    )
-                                                    {
-                                                        TextRange textRange = textShape
-                                                            .TextFrame
-                                                            .TextRange;
-                                                        foreach (
-                                                            TextRange paragraph in textRange.Paragraphs(
-                                                                -1
-                                                            )
-                                                        ) // Changed this line
-                                                        {
-                                                            if (
-                                                                paragraph
-                                                                    .ParagraphFormat
-                                                                    .Bullet
-                                                                    .Type
-                                                                != PpBulletType.ppBulletNone
-                                                            )
-                                                            {
-                                                                // 保存列表样式
-                                                                PpBulletType ppBulletType =
-                                                                    paragraph
-                                                                        .ParagraphFormat
-                                                                        .Bullet
-                                                                        .Type;
-                                                                int character = paragraph
-                                                                    .ParagraphFormat
-                                                                    .Bullet
-                                                                    .Character;
-                                                                int startValue = paragraph
-                                                                    .ParagraphFormat
-                                                                    .Bullet
-                                                                    .StartValue; // 有序列表的编号
-                                                                PpNumberedBulletStyle stype =
-                                                                    paragraph
-                                                                        .ParagraphFormat
-                                                                        .Bullet
-                                                                        .Style; // 有序列表的样式：1、A、一等
-
-                                                                // 重新设置列表样式，曲线救国来添加悬挂缩进（找不到代码的方式直接添加悬挂缩进
-                                                                //paragraph.ParagraphFormat.Bullet.Type = PpBulletType.ppBulletNone;
-                                                                paragraph
-                                                                    .ParagraphFormat
-                                                                    .Bullet
-                                                                    .Type = ppBulletType;
-                                                                paragraph
-                                                                    .ParagraphFormat
-                                                                    .Bullet
-                                                                    .Character = character;
-                                                                if (
-                                                                    ppBulletType
-                                                                    == PpBulletType.ppBulletNumbered
-                                                                )
-                                                                {
-                                                                    paragraph
-                                                                        .ParagraphFormat
-                                                                        .Bullet
-                                                                        .StartValue = startValue;
-                                                                    paragraph
-                                                                        .ParagraphFormat
-                                                                        .Bullet
-                                                                        .Style = stype;
-                                                                }
-                                                                // 列表样式不受后面字体样式的干扰
-                                                                paragraph
-                                                                    .ParagraphFormat
-                                                                    .Bullet
-                                                                    .UseTextFont = Office
-                                                                    .MsoTriState
-                                                                    .msoFalse;
-                                                                paragraph
-                                                                    .ParagraphFormat
-                                                                    .Bullet
-                                                                    .UseTextColor = Office
-                                                                    .MsoTriState
-                                                                    .msoFalse;
-                                                                paragraph
-                                                                    .ParagraphFormat
-                                                                    .Bullet
-                                                                    .Font
-                                                                    .Bold = Office
-                                                                    .MsoTriState
-                                                                    .msoFalse;
-                                                                paragraph
-                                                                    .ParagraphFormat
-                                                                    .Bullet
-                                                                    .Font
-                                                                    .Italic = Office
-                                                                    .MsoTriState
-                                                                    .msoFalse;
-                                                                // 弹窗输出ppBulletType是什么
-                                                                // MessageBox.Show($"Bullet type: {ppBulletType}, Start value: {startValue}, Character: {character}, Style: {stype}");
-
-                                                                string text = paragraph.Text.Trim();
-                                                                if (text.StartsWith("- [x]"))
-                                                                {
-                                                                    char myCharacter = (char)9745; // ☑
-                                                                    paragraph
-                                                                        .ParagraphFormat
-                                                                        .Bullet
-                                                                        .Character = myCharacter;
-                                                                    paragraph.Text = text.Substring(
-                                                                            5
-                                                                        )
-                                                                        .Trim(); // Remove "- [x]"
-                                                                }
-                                                                else if (text.StartsWith("- [ ]"))
-                                                                {
-                                                                    char myCharacter = (char)9744; // ☐
-                                                                    paragraph
-                                                                        .ParagraphFormat
-                                                                        .Bullet
-                                                                        .Character = myCharacter;
-                                                                    paragraph.Text = text.Substring(
-                                                                            5
-                                                                        )
-                                                                        .Trim(); // Remove "- [ ]"
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                    break; // Success, exit retry loop
-                                                }
-                                            }
-                                            catch (System.Runtime.InteropServices.COMException)
-                                            {
-                                                retryCount--;
-                                                if (retryCount <= 0)
-                                                {
-                                                    MessageBox.Show(
-                                                        $"无法粘贴内容: {segment.Content.Substring(0, Math.Min(30, segment.Content.Length))}..."
-                                                    );
-                                                }
-                                                System.Threading.Thread.Sleep(200); // Wait longer before retry
-                                            }
-                                        }
-                                    }
-                                }
-
-                                if (shape != null)
-                                {
-                                    insertedShapes.Add(shape);
-                                    currentTop += shape.Height + 10;
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                MessageBox.Show($"处理段落时出错: {ex.Message}");
-                                continue; // Continue with next segment
-                            }
-                        }
+                        List<Shape> insertedShapes = RenderMarkdownToShapes(markdown, slide, left, currentTop, width);
 
                         if (insertedShapes.Count > 1)
                         {
@@ -1982,6 +1803,17 @@ namespace SlideSCI
                             catch (Exception)
                             {
                                 // Ignore grouping exceptions
+                            }
+                        }
+                        else if (insertedShapes.Count == 1)
+                        {
+                            try
+                            {
+                                insertedShapes[0].Select();
+                            }
+                            catch (Exception)
+                            {
+                                // Ignore selection exceptions
                             }
                         }
 
@@ -1999,6 +1831,276 @@ namespace SlideSCI
             {
                 MessageBox.Show($"操作过程中出错: {ex.Message}\n\n{ex.StackTrace}");
             }
+        }
+
+        private void textboxToRichText_Click(object sender, RibbonControlEventArgs e)
+        {
+            try
+            {
+                PowerPoint.Application app = Globals.ThisAddIn.Application;
+                Selection sel = app.ActiveWindow.Selection;
+                if ((sel.Type != PpSelectionType.ppSelectionShapes && sel.Type != PpSelectionType.ppSelectionText) || sel.ShapeRange.Count == 0)
+                {
+                    MessageBox.Show("请先选择一个或多个含有Markdown内容的文本框，或将光标定位在文本框中。");
+                    return;
+                }
+
+                Slide slide = app.ActiveWindow.View.Slide;
+
+                // Collect selected shapes to avoid modification-during-iteration issues
+                List<Shape> selectedTextboxes = new List<Shape>();
+                if (sel.Type == PpSelectionType.ppSelectionShapes)
+                {
+                    foreach (Shape shape in sel.ShapeRange)
+                    {
+                        if (shape.HasTextFrame == Office.MsoTriState.msoTrue && shape.TextFrame.HasText == Office.MsoTriState.msoTrue)
+                        {
+                            selectedTextboxes.Add(shape);
+                        }
+                    }
+                }
+                else if (sel.Type == PpSelectionType.ppSelectionText)
+                {
+                    try
+                    {
+                        if (sel.ShapeRange.Count > 0)
+                        {
+                            Shape shape = sel.ShapeRange[1];
+                            if (shape.HasTextFrame == Office.MsoTriState.msoTrue && shape.TextFrame.HasText == Office.MsoTriState.msoTrue)
+                            {
+                                selectedTextboxes.Add(shape);
+                            }
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        try
+                        {
+                            dynamic parent = sel.TextRange.Parent;
+                            dynamic shape = parent.Parent;
+                            if (shape != null)
+                            {
+                                Shape pptShape = (Shape)shape;
+                                if (pptShape.HasTextFrame == Office.MsoTriState.msoTrue && pptShape.TextFrame.HasText == Office.MsoTriState.msoTrue)
+                                {
+                                    selectedTextboxes.Add(pptShape);
+                                }
+                            }
+                        }
+                        catch { }
+                    }
+                }
+
+                if (selectedTextboxes.Count == 0)
+                {
+                    MessageBox.Show("选中的形状或当前光标处没有包含文本的文本框。");
+                    return;
+                }
+
+                string lastMarkdown = null;
+
+                // Process each textbox
+                foreach (Shape originalShape in selectedTextboxes)
+                {
+                    string markdown = originalShape.TextFrame.TextRange.Text;
+                    if (string.IsNullOrWhiteSpace(markdown))
+                    {
+                        continue;
+                    }
+                    // Normalize line endings to Windows standard \r\n to match the input form behavior
+                    markdown = markdown.Replace("\r\n", "\n").Replace("\r", "\n").Replace("\n", "\r\n");
+                    lastMarkdown = markdown;
+
+                    // Store original shape position and size properties
+                    float left = originalShape.Left;
+                    float top = originalShape.Top;
+                    float width = originalShape.Width;
+
+                    // Render markdown content to rich text shapes at the same position/width
+                    List<Shape> insertedShapes = RenderMarkdownToShapes(markdown, slide, left, top, width);
+
+                    // Delete the original shape
+                    originalShape.Delete();
+
+                    // Group them if multiple shapes were created
+                    if (insertedShapes.Count > 1)
+                    {
+                        try
+                        {
+                            List<string> shapeNames = insertedShapes.Select(s => s.Name).ToList();
+                            Shape group = slide.Shapes.Range(shapeNames.ToArray()).Group();
+                            group.Select(Office.MsoTriState.msoFalse); // Do not replace selection, just select it
+                        }
+                        catch (Exception)
+                        {
+                            // Ignore grouping exceptions
+                        }
+                    }
+                    else if (insertedShapes.Count == 1)
+                    {
+                        try
+                        {
+                            insertedShapes[0].Select(Office.MsoTriState.msoFalse);
+                        }
+                        catch (Exception)
+                        {
+                            // Ignore selection exceptions
+                        }
+                    }
+                }
+
+                // Clear clipboard to be polite, and restore it with markdown content if single
+                if (selectedTextboxes.Count == 1 && !string.IsNullOrEmpty(lastMarkdown))
+                {
+                    Clipboard.Clear();
+                    var dataObject = new DataObject();
+                    dataObject.SetData(DataFormats.UnicodeText, lastMarkdown);
+                    Clipboard.SetDataObject(dataObject, true, 3, 100);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"转换过程中出错: {ex.Message}\n\n{ex.StackTrace}");
+            }
+        }
+
+        private List<Shape> RenderMarkdownToShapes(string markdown, Slide slide, float left, float top, float width)
+        {
+            var segments = SplitMarkdownIntoSegments(markdown);
+            var insertedShapes = new List<Shape>();
+            float currentTop = top;
+
+            foreach (var segment in segments)
+            {
+                try
+                {
+                    Shape shape = null;
+                    if (segment.IsSvg)
+                    {
+                        shape = InsertSvgBlock(segment.Content, left, currentTop, width);
+                    }
+                    else if (segment.IsCodeBlock)
+                    {
+                        shape = InsertCodeBlock(
+                            segment.Content,
+                            segment.Language,
+                            left,
+                            currentTop,
+                            width
+                        );
+                    }
+                    else if (segment.IsTable)
+                    {
+                        shape = InsertTable(segment.Content, left, currentTop, width);
+                    }
+                    else if (segment.IsMathBlock)
+                    {
+                        shape = InsertMathBlock(segment.Content, left, currentTop, width);
+                    }
+                    else if (segment.IsBlockQuote)
+                    {
+                        shape = InsertBlockQuote(segment.Content, left, currentTop, width);
+                    }
+                    else
+                    {
+                        string html = ProcessMarkdown(segment.Content, width);
+                        if (!string.IsNullOrEmpty(html))
+                        {
+                            // Add retry mechanism for clipboard operations
+                            int retryCount = 3;
+                            while (retryCount > 0)
+                            {
+                                try
+                                {
+                                    CopyHtmlToClipBoard(segment.Content, html);
+                                    System.Threading.Thread.Sleep(100); // Add 100ms delay
+                                    ShapeRange textContent = slide.Shapes.Paste();
+
+                                    if (textContent != null && textContent.Count > 0)
+                                    {
+                                        Shape textShape = textContent[1];
+                                        textShape.Width = width;
+                                        textShape.Left = left;
+                                        textShape.Top = currentTop;
+                                        shape = textShape;
+
+                                        // Process inline math formulas
+                                        ProcessInlineMathFormulas(textShape);
+
+                                        if (textShape.TextFrame.HasText == Office.MsoTriState.msoTrue)
+                                        {
+                                            TextRange textRange = textShape.TextFrame.TextRange;
+                                            foreach (TextRange paragraph in textRange.Paragraphs(-1))
+                                            {
+                                                if (paragraph.ParagraphFormat.Bullet.Type != PpBulletType.ppBulletNone)
+                                                {
+                                                    // 保存列表样式
+                                                    PpBulletType ppBulletType = paragraph.ParagraphFormat.Bullet.Type;
+                                                    int character = paragraph.ParagraphFormat.Bullet.Character;
+                                                    int startValue = paragraph.ParagraphFormat.Bullet.StartValue; // 有序列表的编号
+                                                    PpNumberedBulletStyle stype = paragraph.ParagraphFormat.Bullet.Style; // 有序列表的样式
+
+                                                    paragraph.ParagraphFormat.Bullet.Type = ppBulletType;
+                                                    paragraph.ParagraphFormat.Bullet.Character = character;
+                                                    if (ppBulletType == PpBulletType.ppBulletNumbered)
+                                                    {
+                                                        paragraph.ParagraphFormat.Bullet.StartValue = startValue;
+                                                        paragraph.ParagraphFormat.Bullet.Style = stype;
+                                                    }
+                                                    // 列表样式不受后面字体样式的干扰
+                                                    paragraph.ParagraphFormat.Bullet.UseTextFont = Office.MsoTriState.msoFalse;
+                                                    paragraph.ParagraphFormat.Bullet.UseTextColor = Office.MsoTriState.msoFalse;
+                                                    paragraph.ParagraphFormat.Bullet.Font.Bold = Office.MsoTriState.msoFalse;
+                                                    paragraph.ParagraphFormat.Bullet.Font.Italic = Office.MsoTriState.msoFalse;
+
+                                                    string text = paragraph.Text.Trim();
+                                                    if (text.StartsWith("- [x]"))
+                                                    {
+                                                        char myCharacter = (char)9745; // ☑
+                                                        paragraph.ParagraphFormat.Bullet.Character = myCharacter;
+                                                        paragraph.Text = text.Substring(5).Trim(); // Remove "- [x]"
+                                                    }
+                                                    else if (text.StartsWith("- [ ]"))
+                                                    {
+                                                        char myCharacter = (char)9744; // ☐
+                                                        paragraph.ParagraphFormat.Bullet.Character = myCharacter;
+                                                        paragraph.Text = text.Substring(5).Trim(); // Remove "- [ ]"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        break; // Success, exit retry loop
+                                    }
+                                }
+                                catch (System.Runtime.InteropServices.COMException)
+                                {
+                                    retryCount--;
+                                    if (retryCount <= 0)
+                                    {
+                                        MessageBox.Show(
+                                            $"无法粘贴内容: {segment.Content.Substring(0, Math.Min(30, segment.Content.Length))}..."
+                                        );
+                                    }
+                                    System.Threading.Thread.Sleep(200); // Wait longer before retry
+                                }
+                            }
+                        }
+                    }
+
+                    if (shape != null)
+                    {
+                        insertedShapes.Add(shape);
+                        currentTop += shape.Height + 10;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"处理段落时出错: {ex.Message}");
+                    continue; // Continue with next segment
+                }
+            }
+
+            return insertedShapes;
         }
 
 
@@ -2026,8 +2128,44 @@ namespace SlideSCI
                 int length = match.Length; // Length of the matched string (e.g., "$formula$")
                 string formula = match.Groups[1].Value; // Content within $...$ (e.g., "formula")
 
+                // Check if we need to insert a space AFTER the formula (after the second '$')
+                int endIdxInText = match.Index + match.Length; // index in string right after $formula$
+                bool needSpaceAfter = false;
+                if (endIdxInText < text.Length)
+                {
+                    char nextChar = text[endIdxInText];
+                    if (!char.IsWhiteSpace(nextChar))
+                    {
+                        needSpaceAfter = true;
+                    }
+                }
+
+                // Check if we need to insert a space BEFORE the formula (before the first '$')
+                int startIdxInText = match.Index; // index of the first '$' in string
+                bool needSpaceBefore = false;
+                if (startIdxInText > 0)
+                {
+                    char prevChar = text[startIdxInText - 1];
+                    if (!char.IsWhiteSpace(prevChar))
+                    {
+                        needSpaceBefore = true;
+                    }
+                }
+
+                if (needSpaceAfter)
+                {
+                    textRange.Characters(start + length, 0).InsertBefore(" ");
+                }
+
+                int formulaStart = start;
+                if (needSpaceBefore)
+                {
+                    textRange.Characters(start, 0).InsertBefore(" ");
+                    formulaStart = start + 1;
+                }
+
                 // Select the range "$formula$"
-                TextRange selectedRange = textRange.Characters(start, length);
+                TextRange selectedRange = textRange.Characters(formulaStart, length);
                 // Replace its text with "formula"
                 selectedRange.Text = formula;
                 selectedRange.Select();
@@ -2037,14 +2175,14 @@ namespace SlideSCI
             }
         }
 
-        private Shape InsertCodeBlock(string code, string language, float left, float top)
+        private Shape InsertCodeBlock(string code, string language, float left, float top, float width = 500)
         {
             Slide slide = app.ActiveWindow.View.Slide;
             Shape textBox = slide.Shapes.AddTextbox(
                 Office.MsoTextOrientation.msoTextOrientationHorizontal,
                 left,
                 top,
-                500,
+                width,
                 300
             );
 
@@ -2304,7 +2442,7 @@ namespace SlideSCI
             return segments;
         }
 
-        private Shape InsertSvgBlock(string svgContent, float left, float top)
+        private Shape InsertSvgBlock(string svgContent, float left, float top, float width = 500)
         {
             Slide slide = app.ActiveWindow.View.Slide;
             string tempFilePath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".svg");
@@ -2321,11 +2459,11 @@ namespace SlideSCI
                     -1
                 );
 
-                if (shape.Width > 500)
+                if (shape.Width > width)
                 {
                     float ratio = shape.Height / shape.Width;
-                    shape.Width = 500;
-                    shape.Height = 500 * ratio;
+                    shape.Width = width;
+                    shape.Height = width * ratio;
                 }
 
                 return shape;
@@ -2348,14 +2486,14 @@ namespace SlideSCI
             }
         }
 
-        private Shape InsertTable(string tableContent, float left, float top)
+        private Shape InsertTable(string tableContent, float left, float top, float width = 500)
         {
             Slide slide = app.ActiveWindow.View.Slide;
             Shape textBox = slide.Shapes.AddTextbox(
                 Office.MsoTextOrientation.msoTextOrientationHorizontal,
                 left,
                 top,
-                500,
+                width,
                 300
             );
 
@@ -2365,7 +2503,7 @@ namespace SlideSCI
             string html = Markdown.ToHtml(tableContent, pipeline);
             html = html.Replace(
                 "<table>",
-                "<table style='width:500px; border-collapse:collapse;border:1pt solid black;'>"
+                $"<table style='width:{width}px; border-collapse:collapse;border:1pt solid black;'>"
             );
             html = html.Replace("<td>", "<td style='border:1pt solid black;'>");
             html = html.Replace("<th>", "<th style='border:1pt solid black;'>");
@@ -2387,7 +2525,7 @@ namespace SlideSCI
             return textBox;
         }
 
-        private Shape InsertMathBlock(string mathContent, float left, float top)
+        private Shape InsertMathBlock(string mathContent, float left, float top, float width = 500)
         {
             Slide slide = app.ActiveWindow.View.Slide;
 
@@ -2396,7 +2534,7 @@ namespace SlideSCI
                 Office.MsoTextOrientation.msoTextOrientationHorizontal,
                 left,
                 top,
-                500,
+                width,
                 500
             );
 
@@ -2435,14 +2573,14 @@ namespace SlideSCI
             return equationShape;
         }
 
-        private Shape InsertBlockQuote(string content, float left, float top)
+        private Shape InsertBlockQuote(string content, float left, float top, float width = 500)
         {
             Slide slide = app.ActiveWindow.View.Slide;
             Shape textBox = slide.Shapes.AddTextbox(
                 Office.MsoTextOrientation.msoTextOrientationHorizontal,
                 left,
                 top,
-                500,
+                width,
                 300
             );
 
@@ -2481,11 +2619,15 @@ namespace SlideSCI
             return textBox;
         }
 
-        private string ProcessMarkdown(string markdown)
+        private string ProcessMarkdown(string markdown, float width = 500)
         {
             var codeBlockRegex = new Regex(@"```.*?\r?\n(.*?)\r?\n```", RegexOptions.Singleline);
 
             markdown = codeBlockRegex.Replace(markdown, string.Empty);
+
+            // Pre-process bold delimiters to bypass CommonMark punctuation flanking restrictions in Chinese/full-width brackets context
+            markdown = Regex.Replace(markdown, @"\*\*((?:(?!\*\*).)+?)\*\*", "<strong>$1</strong>", RegexOptions.Singleline);
+            markdown = Regex.Replace(markdown, @"__((?:(?!__).)+?)__", "<strong>$1</strong>", RegexOptions.Singleline);
 
             // Convert remaining markdown to HTML
             var pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
@@ -2500,7 +2642,7 @@ namespace SlideSCI
             // Add table styling
             html = html.Replace(
                 "<table>",
-                "<table style='width:500px; border-collapse:collapse;border:1pt solid黑色;'>"
+                $"<table style='width:{width}px; border-collapse:collapse;border:1pt solid黑色;'>"
             );
             html = html.Replace("<td>", "<td style='border:1pt solid black;'>");
             html = html.Replace("<th>", "<th style='border:1pt solid black;'>");

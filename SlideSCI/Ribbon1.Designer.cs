@@ -174,6 +174,7 @@ namespace SlideSCI
             this.pasteCrop = this.Factory.CreateRibbonButton();
             this.codeGroup = this.Factory.CreateRibbonGroup();
             this.button2 = this.Factory.CreateRibbonButton();
+            this.textboxToRichText = this.Factory.CreateRibbonButton();
             this.insertEquationButton = this.Factory.CreateRibbonButton();
             this.button8 = this.Factory.CreateRibbonButton();
             this.insertCodeBlockButton = this.Factory.CreateRibbonButton();
@@ -840,6 +841,7 @@ namespace SlideSCI
             // codeGroup
             // 
             this.codeGroup.Items.Add(this.button2);
+            this.codeGroup.Items.Add(this.textboxToRichText);
             this.codeGroup.Items.Add(this.insertEquationButton);
             this.codeGroup.Items.Add(this.button8);
             this.codeGroup.Items.Add(this.insertCodeBlockButton);
@@ -855,6 +857,15 @@ namespace SlideSCI
             this.button2.Name = "button2";
             this.button2.ShowImage = true;
             this.button2.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.insertMarkdown_Click);
+            // 
+            // textboxToRichText
+            // 
+            this.textboxToRichText.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
+            this.textboxToRichText.OfficeImageId = "FontProperties";
+            this.textboxToRichText.Label = "文本转富文本";
+            this.textboxToRichText.Name = "textboxToRichText";
+            this.textboxToRichText.ShowImage = true;
+            this.textboxToRichText.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.textboxToRichText_Click);
             // 
             // insertEquationButton
             // 
@@ -1019,6 +1030,7 @@ namespace SlideSCI
         internal Microsoft.Office.Tools.Ribbon.RibbonButton pasteCrop;
         internal Microsoft.Office.Tools.Ribbon.RibbonGroup codeGroup;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton button2;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton textboxToRichText;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton insertEquationButton;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton insertCodeBlockButton;
         internal Microsoft.Office.Tools.Ribbon.RibbonCheckBox toggleBackgroundCheckBox;
