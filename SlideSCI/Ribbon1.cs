@@ -1970,6 +1970,21 @@ namespace SlideSCI
                                 continue; // Continue with next segment
                             }
                         }
+
+                        if (insertedShapes.Count > 1)
+                        {
+                            try
+                            {
+                                List<string> shapeNames = insertedShapes.Select(s => s.Name).ToList();
+                                Shape group = slide.Shapes.Range(shapeNames.ToArray()).Group();
+                                group.Select();
+                            }
+                            catch (Exception)
+                            {
+                                // Ignore grouping exceptions
+                            }
+                        }
+
                         inputDialog.Dispose();
                         Clipboard.Clear();
                         var dataObject = new DataObject();
