@@ -3099,49 +3099,264 @@ namespace SlideSCI
             }
         }
 
-        private static PowerPoint.Font _copiedFont;
+        private class CopiedFontSettings
+        {
+            public string Name;
+            public string NameFarEast;
+            public string NameAscii;
+            public float Size;
+            public int ColorRGB;
+            public float Transparency;
+            public Office.MsoTriState Bold;
+            public Office.MsoTriState Italic;
+            public Office.MsoTriState Underline;
+            public Office.MsoTriState Shadow;
+            public bool HasValue = false;
+        }
+
+        private static CopiedFontSettings _copiedFontSettings = new CopiedFontSettings();
+
+        private void CopyTextFormat(Selection sel)
+        {
+            try
+            {
+                dynamic textRange2 = sel.TextRange2;
+                dynamic font2 = textRange2.Font;
+
+                _copiedFontSettings = new CopiedFontSettings
+                {
+                    Name = font2.Name,
+                    NameFarEast = font2.NameFarEast,
+                    NameAscii = font2.NameAscii,
+                    Size = font2.Size,
+                    ColorRGB = font2.Fill.ForeColor.RGB,
+                    Transparency = font2.Fill.Transparency,
+                    Bold = font2.Bold,
+                    Italic = font2.Italic,
+                    Underline = font2.UnderlineStyle != 0 ? Office.MsoTriState.msoTrue : Office.MsoTriState.msoFalse,
+                    Shadow = font2.Shadow,
+                    HasValue = true
+                };
+            }
+            catch
+            {
+                try
+                {
+                    PowerPoint.Font font = sel.TextRange.Font;
+                    _copiedFontSettings = new CopiedFontSettings
+                    {
+                        Name = font.Name,
+                        NameFarEast = font.NameFarEast,
+                        NameAscii = font.Name,
+                        Size = font.Size,
+                        ColorRGB = font.Color.RGB,
+                        Transparency = 0f,
+                        Bold = font.Bold,
+                        Italic = font.Italic,
+                        Underline = font.Underline,
+                        Shadow = font.Shadow,
+                        HasValue = true
+                    };
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"复制文字格式时出错: {ex.Message}");
+                }
+            }
+        }
+
+        private void CopyShapeTextFormat(Shape shape)
+        {
+            try
+            {
+                dynamic textRange2 = shape.TextFrame2.TextRange;
+                dynamic font2 = textRange2.Font;
+
+                _copiedFontSettings = new CopiedFontSettings
+                {
+                    Name = font2.Name,
+                    NameFarEast = font2.NameFarEast,
+                    NameAscii = font2.NameAscii,
+                    Size = font2.Size,
+                    ColorRGB = font2.Fill.ForeColor.RGB,
+                    Transparency = font2.Fill.Transparency,
+                    Bold = font2.Bold,
+                    Italic = font2.Italic,
+                    Underline = font2.UnderlineStyle != 0 ? Office.MsoTriState.msoTrue : Office.MsoTriState.msoFalse,
+                    Shadow = font2.Shadow,
+                    HasValue = true
+                };
+            }
+            catch
+            {
+                try
+                {
+                    PowerPoint.Font font = shape.TextFrame.TextRange.Font;
+                    _copiedFontSettings = new CopiedFontSettings
+                    {
+                        Name = font.Name,
+                        NameFarEast = font.NameFarEast,
+                        NameAscii = font.Name,
+                        Size = font.Size,
+                        ColorRGB = font.Color.RGB,
+                        Transparency = 0f,
+                        Bold = font.Bold,
+                        Italic = font.Italic,
+                        Underline = font.Underline,
+                        Shadow = font.Shadow,
+                        HasValue = true
+                    };
+                }
+                catch { }
+            }
+        }
+
+        private void ApplyTextFormat(dynamic targetFont2)
+        {
+            if (!_copiedFontSettings.HasValue) return;
+
+            try
+            {
+                if (!string.IsNullOrEmpty(_copiedFontSettings.Name))
+                    targetFont2.Name = _copiedFontSettings.Name;
+                if (!string.IsNullOrEmpty(_copiedFontSettings.NameFarEast))
+                    targetFont2.NameFarEast = _copiedFontSettings.NameFarEast;
+                if (!string.IsNullOrEmpty(_copiedFontSettings.NameAscii))
+                    targetFont2.NameAscii = _copiedFontSettings.NameAscii;
+                
+                if (_copiedFontSettings.Size > 0)
+                    targetFont2.Size = _copiedFontSettings.Size;
+                
+                targetFont2.Fill.ForeColor.RGB = _copiedFontSettings.ColorRGB;
+                targetFont2.Fill.Transparency = _copiedFontSettings.Transparency;
+                targetFont2.Bold = _copiedFontSettings.Bold;
+                targetFont2.Italic = _copiedFontSettings.Italic;
+                
+                if (_copiedFontSettings.Underline == Office.MsoTriState.msoTrue)
+                {
+                    targetFont2.UnderlineStyle = 1; // msoUnderlineSingleLine
+                }
+                else
+                {
+                    targetFont2.UnderlineStyle = 0; // msoNoUnderline
+                }
+                
+                targetFont2.Shadow = _copiedFontSettings.Shadow;
+            }
+            catch
+            {
+                try
+                {
+                    PowerPoint.Font font = (PowerPoint.Font)targetFont2;
+                    if (!string.IsNullOrEmpty(_copiedFontSettings.Name))
+                        font.Name = _copiedFontSettings.Name;
+                    if (!string.IsNullOrEmpty(_copiedFontSettings.NameFarEast))
+                        font.NameFarEast = _copiedFontSettings.NameFarEast;
+                    if (_copiedFontSettings.Size > 0)
+                        font.Size = _copiedFontSettings.Size;
+                    
+                    font.Color.RGB = _copiedFontSettings.ColorRGB;
+                    font.Bold = _copiedFontSettings.Bold;
+                    font.Italic = _copiedFontSettings.Italic;
+                    font.Underline = _copiedFontSettings.Underline;
+                    font.Shadow = _copiedFontSettings.Shadow;
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"应用文字格式时出错: {ex.Message}");
+                }
+            }
+        }
 
         private void copyStyle_Click(object sender, RibbonControlEventArgs e)
         {
-            Selection sel = app.ActiveWindow.Selection;
-            if (sel.Type == PpSelectionType.ppSelectionShapes)
+            try
             {
-                Shape sourceShape = sel.ShapeRange[1];
-                // 捕获格式
-                sourceShape.PickUp();
+                Selection sel = app.ActiveWindow.Selection;
+                if (sel.Type == PpSelectionType.ppSelectionShapes)
+                {
+                    Shape sourceShape = sel.ShapeRange[1];
+                    // 捕获格式
+                    sourceShape.PickUp();
+
+                    // 如果形状有文本，且文本非空，则同时复制其文本格式
+                    if (sourceShape.HasTextFrame == Office.MsoTriState.msoTrue && sourceShape.TextFrame.HasText == Office.MsoTriState.msoTrue)
+                    {
+                        CopyShapeTextFormat(sourceShape);
+                    }
+                    else
+                    {
+                        _copiedFontSettings = new CopiedFontSettings { HasValue = false };
+                    }
+                }
+                else if (sel.Type == PpSelectionType.ppSelectionText)
+                {
+                    CopyTextFormat(sel);
+                }
             }
-            else if (sel.Type == PpSelectionType.ppSelectionText)
+            catch (Exception ex)
             {
-                _copiedFont = sel.TextRange.Font;
+                MessageBox.Show($"复制格式时出错: {ex.Message}");
             }
-            else { }
         }
 
         private void pasteStyle_Click(object sender, RibbonControlEventArgs e)
         {
-            Selection sel = app.ActiveWindow.Selection;
-            if (sel.Type == PpSelectionType.ppSelectionShapes)
+            try
             {
-                foreach (Shape shape in sel.ShapeRange)
+                Selection sel = app.ActiveWindow.Selection;
+                if (sel.Type == PpSelectionType.ppSelectionShapes)
                 {
-                    shape.Apply();
+                    foreach (Shape shape in sel.ShapeRange)
+                    {
+                        try
+                        {
+                            // 应用形状格式（背景填充、边框等）
+                            shape.Apply();
+                        }
+                        catch { }
+
+                        // 如果已复制文本格式，且目标形状包含文本框，则应用文本格式
+                        if (_copiedFontSettings.HasValue && shape.HasTextFrame == Office.MsoTriState.msoTrue)
+                        {
+                            try
+                            {
+                                ApplyTextFormat(shape.TextFrame2.TextRange.Font);
+                            }
+                            catch
+                            {
+                                try
+                                {
+                                    ApplyTextFormat(shape.TextFrame.TextRange.Font);
+                                }
+                                catch { }
+                            }
+                        }
+                    }
+                }
+                else if (sel.Type == PpSelectionType.ppSelectionText)
+                {
+                    if (_copiedFontSettings.HasValue)
+                    {
+                        try
+                        {
+                            ApplyTextFormat(sel.TextRange2.Font);
+                        }
+                        catch
+                        {
+                            try
+                            {
+                                ApplyTextFormat(sel.TextRange.Font);
+                            }
+                            catch { }
+                        }
+                    }
                 }
             }
-            else if (sel.Type == PpSelectionType.ppSelectionText)
+            catch (Exception ex)
             {
-                ApplyFont(sel.TextRange.Font);
+                MessageBox.Show($"粘贴格式时出错: {ex.Message}");
             }
-            else { }
-        }
-
-        private void ApplyFont(PowerPoint.Font targetFont)
-        {
-            targetFont.Name = _copiedFont.Name;
-            targetFont.Size = _copiedFont.Size;
-            targetFont.Bold = _copiedFont.Bold;
-            targetFont.Italic = _copiedFont.Italic;
-            targetFont.Color.RGB = _copiedFont.Color.RGB;
-            targetFont.Underline = _copiedFont.Underline;
         }
 
         private void pastePictureAndText(object sender, RibbonControlEventArgs e)
@@ -3220,6 +3435,67 @@ namespace SlideSCI
             }
         }
 
+        private void selectAllTextBoxesButton_Click(object sender, RibbonControlEventArgs e)
+        {
+            try
+            {
+                if (app == null || app.ActivePresentation == null || app.ActiveWindow == null)
+                {
+                    return;
+                }
+
+                PowerPoint.Slide slide = null;
+                try
+                {
+                    slide = app.ActiveWindow.View.Slide;
+                }
+                catch
+                {
+                    // 在某些视图下（如幻灯片浏览视图），获取 Slide 可能会抛出异常
+                }
+
+                if (slide == null)
+                {
+                    MessageBox.Show("请先选择一张幻灯片。", "提示");
+                    return;
+                }
+
+                if (slide.Shapes.Count == 0)
+                {
+                    MessageBox.Show("当前页面没有可以选中的对象。", "提示");
+                    return;
+                }
+
+                bool isFirst = true;
+                foreach (Shape shape in slide.Shapes)
+                {
+                    // 判断是否为文本框或包含文本框的占位符
+                    if (shape.Type == Office.MsoShapeType.msoTextBox ||
+                        (shape.Type == Office.MsoShapeType.msoPlaceholder && shape.HasTextFrame == Office.MsoTriState.msoTrue))
+                    {
+                        if (isFirst)
+                        {
+                            shape.Select(Office.MsoTriState.msoTrue);
+                            isFirst = false;
+                        }
+                        else
+                        {
+                            shape.Select(Office.MsoTriState.msoFalse);
+                        }
+                    }
+                }
+
+                if (isFirst)
+                {
+                    MessageBox.Show("未在当前幻灯片中找到文本框。", "提示");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"全选文本框时出错: {ex.Message}");
+            }
+        }
+
         private void imgAutoAlign_rowSpace_TextChanged(object sender, RibbonControlEventArgs e)
         {
             string str1 = imgAutoAlign_rowSpace.Text.Split(new char[] { '≈' })[1];
@@ -3256,7 +3532,7 @@ namespace SlideSCI
 
         private void donate(object sender, RibbonControlEventArgs e)
         {
-            System.Diagnostics.Process.Start("https://www.yuque.com/achuan-2");
+            System.Diagnostics.Process.Start("https://fastly.jsdelivr.net/gh/Achuan-2/PicBed/assets/20241128221208-2024-11-28.png");
         }
 
         private void developer_website(object sender, RibbonControlEventArgs e)

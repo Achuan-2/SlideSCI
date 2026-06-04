@@ -123,7 +123,7 @@ If you like my plugin, please consider giving a star to the GitHub repository an
 
 ![](https://fastly.jsdelivr.net/gh/Achuan-2/PicBed/assets/20241118182532-2024-11-18.png)
 
-See the list of donors here: https://www.yuque.com/achuan-2
+See the list of donors here: https://fastly.jsdelivr.net/gh/Achuan-2/PicBed/assets/20241128221208-2024-11-28.png
 
 
 ## 👨‍💻 Feedback
