@@ -2155,12 +2155,14 @@ namespace SlideSCI
                 if (needSpaceAfter)
                 {
                     textRange.Characters(start + length, 0).InsertBefore(" ");
+                    textRange = textShape.TextFrame.TextRange; // Refresh textRange to keep in sync
                 }
 
                 int formulaStart = start;
                 if (needSpaceBefore)
                 {
                     textRange.Characters(start, 0).InsertBefore(" ");
+                    textRange = textShape.TextFrame.TextRange; // Refresh textRange to keep in sync
                     formulaStart = start + 1;
                 }
 
@@ -2168,10 +2170,15 @@ namespace SlideSCI
                 TextRange selectedRange = textRange.Characters(formulaStart, length);
                 // Replace its text with "formula"
                 selectedRange.Text = formula;
-                selectedRange.Select();
+                textRange = textShape.TextFrame.TextRange; // Refresh textRange after replacement
+
+                // Select and convert the formula range precisely
+                TextRange newSelectedRange = textRange.Characters(formulaStart, formula.Length);
+                newSelectedRange.Select();
                 app.CommandBars.ExecuteMso("EquationInsertNew");
 
                 app.CommandBars.ExecuteMso("EquationProfessional");
+                textRange = textShape.TextFrame.TextRange; // Refresh textRange after converting to equation
             }
         }
 
@@ -2624,6 +2631,46 @@ namespace SlideSCI
             var codeBlockRegex = new Regex(@"```.*?\r?\n(.*?)\r?\n```", RegexOptions.Singleline);
 
             markdown = codeBlockRegex.Replace(markdown, string.Empty);
+
+            // Pre-process inline math formulas to add spaces before and after if they are not already present.
+            // This ensures Markdig's Mathematics extension flanking rules are satisfied so they are parsed as math spans.
+            markdown = Regex.Replace(markdown, @"(?<!\$)\$([^$\n]+?)\$(?!\$)", m =>
+            {
+                string formula = m.Value;
+                int index = m.Index;
+
+                bool needSpaceBefore = false;
+                if (index > 0)
+                {
+                    char prevChar = markdown[index - 1];
+                    if (!char.IsWhiteSpace(prevChar))
+                    {
+                        needSpaceBefore = true;
+                    }
+                }
+
+                bool needSpaceAfter = false;
+                int endIdx = index + m.Length;
+                if (endIdx < markdown.Length)
+                {
+                    char nextChar = markdown[endIdx];
+                    if (!char.IsWhiteSpace(nextChar))
+                    {
+                        needSpaceAfter = true;
+                    }
+                }
+
+                string result = formula;
+                if (needSpaceBefore)
+                {
+                    result = " " + result;
+                }
+                if (needSpaceAfter)
+                {
+                    result = result + " ";
+                }
+                return result;
+            });
 
             // Pre-process bold delimiters to bypass CommonMark punctuation flanking restrictions in Chinese/full-width brackets context
             markdown = Regex.Replace(markdown, @"\*\*((?:(?!\*\*).)+?)\*\*", "<strong>$1</strong>", RegexOptions.Singleline);
