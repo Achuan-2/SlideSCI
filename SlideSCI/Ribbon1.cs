@@ -26,6 +26,7 @@ namespace SlideSCI
 
         private List<float> copiedLeft = new List<float>();
         private List<float> copiedTop = new List<float>();
+        private List<int> selectedShapeIdsByOrder = new List<int>();
 
         public enum AlignmentPosition
         {
@@ -142,6 +143,7 @@ namespace SlideSCI
         private void Ribbon1_Load(object sender, RibbonUIEventArgs e)
         {
             app = Globals.ThisAddIn.Application;
+            app.WindowSelectionChange += App_WindowSelectionChange;
 
             // Load Image Title Settings
             fontNameEditBox.Text = Properties.Settings.Default.TitleFontName;
@@ -710,9 +712,61 @@ namespace SlideSCI
                         continue;
                     }
                 }
-            }
         }
     }
+}
+
+        private void App_WindowSelectionChange(Selection Sel)
+        {
+            try
+            {
+                if (Sel.Type != PpSelectionType.ppSelectionShapes)
+                {
+                    selectedShapeIdsByOrder.Clear();
+                    return;
+                }
+
+                // Get IDs of all currently selected shapes
+                HashSet<int> currentIds = new HashSet<int>();
+                foreach (Shape shape in Sel.ShapeRange)
+                {
+                    currentIds.Add(shape.Id);
+                }
+
+                // Remove IDs that are no longer selected
+                selectedShapeIdsByOrder.RemoveAll(id => !currentIds.Contains(id));
+
+                // Add new IDs that are selected but not yet in our ordered list
+                foreach (Shape shape in Sel.ShapeRange)
+                {
+                    if (!selectedShapeIdsByOrder.Contains(shape.Id))
+                    {
+                        selectedShapeIdsByOrder.Add(shape.Id);
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // Ignore any potential COM errors during selection change
+            }
+        }
+
+        private Shape GetFirstSelectedShape(Selection sel)
+        {
+            if (selectedShapeIdsByOrder.Count > 0)
+            {
+                int firstId = selectedShapeIdsByOrder[0];
+                foreach (Shape shape in sel.ShapeRange)
+                {
+                    if (shape.Id == firstId)
+                    {
+                        return shape;
+                    }
+                }
+            }
+            // Fallback: if not found, return the first shape in ShapeRange (1-indexed in Interop)
+            return sel.ShapeRange[1];
+        }
 
 
 
@@ -1009,6 +1063,50 @@ namespace SlideSCI
             else
             {
                 MessageBox.Show("Please select shapes to paste positions.");
+            }
+        }
+
+        private void alignHorizontalCenter_Click(object sender, RibbonControlEventArgs e)
+        {
+            Selection sel = app.ActiveWindow.Selection;
+            if (sel.Type == PpSelectionType.ppSelectionShapes && sel.ShapeRange.Count > 1)
+            {
+                Shape firstShape = GetFirstSelectedShape(sel);
+                float refX = firstShape.Left + firstShape.Width / 2f;
+
+                foreach (Shape shape in sel.ShapeRange)
+                {
+                    if (shape.Id != firstShape.Id)
+                    {
+                        shape.Left = refX - shape.Width / 2f;
+                    }
+                }
+            }
+            else
+            {
+                MessageBox.Show("请选择至少两个对象进行对齐。");
+            }
+        }
+
+        private void alignVerticalCenter_Click(object sender, RibbonControlEventArgs e)
+        {
+            Selection sel = app.ActiveWindow.Selection;
+            if (sel.Type == PpSelectionType.ppSelectionShapes && sel.ShapeRange.Count > 1)
+            {
+                Shape firstShape = GetFirstSelectedShape(sel);
+                float refY = firstShape.Top + firstShape.Height / 2f;
+
+                foreach (Shape shape in sel.ShapeRange)
+                {
+                    if (shape.Id != firstShape.Id)
+                    {
+                        shape.Top = refY - shape.Height / 2f;
+                    }
+                }
+            }
+            else
+            {
+                MessageBox.Show("请选择至少两个对象进行对齐。");
             }
         }
 
