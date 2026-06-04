@@ -1,4 +1,4 @@
-﻿namespace SlideSCI
+namespace SlideSCI
 {
     partial class Ribbon1 : Microsoft.Office.Tools.Ribbon.RibbonBase
     {
@@ -156,7 +156,16 @@
             this.button1 = this.Factory.CreateRibbonButton();
             this.button6 = this.Factory.CreateRibbonButton();
             this.button7 = this.Factory.CreateRibbonButton();
-            this.copyPosition = this.Factory.CreateRibbonButton();
+            this.copyPosition = this.Factory.CreateRibbonSplitButton();
+            this.copyPosTopLeft = this.Factory.CreateRibbonButton();
+            this.copyPosTopCenter = this.Factory.CreateRibbonButton();
+            this.copyPosTopRight = this.Factory.CreateRibbonButton();
+            this.copyPosMiddleLeft = this.Factory.CreateRibbonButton();
+            this.copyPosCenter = this.Factory.CreateRibbonButton();
+            this.copyPosMiddleRight = this.Factory.CreateRibbonButton();
+            this.copyPosBottomLeft = this.Factory.CreateRibbonButton();
+            this.copyPosBottomCenter = this.Factory.CreateRibbonButton();
+            this.copyPosBottomRight = this.Factory.CreateRibbonButton();
             this.pastePosition = this.Factory.CreateRibbonButton();
             this.copyImgWidth = this.Factory.CreateRibbonButton();
             this.pasteImgWidth = this.Factory.CreateRibbonButton();
@@ -702,8 +711,71 @@
             this.copyPosition.Image = ((System.Drawing.Image)(resources.GetObject("copyPosition.Image")));
             this.copyPosition.Label = "复制位置";
             this.copyPosition.Name = "copyPosition";
-            this.copyPosition.ShowImage = true;
+            this.copyPosition.Items.Add(this.copyPosTopLeft);
+            this.copyPosition.Items.Add(this.copyPosTopCenter);
+            this.copyPosition.Items.Add(this.copyPosTopRight);
+            this.copyPosition.Items.Add(this.copyPosMiddleLeft);
+            this.copyPosition.Items.Add(this.copyPosCenter);
+            this.copyPosition.Items.Add(this.copyPosMiddleRight);
+            this.copyPosition.Items.Add(this.copyPosBottomLeft);
+            this.copyPosition.Items.Add(this.copyPosBottomCenter);
+            this.copyPosition.Items.Add(this.copyPosBottomRight);
             this.copyPosition.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.copyPosition_Click);
+            // 
+            // copyPosTopLeft
+            // 
+            this.copyPosTopLeft.Label = "左上角";
+            this.copyPosTopLeft.Name = "copyPosTopLeft";
+            this.copyPosTopLeft.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.copyPositionWithAlignment_Click);
+            // 
+            // copyPosTopCenter
+            // 
+            this.copyPosTopCenter.Label = "上居中";
+            this.copyPosTopCenter.Name = "copyPosTopCenter";
+            this.copyPosTopCenter.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.copyPositionWithAlignment_Click);
+            // 
+            // copyPosTopRight
+            // 
+            this.copyPosTopRight.Label = "右上角";
+            this.copyPosTopRight.Name = "copyPosTopRight";
+            this.copyPosTopRight.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.copyPositionWithAlignment_Click);
+            // 
+            // copyPosMiddleLeft
+            // 
+            this.copyPosMiddleLeft.Label = "左居中";
+            this.copyPosMiddleLeft.Name = "copyPosMiddleLeft";
+            this.copyPosMiddleLeft.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.copyPositionWithAlignment_Click);
+            // 
+            // copyPosCenter
+            // 
+            this.copyPosCenter.Label = "中心";
+            this.copyPosCenter.Name = "copyPosCenter";
+            this.copyPosCenter.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.copyPositionWithAlignment_Click);
+            // 
+            // copyPosMiddleRight
+            // 
+            this.copyPosMiddleRight.Label = "右居中";
+            this.copyPosMiddleRight.Name = "copyPosMiddleRight";
+            this.copyPosMiddleRight.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.copyPositionWithAlignment_Click);
+            // 
+            // copyPosBottomLeft
+            // 
+            this.copyPosBottomLeft.Label = "左下角";
+            this.copyPosBottomLeft.Name = "copyPosBottomLeft";
+            this.copyPosBottomLeft.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.copyPositionWithAlignment_Click);
+            // 
+            // copyPosBottomCenter
+            // 
+            this.copyPosBottomCenter.Label = "下居中";
+            this.copyPosBottomCenter.Name = "copyPosBottomCenter";
+            this.copyPosBottomCenter.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.copyPositionWithAlignment_Click);
+            // 
+            // copyPosBottomRight
+            // 
+            this.copyPosBottomRight.Label = "右下角";
+            this.copyPosBottomRight.Name = "copyPosBottomRight";
+            this.copyPosBottomRight.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.copyPositionWithAlignment_Click);
+            // 
             // 
             // pastePosition
             // 
@@ -889,7 +961,16 @@
         internal Microsoft.Office.Tools.Ribbon.RibbonButton button6;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton button7;
         internal Microsoft.Office.Tools.Ribbon.RibbonSeparator separator1;
-        internal Microsoft.Office.Tools.Ribbon.RibbonButton copyPosition;
+        internal Microsoft.Office.Tools.Ribbon.RibbonSplitButton copyPosition;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton copyPosTopLeft;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton copyPosTopCenter;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton copyPosTopRight;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton copyPosMiddleLeft;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton copyPosCenter;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton copyPosMiddleRight;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton copyPosBottomLeft;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton copyPosBottomCenter;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton copyPosBottomRight;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton pastePosition;
         internal Microsoft.Office.Tools.Ribbon.RibbonSeparator separator2;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton copyImgWidth;

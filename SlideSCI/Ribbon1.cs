@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -26,6 +26,110 @@ namespace SlideSCI
 
         private List<float> copiedLeft = new List<float>();
         private List<float> copiedTop = new List<float>();
+
+        public enum AlignmentPosition
+        {
+            TopLeft,
+            TopCenter,
+            TopRight,
+            MiddleLeft,
+            Center,
+            MiddleRight,
+            BottomLeft,
+            BottomCenter,
+            BottomRight
+        }
+
+        private AlignmentPosition lastCopiedAlignment = AlignmentPosition.Center;
+
+        private (float X, float Y) GetShapeAlignmentPoint(Shape shape, AlignmentPosition alignment)
+        {
+            float x = 0;
+            float y = 0;
+            switch (alignment)
+            {
+                case AlignmentPosition.TopLeft:
+                    x = shape.Left;
+                    y = shape.Top;
+                    break;
+                case AlignmentPosition.TopCenter:
+                    x = shape.Left + shape.Width / 2f;
+                    y = shape.Top;
+                    break;
+                case AlignmentPosition.TopRight:
+                    x = shape.Left + shape.Width;
+                    y = shape.Top;
+                    break;
+                case AlignmentPosition.MiddleLeft:
+                    x = shape.Left;
+                    y = shape.Top + shape.Height / 2f;
+                    break;
+                case AlignmentPosition.Center:
+                    x = shape.Left + shape.Width / 2f;
+                    y = shape.Top + shape.Height / 2f;
+                    break;
+                case AlignmentPosition.MiddleRight:
+                    x = shape.Left + shape.Width;
+                    y = shape.Top + shape.Height / 2f;
+                    break;
+                case AlignmentPosition.BottomLeft:
+                    x = shape.Left;
+                    y = shape.Top + shape.Height;
+                    break;
+                case AlignmentPosition.BottomCenter:
+                    x = shape.Left + shape.Width / 2f;
+                    y = shape.Top + shape.Height;
+                    break;
+                case AlignmentPosition.BottomRight:
+                    x = shape.Left + shape.Width;
+                    y = shape.Top + shape.Height;
+                    break;
+            }
+            return (x, y);
+        }
+
+        private void SetShapeAlignmentPoint(Shape shape, AlignmentPosition alignment, float targetX, float targetY)
+        {
+            switch (alignment)
+            {
+                case AlignmentPosition.TopLeft:
+                    shape.Left = targetX;
+                    shape.Top = targetY;
+                    break;
+                case AlignmentPosition.TopCenter:
+                    shape.Left = targetX - shape.Width / 2f;
+                    shape.Top = targetY;
+                    break;
+                case AlignmentPosition.TopRight:
+                    shape.Left = targetX - shape.Width;
+                    shape.Top = targetY;
+                    break;
+                case AlignmentPosition.MiddleLeft:
+                    shape.Left = targetX;
+                    shape.Top = targetY - shape.Height / 2f;
+                    break;
+                case AlignmentPosition.Center:
+                    shape.Left = targetX - shape.Width / 2f;
+                    shape.Top = targetY - shape.Height / 2f;
+                    break;
+                case AlignmentPosition.MiddleRight:
+                    shape.Left = targetX - shape.Width;
+                    shape.Top = targetY - shape.Height / 2f;
+                    break;
+                case AlignmentPosition.BottomLeft:
+                    shape.Left = targetX;
+                    shape.Top = targetY - shape.Height;
+                    break;
+                case AlignmentPosition.BottomCenter:
+                    shape.Left = targetX - shape.Width / 2f;
+                    shape.Top = targetY - shape.Height;
+                    break;
+                case AlignmentPosition.BottomRight:
+                    shape.Left = targetX - shape.Width;
+                    shape.Top = targetY - shape.Height;
+                    break;
+            }
+        }
 
         private float cropLeft;
         private float cropRight;
@@ -820,6 +924,52 @@ namespace SlideSCI
 
         private void copyPosition_Click(object sender, RibbonControlEventArgs e)
         {
+            CopyPositionInternal(lastCopiedAlignment);
+        }
+
+        private void copyPositionWithAlignment_Click(object sender, RibbonControlEventArgs e)
+        {
+            var button = sender as Microsoft.Office.Tools.Ribbon.RibbonButton;
+            if (button == null) return;
+
+            AlignmentPosition alignment = AlignmentPosition.Center;
+            switch (button.Name)
+            {
+                case "copyPosTopLeft":
+                    alignment = AlignmentPosition.TopLeft;
+                    break;
+                case "copyPosTopCenter":
+                    alignment = AlignmentPosition.TopCenter;
+                    break;
+                case "copyPosTopRight":
+                    alignment = AlignmentPosition.TopRight;
+                    break;
+                case "copyPosMiddleLeft":
+                    alignment = AlignmentPosition.MiddleLeft;
+                    break;
+                case "copyPosCenter":
+                    alignment = AlignmentPosition.Center;
+                    break;
+                case "copyPosMiddleRight":
+                    alignment = AlignmentPosition.MiddleRight;
+                    break;
+                case "copyPosBottomLeft":
+                    alignment = AlignmentPosition.BottomLeft;
+                    break;
+                case "copyPosBottomCenter":
+                    alignment = AlignmentPosition.BottomCenter;
+                    break;
+                case "copyPosBottomRight":
+                    alignment = AlignmentPosition.BottomRight;
+                    break;
+            }
+
+            lastCopiedAlignment = alignment;
+            CopyPositionInternal(alignment);
+        }
+
+        private void CopyPositionInternal(AlignmentPosition alignment)
+        {
             Selection sel = app.ActiveWindow.Selection;
             if (sel.Type == PpSelectionType.ppSelectionShapes)
             {
@@ -827,10 +977,10 @@ namespace SlideSCI
                 copiedTop.Clear();
                 foreach (Shape shape in sel.ShapeRange)
                 {
-                    copiedLeft.Add(shape.Left + shape.Width / 2);
-                    copiedTop.Add(shape.Top + shape.Height / 2);
+                    var pt = GetShapeAlignmentPoint(shape, alignment);
+                    copiedLeft.Add(pt.X);
+                    copiedTop.Add(pt.Y);
                 }
-                // MessageBox.Show($"Copied positions of {sel.ShapeRange.Count} shapes");
             }
             else
             {
@@ -852,14 +1002,9 @@ namespace SlideSCI
 
                 for (int i = 0; i < count; i++)
                 {
-                    sel.ShapeRange[i + 1].Left = copiedLeft[i] - sel.ShapeRange[i + 1].Width / 2;
-                    sel.ShapeRange[i + 1].Top = copiedTop[i] - sel.ShapeRange[i + 1].Height / 2;
+                    Shape shape = sel.ShapeRange[i + 1];
+                    SetShapeAlignmentPoint(shape, lastCopiedAlignment, copiedLeft[i], copiedTop[i]);
                 }
-
-                // if (sel.ShapeRange.Count > copiedLeft.Count)
-                // {
-                //     MessageBox.Show("More shapes selected than positions copied. Only the first " + copiedLeft.Count + " shapes were positioned.");
-                // }
             }
             else
             {
