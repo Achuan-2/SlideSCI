@@ -3112,51 +3112,165 @@ namespace SlideSCI
             public Office.MsoTriState Underline;
             public Office.MsoTriState Shadow;
             public bool HasValue = false;
+
+            // 文字效果
+            public Office.MsoTriState Emboss;
+            public float BaselineOffset;
+            public Office.MsoTriState Subscript;
+            public Office.MsoTriState Superscript;
+
+            // Glow 效果
+            public bool HasGlow;
+            public int GlowColorRGB;
+            public float GlowRadius;
+            public float GlowTransparency;
+
+            // Reflection 效果
+            public int ReflectionType;
+
+            // 文字轮廓（文本描边）
+            public bool HasOutline;
+            public int OutlineColorRGB;
+            public float OutlineTransparency;
+            public float OutlineWeight;
+            public int OutlineDashStyle; // Office.MsoLineDashStyle int value
+
+            // 文本突出显示高亮
+            public bool HasHighlight;
+            public int HighlightRGB;
         }
 
         private static CopiedFontSettings _copiedFontSettings = new CopiedFontSettings();
 
-        private void CopyTextFormat(Selection sel)
+        private class CopiedShapeSettings
         {
+            public bool HasValue = false;
+            public int FillForeColorRGB;
+            public float FillTransparency;
+            public int FillBackColorRGB;
+            public int LineColorRGB;
+            public float LineTransparency;
+            public float LineWeight;
+            public Office.MsoLineStyle LineStyle;
+            public Office.MsoLineDashStyle LineDashStyle;
+            public bool FillVisible;
+            public bool LineVisible;
+        }
+
+        private static CopiedShapeSettings _copiedShapeSettings = new CopiedShapeSettings();
+
+        private string _currentShapeCopyOption = "All";
+        private string _currentTextCopyOption = "All";
+
+        private void CopyTextFormat(Selection sel, string option)
+        {
+            _currentTextCopyOption = option;
             try
             {
                 dynamic textRange2 = sel.TextRange2;
                 dynamic font2 = textRange2.Font;
 
-                _copiedFontSettings = new CopiedFontSettings
+                _copiedFontSettings = new CopiedFontSettings();
+                _copiedFontSettings.HasValue = true;
+
+                try { _copiedFontSettings.Name = font2.Name; } catch { }
+                try { _copiedFontSettings.NameFarEast = font2.NameFarEast; } catch { }
+                try { _copiedFontSettings.NameAscii = font2.NameAscii; } catch { }
+                try { _copiedFontSettings.Size = font2.Size; } catch { }
+                try { _copiedFontSettings.ColorRGB = font2.Fill.ForeColor.RGB; } catch { }
+                try { _copiedFontSettings.Transparency = font2.Fill.Transparency; } catch { }
+                try { _copiedFontSettings.Bold = font2.Bold; } catch { }
+                try { _copiedFontSettings.Italic = font2.Italic; } catch { }
+                try { _copiedFontSettings.Underline = font2.UnderlineStyle != 0 ? Office.MsoTriState.msoTrue : Office.MsoTriState.msoFalse; } catch { }
+                try { _copiedFontSettings.Shadow = font2.Shadow; } catch { }
+                try { _copiedFontSettings.Emboss = font2.Emboss; } catch { }
+                try { _copiedFontSettings.BaselineOffset = font2.BaselineOffset; } catch { }
+                try { _copiedFontSettings.Subscript = font2.Subscript; } catch { }
+                try { _copiedFontSettings.Superscript = font2.Superscript; } catch { }
+
+                try
                 {
-                    Name = font2.Name,
-                    NameFarEast = font2.NameFarEast,
-                    NameAscii = font2.NameAscii,
-                    Size = font2.Size,
-                    ColorRGB = font2.Fill.ForeColor.RGB,
-                    Transparency = font2.Fill.Transparency,
-                    Bold = font2.Bold,
-                    Italic = font2.Italic,
-                    Underline = font2.UnderlineStyle != 0 ? Office.MsoTriState.msoTrue : Office.MsoTriState.msoFalse,
-                    Shadow = font2.Shadow,
-                    HasValue = true
-                };
+                    dynamic glow = font2.Glow;
+                    _copiedFontSettings.GlowRadius = glow.Radius;
+                    _copiedFontSettings.GlowTransparency = glow.Transparency;
+                    _copiedFontSettings.GlowColorRGB = glow.Color.RGB;
+                    _copiedFontSettings.HasGlow = glow.Radius > 0;
+                }
+                catch { }
+
+                try
+                {
+                    dynamic refl = font2.Reflection;
+                    _copiedFontSettings.ReflectionType = (int)refl.Type;
+                }
+                catch { }
+
+                try
+                {
+                    dynamic fontLine = font2.Line;
+                    bool lineVisible = false;
+                    try
+                    {
+                        var visVal = fontLine.Visible;
+                        if (visVal is bool)
+                        {
+                            lineVisible = (bool)visVal;
+                        }
+                        else
+                        {
+                            int visInt = Convert.ToInt32(visVal);
+                            // msoTrue=-1, msoTriStateMixed=-2, msoCTrue=1 都代表有轮廓
+                            lineVisible = (visInt == -1 || visInt == -2 || visInt == 1);
+                        }
+                    }
+                    catch { }
+
+                    _copiedFontSettings.HasOutline = lineVisible;
+                    if (lineVisible)
+                    {
+                        try { _copiedFontSettings.OutlineColorRGB = (int)fontLine.ForeColor.RGB; } catch { }
+                        try { _copiedFontSettings.OutlineTransparency = (float)fontLine.Transparency; } catch { }
+                        try { _copiedFontSettings.OutlineWeight = (float)fontLine.Weight; } catch { }
+                        try { _copiedFontSettings.OutlineDashStyle = (int)fontLine.DashStyle; } catch { }
+                    }
+                }
+                catch { }
+
+                // 复制突出显示高亮
+                try
+                {
+                    dynamic hl = font2.Highlight;
+                    int hlType = Convert.ToInt32(hl.Type);
+                    if (hlType != 0)
+                    {
+                        _copiedFontSettings.HasHighlight = true;
+                        _copiedFontSettings.HighlightRGB = (int)hl.RGB;
+                    }
+                }
+                catch { }
             }
             catch
             {
                 try
                 {
                     PowerPoint.Font font = sel.TextRange.Font;
-                    _copiedFontSettings = new CopiedFontSettings
-                    {
-                        Name = font.Name,
-                        NameFarEast = font.NameFarEast,
-                        NameAscii = font.Name,
-                        Size = font.Size,
-                        ColorRGB = font.Color.RGB,
-                        Transparency = 0f,
-                        Bold = font.Bold,
-                        Italic = font.Italic,
-                        Underline = font.Underline,
-                        Shadow = font.Shadow,
-                        HasValue = true
-                    };
+                    _copiedFontSettings = new CopiedFontSettings();
+                    _copiedFontSettings.HasValue = true;
+
+                    try { _copiedFontSettings.Name = font.Name; } catch { }
+                    try { _copiedFontSettings.NameFarEast = font.NameFarEast; } catch { }
+                    try { _copiedFontSettings.NameAscii = font.Name; } catch { }
+                    try { _copiedFontSettings.Size = font.Size; } catch { }
+                    try { _copiedFontSettings.ColorRGB = font.Color.RGB; } catch { }
+                    _copiedFontSettings.Transparency = 0f;
+                    try { _copiedFontSettings.Bold = font.Bold; } catch { }
+                    try { _copiedFontSettings.Italic = font.Italic; } catch { }
+                    try { _copiedFontSettings.Underline = font.Underline; } catch { }
+                    try { _copiedFontSettings.Shadow = font.Shadow; } catch { }
+                    try { _copiedFontSettings.Emboss = font.Emboss; } catch { }
+                    try { _copiedFontSettings.BaselineOffset = font.BaselineOffset; } catch { }
+                    try { _copiedFontSettings.Subscript = font.Subscript; } catch { }
+                    try { _copiedFontSettings.Superscript = font.Superscript; } catch { }
                 }
                 catch (Exception ex)
                 {
@@ -3172,103 +3286,472 @@ namespace SlideSCI
                 dynamic textRange2 = shape.TextFrame2.TextRange;
                 dynamic font2 = textRange2.Font;
 
-                _copiedFontSettings = new CopiedFontSettings
+                _copiedFontSettings = new CopiedFontSettings();
+                _copiedFontSettings.HasValue = true;
+
+                try { _copiedFontSettings.Name = font2.Name; } catch { }
+                try { _copiedFontSettings.NameFarEast = font2.NameFarEast; } catch { }
+                try { _copiedFontSettings.NameAscii = font2.NameAscii; } catch { }
+                try { _copiedFontSettings.Size = font2.Size; } catch { }
+                try { _copiedFontSettings.ColorRGB = font2.Fill.ForeColor.RGB; } catch { }
+                try { _copiedFontSettings.Transparency = font2.Fill.Transparency; } catch { }
+                try { _copiedFontSettings.Bold = font2.Bold; } catch { }
+                try { _copiedFontSettings.Italic = font2.Italic; } catch { }
+                try { _copiedFontSettings.Underline = font2.UnderlineStyle != 0 ? Office.MsoTriState.msoTrue : Office.MsoTriState.msoFalse; } catch { }
+                try { _copiedFontSettings.Shadow = font2.Shadow; } catch { }
+                try { _copiedFontSettings.Emboss = font2.Emboss; } catch { }
+                try { _copiedFontSettings.BaselineOffset = font2.BaselineOffset; } catch { }
+                try { _copiedFontSettings.Subscript = font2.Subscript; } catch { }
+                try { _copiedFontSettings.Superscript = font2.Superscript; } catch { }
+
+                try
                 {
-                    Name = font2.Name,
-                    NameFarEast = font2.NameFarEast,
-                    NameAscii = font2.NameAscii,
-                    Size = font2.Size,
-                    ColorRGB = font2.Fill.ForeColor.RGB,
-                    Transparency = font2.Fill.Transparency,
-                    Bold = font2.Bold,
-                    Italic = font2.Italic,
-                    Underline = font2.UnderlineStyle != 0 ? Office.MsoTriState.msoTrue : Office.MsoTriState.msoFalse,
-                    Shadow = font2.Shadow,
-                    HasValue = true
-                };
+                    dynamic glow = font2.Glow;
+                    _copiedFontSettings.GlowRadius = glow.Radius;
+                    _copiedFontSettings.GlowTransparency = glow.Transparency;
+                    _copiedFontSettings.GlowColorRGB = glow.Color.RGB;
+                    _copiedFontSettings.HasGlow = glow.Radius > 0;
+                }
+                catch { }
+
+                try
+                {
+                    dynamic refl = font2.Reflection;
+                    _copiedFontSettings.ReflectionType = (int)refl.Type;
+                }
+                catch { }
+
+                try
+                {
+                    dynamic fontLine = font2.Line;
+                    bool lineVisible = false;
+                    try
+                    {
+                        var visVal = fontLine.Visible;
+                        if (visVal is bool)
+                        {
+                            lineVisible = (bool)visVal;
+                        }
+                        else
+                        {
+                            int visInt = Convert.ToInt32(visVal);
+                            // msoTrue=-1, msoTriStateMixed=-2, msoCTrue=1 都代表有轮廓
+                            lineVisible = (visInt == -1 || visInt == -2 || visInt == 1);
+                        }
+                    }
+                    catch { }
+
+                    _copiedFontSettings.HasOutline = lineVisible;
+                    if (lineVisible)
+                    {
+                        try { _copiedFontSettings.OutlineColorRGB = (int)fontLine.ForeColor.RGB; } catch { }
+                        try { _copiedFontSettings.OutlineTransparency = (float)fontLine.Transparency; } catch { }
+                        try { _copiedFontSettings.OutlineWeight = (float)fontLine.Weight; } catch { }
+                        try { _copiedFontSettings.OutlineDashStyle = (int)fontLine.DashStyle; } catch { }
+                    }
+                }
+                catch { }
+
+                // 复制突出显示高亮
+                try
+                {
+                    dynamic hl = font2.Highlight;
+                    int hlType = Convert.ToInt32(hl.Type);
+                    if (hlType != 0)
+                    {
+                        _copiedFontSettings.HasHighlight = true;
+                        _copiedFontSettings.HighlightRGB = (int)hl.RGB;
+                    }
+                }
+                catch { }
             }
             catch
             {
                 try
                 {
                     PowerPoint.Font font = shape.TextFrame.TextRange.Font;
-                    _copiedFontSettings = new CopiedFontSettings
-                    {
-                        Name = font.Name,
-                        NameFarEast = font.NameFarEast,
-                        NameAscii = font.Name,
-                        Size = font.Size,
-                        ColorRGB = font.Color.RGB,
-                        Transparency = 0f,
-                        Bold = font.Bold,
-                        Italic = font.Italic,
-                        Underline = font.Underline,
-                        Shadow = font.Shadow,
-                        HasValue = true
-                    };
+                    _copiedFontSettings = new CopiedFontSettings();
+                    _copiedFontSettings.HasValue = true;
+
+                    try { _copiedFontSettings.Name = font.Name; } catch { }
+                    try { _copiedFontSettings.NameFarEast = font.NameFarEast; } catch { }
+                    try { _copiedFontSettings.NameAscii = font.Name; } catch { }
+                    try { _copiedFontSettings.Size = font.Size; } catch { }
+                    try { _copiedFontSettings.ColorRGB = font.Color.RGB; } catch { }
+                    _copiedFontSettings.Transparency = 0f;
+                    try { _copiedFontSettings.Bold = font.Bold; } catch { }
+                    try { _copiedFontSettings.Italic = font.Italic; } catch { }
+                    try { _copiedFontSettings.Underline = font.Underline; } catch { }
+                    try { _copiedFontSettings.Shadow = font.Shadow; } catch { }
+                    try { _copiedFontSettings.Emboss = font.Emboss; } catch { }
+                    try { _copiedFontSettings.BaselineOffset = font.BaselineOffset; } catch { }
+                    try { _copiedFontSettings.Subscript = font.Subscript; } catch { }
+                    try { _copiedFontSettings.Superscript = font.Superscript; } catch { }
                 }
                 catch { }
             }
         }
 
-        private void ApplyTextFormat(dynamic targetFont2)
+        private void CopyShapeFormat(Shape sourceShape, string option)
+        {
+            _currentShapeCopyOption = option;
+            _copiedShapeSettings = new CopiedShapeSettings();
+            _copiedShapeSettings.HasValue = true;
+
+            // 如果是全部，执行原生 PickUp
+            if (option == "All")
+            {
+                try
+                {
+                    sourceShape.PickUp();
+                }
+                catch { }
+            }
+
+            try
+            {
+                var fill = sourceShape.Fill;
+                _copiedShapeSettings.FillVisible = fill.Visible == Office.MsoTriState.msoTrue;
+                if (_copiedShapeSettings.FillVisible)
+                {
+                    _copiedShapeSettings.FillForeColorRGB = fill.ForeColor.RGB;
+                    _copiedShapeSettings.FillTransparency = fill.Transparency;
+                    try
+                    {
+                        _copiedShapeSettings.FillBackColorRGB = fill.BackColor.RGB;
+                    }
+                    catch { }
+                }
+            }
+            catch { }
+
+            try
+            {
+                var line = sourceShape.Line;
+                _copiedShapeSettings.LineVisible = line.Visible == Office.MsoTriState.msoTrue;
+                if (_copiedShapeSettings.LineVisible)
+                {
+                    _copiedShapeSettings.LineColorRGB = line.ForeColor.RGB;
+                    _copiedShapeSettings.LineTransparency = line.Transparency;
+                    _copiedShapeSettings.LineWeight = line.Weight;
+                    _copiedShapeSettings.LineStyle = line.Style;
+                    _copiedShapeSettings.LineDashStyle = line.DashStyle;
+                }
+            }
+            catch { }
+
+            // 如果包含文字，同时复制其文字格式 (默认 All 选项)
+            if (sourceShape.HasTextFrame == Office.MsoTriState.msoTrue && sourceShape.TextFrame.HasText == Office.MsoTriState.msoTrue)
+            {
+                CopyShapeTextFormat(sourceShape);
+            }
+            else
+            {
+                _copiedFontSettings = new CopiedFontSettings { HasValue = false };
+            }
+        }
+
+        private void ApplyFont2Format(dynamic font2, string option)
+        {
+            if (!_copiedFontSettings.HasValue) return;
+
+            // 字体名称
+            if (option == "All" || option == "FontName")
+            {
+                try
+                {
+                    if (!string.IsNullOrEmpty(_copiedFontSettings.Name))
+                        font2.Name = _copiedFontSettings.Name;
+                    if (!string.IsNullOrEmpty(_copiedFontSettings.NameFarEast))
+                        font2.NameFarEast = _copiedFontSettings.NameFarEast;
+                    if (!string.IsNullOrEmpty(_copiedFontSettings.NameAscii))
+                        font2.NameAscii = _copiedFontSettings.NameAscii;
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"ApplyFont2Format FontName error: {ex.Message}");
+                }
+            }
+
+            // 字号
+            if (option == "All" || option == "Size")
+            {
+                try
+                {
+                    if (_copiedFontSettings.Size > 0)
+                        font2.Size = _copiedFontSettings.Size;
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"ApplyFont2Format Size error: {ex.Message}");
+                }
+            }
+
+            // 文字颜色 + 文字轮廓
+            if (option == "All" || option == "Color")
+            {
+                try
+                {
+                    font2.Fill.ForeColor.RGB = _copiedFontSettings.ColorRGB;
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"ApplyFont2Format FillColor error: {ex.Message}");
+                }
+
+                try
+                {
+                    font2.Fill.Transparency = _copiedFontSettings.Transparency;
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"ApplyFont2Format FillTransparency error: {ex.Message}");
+                }
+
+                // 文字轮廓（描边）——匹配 VBA: shp.TextFrame2.TextRange.Font.Line
+                try
+                {
+                    dynamic fontLine = font2.Line;
+                    if (_copiedFontSettings.HasOutline)
+                    {
+                        // 尝试以多种方式设置 Visible 属性为 true
+                        try { fontLine.Visible = Office.MsoTriState.msoTrue; }
+                        catch
+                        {
+                            try { fontLine.Visible = -1; }
+                            catch
+                            {
+                                try { fontLine.Visible = true; }
+                                catch { }
+                            }
+                        }
+
+                        try { fontLine.ForeColor.RGB = _copiedFontSettings.OutlineColorRGB; } catch { }
+                        try { fontLine.Transparency = _copiedFontSettings.OutlineTransparency; } catch { }
+                        try { fontLine.Weight = _copiedFontSettings.OutlineWeight > 0 ? _copiedFontSettings.OutlineWeight : 1.5f; } catch { }
+                        
+                        try { fontLine.DashStyle = (Office.MsoLineDashStyle)_copiedFontSettings.OutlineDashStyle; }
+                        catch
+                        {
+                            try { fontLine.DashStyle = _copiedFontSettings.OutlineDashStyle; }
+                            catch { }
+                        }
+                    }
+                    else
+                    {
+                        // 尝试以多种方式设置 Visible 属性为 false
+                        try { fontLine.Visible = Office.MsoTriState.msoFalse; }
+                        catch
+                        {
+                            try { fontLine.Visible = 0; }
+                            catch
+                            {
+                                try { fontLine.Visible = false; }
+                                catch { }
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"ApplyFont2Format Outline error: {ex.Message}");
+                }
+
+                // 突出显示高亮
+                try
+                {
+                    if (_copiedFontSettings.HasHighlight)
+                    {
+                        font2.Highlight.RGB = _copiedFontSettings.HighlightRGB;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"ApplyFont2Format Highlight error: {ex.Message}");
+                }
+            }
+
+            // 文字效果
+            if (option == "All" || option == "Effect")
+            {
+                try
+                {
+                    font2.Shadow = _copiedFontSettings.Shadow;
+                    font2.Emboss = _copiedFontSettings.Emboss;
+                    font2.BaselineOffset = _copiedFontSettings.BaselineOffset;
+                    font2.Subscript = _copiedFontSettings.Subscript;
+                    font2.Superscript = _copiedFontSettings.Superscript;
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"ApplyFont2Format BasicEffect error: {ex.Message}");
+                }
+
+                // 发光效果
+                try
+                {
+                    if (_copiedFontSettings.HasGlow)
+                    {
+                        font2.Glow.Radius = _copiedFontSettings.GlowRadius;
+                        font2.Glow.Transparency = _copiedFontSettings.GlowTransparency;
+                        font2.Glow.Color.RGB = _copiedFontSettings.GlowColorRGB;
+                    }
+                    else
+                    {
+                        font2.Glow.Radius = 0;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"ApplyFont2Format Glow error: {ex.Message}");
+                }
+
+                // 倒影效果
+                try
+                {
+                    font2.Reflection.Type = (Office.MsoReflectionType)_copiedFontSettings.ReflectionType;
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"ApplyFont2Format Reflection error: {ex.Message}");
+                }
+            }
+
+            // 加粗 / 斜体 / 下划线
+            if (option == "All")
+            {
+                try
+                {
+                    font2.Bold = _copiedFontSettings.Bold;
+                    font2.Italic = _copiedFontSettings.Italic;
+
+                    if (_copiedFontSettings.Underline == Office.MsoTriState.msoTrue)
+                        font2.UnderlineStyle = 1; // msoUnderlineSingleLine
+                    else
+                        font2.UnderlineStyle = 0; // msoNoUnderline
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"ApplyFont2Format BoldItalicUnderline error: {ex.Message}");
+                }
+            }
+        }
+
+        private void ApplyPowerPointFontFormat(PowerPoint.Font font, string option)
         {
             if (!_copiedFontSettings.HasValue) return;
 
             try
             {
-                if (!string.IsNullOrEmpty(_copiedFontSettings.Name))
-                    targetFont2.Name = _copiedFontSettings.Name;
-                if (!string.IsNullOrEmpty(_copiedFontSettings.NameFarEast))
-                    targetFont2.NameFarEast = _copiedFontSettings.NameFarEast;
-                if (!string.IsNullOrEmpty(_copiedFontSettings.NameAscii))
-                    targetFont2.NameAscii = _copiedFontSettings.NameAscii;
-                
-                if (_copiedFontSettings.Size > 0)
-                    targetFont2.Size = _copiedFontSettings.Size;
-                
-                targetFont2.Fill.ForeColor.RGB = _copiedFontSettings.ColorRGB;
-                targetFont2.Fill.Transparency = _copiedFontSettings.Transparency;
-                targetFont2.Bold = _copiedFontSettings.Bold;
-                targetFont2.Italic = _copiedFontSettings.Italic;
-                
-                if (_copiedFontSettings.Underline == Office.MsoTriState.msoTrue)
+                if (option == "All" || option == "FontName")
                 {
-                    targetFont2.UnderlineStyle = 1; // msoUnderlineSingleLine
-                }
-                else
-                {
-                    targetFont2.UnderlineStyle = 0; // msoNoUnderline
-                }
-                
-                targetFont2.Shadow = _copiedFontSettings.Shadow;
-            }
-            catch
-            {
-                try
-                {
-                    PowerPoint.Font font = (PowerPoint.Font)targetFont2;
                     if (!string.IsNullOrEmpty(_copiedFontSettings.Name))
                         font.Name = _copiedFontSettings.Name;
                     if (!string.IsNullOrEmpty(_copiedFontSettings.NameFarEast))
                         font.NameFarEast = _copiedFontSettings.NameFarEast;
+                }
+                
+                if (option == "All" || option == "Size")
+                {
                     if (_copiedFontSettings.Size > 0)
                         font.Size = _copiedFontSettings.Size;
-                    
+                }
+                
+                if (option == "All" || option == "Color")
+                {
                     font.Color.RGB = _copiedFontSettings.ColorRGB;
+                }
+                
+                if (option == "All" || option == "Effect")
+                {
+                    font.Shadow = _copiedFontSettings.Shadow;
+                    font.Emboss = _copiedFontSettings.Emboss;
+                    font.BaselineOffset = _copiedFontSettings.BaselineOffset;
+                    font.Subscript = _copiedFontSettings.Subscript;
+                    font.Superscript = _copiedFontSettings.Superscript;
+                }
+
+                if (option == "All")
+                {
                     font.Bold = _copiedFontSettings.Bold;
                     font.Italic = _copiedFontSettings.Italic;
                     font.Underline = _copiedFontSettings.Underline;
-                    font.Shadow = _copiedFontSettings.Shadow;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"ApplyPowerPointFontFormat error: {ex.Message}");
+            }
+        }
+
+        private void ApplyShapeFormat(Shape targetShape, string option)
+        {
+            if (!_copiedShapeSettings.HasValue) return;
+
+            if (option == "All")
+            {
+                try
+                {
+                    targetShape.Apply();
+                }
+                catch { }
+                return;
+            }
+
+            if (option == "Fill")
+            {
+                try
+                {
+                    var fill = targetShape.Fill;
+                    if (_copiedShapeSettings.FillVisible)
+                    {
+                        fill.Visible = Office.MsoTriState.msoTrue;
+                        fill.Solid();
+                        fill.ForeColor.RGB = _copiedShapeSettings.FillForeColorRGB;
+                        fill.Transparency = _copiedShapeSettings.FillTransparency;
+                        try
+                        {
+                            fill.BackColor.RGB = _copiedShapeSettings.FillBackColorRGB;
+                        }
+                        catch { }
+                    }
+                    else
+                    {
+                        fill.Visible = Office.MsoTriState.msoFalse;
+                    }
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"应用文字格式时出错: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"ApplyShapeFormat Fill error: {ex.Message}");
+                }
+            }
+            else if (option == "Line")
+            {
+                try
+                {
+                    var line = targetShape.Line;
+                    if (_copiedShapeSettings.LineVisible)
+                    {
+                        line.Visible = Office.MsoTriState.msoTrue;
+                        line.ForeColor.RGB = _copiedShapeSettings.LineColorRGB;
+                        line.Transparency = _copiedShapeSettings.LineTransparency;
+                        line.Weight = _copiedShapeSettings.LineWeight;
+                        line.Style = _copiedShapeSettings.LineStyle;
+                        line.DashStyle = _copiedShapeSettings.LineDashStyle;
+                    }
+                    else
+                    {
+                        line.Visible = Office.MsoTriState.msoFalse;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"ApplyShapeFormat Line error: {ex.Message}");
                 }
             }
         }
 
-        private void copyStyle_Click(object sender, RibbonControlEventArgs e)
+        private void copyShapeStyle_Click(object sender, RibbonControlEventArgs e)
         {
             try
             {
@@ -3276,31 +3759,59 @@ namespace SlideSCI
                 if (sel.Type == PpSelectionType.ppSelectionShapes)
                 {
                     Shape sourceShape = sel.ShapeRange[1];
-                    // 捕获格式
-                    sourceShape.PickUp();
-
-                    // 如果形状有文本，且文本非空，则同时复制其文本格式
-                    if (sourceShape.HasTextFrame == Office.MsoTriState.msoTrue && sourceShape.TextFrame.HasText == Office.MsoTriState.msoTrue)
-                    {
-                        CopyShapeTextFormat(sourceShape);
-                    }
-                    else
-                    {
-                        _copiedFontSettings = new CopiedFontSettings { HasValue = false };
-                    }
+                    CopyShapeFormat(sourceShape, _currentShapeCopyOption);
                 }
-                else if (sel.Type == PpSelectionType.ppSelectionText)
+                else
                 {
-                    CopyTextFormat(sel);
+                    MessageBox.Show("请选择一个形状来复制形状格式。", "提示");
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"复制格式时出错: {ex.Message}");
+                MessageBox.Show($"复制形状格式时出错: {ex.Message}");
             }
         }
 
-        private void pasteStyle_Click(object sender, RibbonControlEventArgs e)
+        private void copyShapeStyleOption_Click(object sender, RibbonControlEventArgs e)
+        {
+            var button = sender as Microsoft.Office.Tools.Ribbon.RibbonButton;
+            if (button == null) return;
+
+            string option = "All";
+            switch (button.Name)
+            {
+                case "copyShapeStyleAll":
+                    option = "All";
+                    break;
+                case "copyShapeStyleFill":
+                    option = "Fill";
+                    break;
+                case "copyShapeStyleLine":
+                    option = "Line";
+                    break;
+            }
+
+            try
+            {
+                Selection sel = app.ActiveWindow.Selection;
+                if (sel.Type == PpSelectionType.ppSelectionShapes)
+                {
+                    Shape sourceShape = sel.ShapeRange[1];
+                    CopyShapeFormat(sourceShape, option);
+                }
+                else
+                {
+                    _currentShapeCopyOption = option;
+                    MessageBox.Show($"已将复制形状格式选项设置为：{button.Label}。请选择一个形状以复制格式。", "提示");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"设置复制形状格式选项时出错: {ex.Message}");
+            }
+        }
+
+        private void pasteShapeStyle_Click(object sender, RibbonControlEventArgs e)
         {
             try
             {
@@ -3309,53 +3820,195 @@ namespace SlideSCI
                 {
                     foreach (Shape shape in sel.ShapeRange)
                     {
-                        try
-                        {
-                            // 应用形状格式（背景填充、边框等）
-                            shape.Apply();
-                        }
-                        catch { }
+                        ApplyShapeFormat(shape, _currentShapeCopyOption);
 
-                        // 如果已复制文本格式，且目标形状包含文本框，则应用文本格式
+                        // 如果之前复制了文本，并且目标形状含有文本框，同时应用文本格式
                         if (_copiedFontSettings.HasValue && shape.HasTextFrame == Office.MsoTriState.msoTrue)
                         {
+                            bool success = false;
                             try
                             {
-                                ApplyTextFormat(shape.TextFrame2.TextRange.Font);
+                                ApplyFont2Format(shape.TextFrame2.TextRange.Font, _currentTextCopyOption);
+                                success = true;
                             }
-                            catch
+                            catch { }
+
+                            if (!success)
                             {
                                 try
                                 {
-                                    ApplyTextFormat(shape.TextFrame.TextRange.Font);
+                                    ApplyPowerPointFontFormat(shape.TextFrame.TextRange.Font, _currentTextCopyOption);
                                 }
                                 catch { }
                             }
                         }
                     }
                 }
-                else if (sel.Type == PpSelectionType.ppSelectionText)
+                else
                 {
-                    if (_copiedFontSettings.HasValue)
-                    {
-                        try
-                        {
-                            ApplyTextFormat(sel.TextRange2.Font);
-                        }
-                        catch
-                        {
-                            try
-                            {
-                                ApplyTextFormat(sel.TextRange.Font);
-                            }
-                            catch { }
-                        }
-                    }
+                    MessageBox.Show("请选择要应用形状格式的目标形状。", "提示");
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"粘贴格式时出错: {ex.Message}");
+                MessageBox.Show($"粘贴形状格式时出错: {ex.Message}");
+            }
+        }
+
+        private void copyTextStyle_Click(object sender, RibbonControlEventArgs e)
+        {
+            try
+            {
+                Selection sel = app.ActiveWindow.Selection;
+                if (sel.Type == PpSelectionType.ppSelectionText)
+                {
+                    CopyTextFormat(sel, _currentTextCopyOption);
+                }
+                else if (sel.Type == PpSelectionType.ppSelectionShapes)
+                {
+                    Shape sourceShape = sel.ShapeRange[1];
+                    if (sourceShape.HasTextFrame == Office.MsoTriState.msoTrue && sourceShape.TextFrame.HasText == Office.MsoTriState.msoTrue)
+                    {
+                        CopyShapeTextFormat(sourceShape);
+                    }
+                    else
+                    {
+                        MessageBox.Show("选中的形状中未包含任何文本。", "提示");
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("请选择文本以复制文字格式。", "提示");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"复制文字格式时出错: {ex.Message}");
+            }
+        }
+
+        private void copyTextStyleOption_Click(object sender, RibbonControlEventArgs e)
+        {
+            var button = sender as Microsoft.Office.Tools.Ribbon.RibbonButton;
+            if (button == null) return;
+
+            string option = "All";
+            switch (button.Name)
+            {
+                case "copyTextStyleAll":
+                    option = "All";
+                    break;
+                case "copyTextStyleName":
+                    option = "FontName";
+                    break;
+                case "copyTextStyleColor":
+                    option = "Color";
+                    break;
+                case "copyTextStyleSize":
+                    option = "Size";
+                    break;
+                case "copyTextStyleEffect":
+                    option = "Effect";
+                    break;
+            }
+
+            try
+            {
+                Selection sel = app.ActiveWindow.Selection;
+                if (sel.Type == PpSelectionType.ppSelectionText)
+                {
+                    CopyTextFormat(sel, option);
+                }
+                else if (sel.Type == PpSelectionType.ppSelectionShapes)
+                {
+                    Shape sourceShape = sel.ShapeRange[1];
+                    if (sourceShape.HasTextFrame == Office.MsoTriState.msoTrue && sourceShape.TextFrame.HasText == Office.MsoTriState.msoTrue)
+                    {
+                        _currentTextCopyOption = option;
+                        CopyShapeTextFormat(sourceShape);
+                    }
+                    else
+                    {
+                        _currentTextCopyOption = option;
+                        MessageBox.Show($"已将复制文字格式选项设置为：{button.Label}。", "提示");
+                    }
+                }
+                else
+                {
+                    _currentTextCopyOption = option;
+                    MessageBox.Show($"已将复制文字格式选项设置为：{button.Label}。请选择文字以复制格式。", "提示");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"设置复制文字格式选项时出错: {ex.Message}");
+            }
+        }
+
+        private void pasteTextStyle_Click(object sender, RibbonControlEventArgs e)
+        {
+            try
+            {
+                Selection sel = app.ActiveWindow.Selection;
+                if (sel.Type == PpSelectionType.ppSelectionText)
+                {
+                    if (_copiedFontSettings.HasValue)
+                    {
+                        bool success = false;
+                        try
+                        {
+                            ApplyFont2Format(sel.TextRange2.Font, _currentTextCopyOption);
+                            success = true;
+                        }
+                        catch { }
+
+                        if (!success)
+                        {
+                            try
+                            {
+                                ApplyPowerPointFontFormat(sel.TextRange.Font, _currentTextCopyOption);
+                            }
+                            catch { }
+                        }
+                    }
+                    else
+                    {
+                        MessageBox.Show("请先复制文字格式。", "提示");
+                    }
+                }
+                else if (sel.Type == PpSelectionType.ppSelectionShapes)
+                {
+                    foreach (Shape shape in sel.ShapeRange)
+                    {
+                        if (_copiedFontSettings.HasValue && shape.HasTextFrame == Office.MsoTriState.msoTrue)
+                        {
+                            bool success = false;
+                            try
+                            {
+                                ApplyFont2Format(shape.TextFrame2.TextRange.Font, _currentTextCopyOption);
+                                success = true;
+                            }
+                            catch { }
+
+                            if (!success)
+                            {
+                                try
+                                {
+                                    ApplyPowerPointFontFormat(shape.TextFrame.TextRange.Font, _currentTextCopyOption);
+                                }
+                                catch { }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("请选择目标文本或形状来应用文字格式。", "提示");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"粘贴文字格式时出错: {ex.Message}");
             }
         }
 
