@@ -1754,8 +1754,8 @@ namespace SlideSCI
                     {
                         Slide slide = app.ActiveWindow.View.Slide;
 
-                        // Split markdown into segments
                         var segments = SplitMarkdownIntoSegments(markdown);
+                        var insertedShapes = new List<Shape>();
 
                         float currentTop = slide.Master.Height / 2; // Starting position
                         float left = (slide.Master.Width - 500) / 2; // Center horizontally
@@ -1765,7 +1765,11 @@ namespace SlideSCI
                             try
                             {
                                 Shape shape = null;
-                                if (segment.IsCodeBlock)
+                                if (segment.IsSvg)
+                                {
+                                    shape = InsertSvgBlock(segment.Content, left, currentTop);
+                                }
+                                else if (segment.IsCodeBlock)
                                 {
                                     shape = InsertCodeBlock(
                                         segment.Content,
@@ -1807,7 +1811,7 @@ namespace SlideSCI
                                                     textShape.Width = 500;
                                                     textShape.Left = left;
                                                     textShape.Top = currentTop;
-                                                    currentTop += textShape.Height + 10;
+                                                    shape = textShape;
 
                                                     // Process inline math formulas
                                                     ProcessInlineMathFormulas(textShape);
@@ -1956,6 +1960,7 @@ namespace SlideSCI
 
                                 if (shape != null)
                                 {
+                                    insertedShapes.Add(shape);
                                     currentTop += shape.Height + 10;
                                 }
                             }
@@ -2106,6 +2111,7 @@ namespace SlideSCI
             public bool IsTable { get; set; }
             public bool IsMathBlock { get; set; }
             public bool IsBlockQuote { get; set; } // Add this line
+            public bool IsSvg { get; set; }
             public string Language { get; set; }
         }
 
@@ -2142,14 +2148,17 @@ namespace SlideSCI
                     );
                     if (!string.IsNullOrWhiteSpace(textBefore))
                     {
+                        string trimmed = textBefore.Trim();
+                        bool isSvg = trimmed.StartsWith("<svg", StringComparison.OrdinalIgnoreCase) && trimmed.EndsWith("</svg>", StringComparison.OrdinalIgnoreCase);
                         segments.Add(
                             new MarkdownSegment
                             {
-                                Content = textBefore.Trim(),
+                                Content = trimmed,
                                 IsCodeBlock = false,
                                 IsTable = false,
                                 IsMathBlock = false,
                                 IsBlockQuote = false,
+                                IsSvg = isSvg
                             }
                         );
                     }
@@ -2167,15 +2176,19 @@ namespace SlideSCI
                     var language = lines[0].Substring(3).Trim();
                     var codeContent = string.Join("\n", lines.Skip(1).Take(lines.Length - 2));
 
+                    string trimmedCode = codeContent.Trim();
+                    bool isSvg = language.Equals("svg", StringComparison.OrdinalIgnoreCase)
+                        || (trimmedCode.StartsWith("<svg", StringComparison.OrdinalIgnoreCase) && trimmedCode.EndsWith("</svg>", StringComparison.OrdinalIgnoreCase));
                     segments.Add(
                         new MarkdownSegment
                         {
                             Content = codeContent,
                             Language = string.IsNullOrEmpty(language) ? "text" : language,
-                            IsCodeBlock = true,
+                            IsCodeBlock = !isSvg,
                             IsTable = false,
                             IsMathBlock = false,
                             IsBlockQuote = false,
+                            IsSvg = isSvg
                         }
                     );
                 }
@@ -2257,20 +2270,67 @@ namespace SlideSCI
                 string remainingText = markdown.Substring(currentPosition);
                 if (!string.IsNullOrWhiteSpace(remainingText))
                 {
+                    string trimmed = remainingText.Trim();
+                    bool isSvg = trimmed.StartsWith("<svg", StringComparison.OrdinalIgnoreCase) && trimmed.EndsWith("</svg>", StringComparison.OrdinalIgnoreCase);
                     segments.Add(
                         new MarkdownSegment
                         {
-                            Content = remainingText.Trim(),
+                            Content = trimmed,
                             IsCodeBlock = false,
                             IsTable = false,
                             IsMathBlock = false,
                             IsBlockQuote = false,
+                            IsSvg = isSvg
                         }
                     );
                 }
             }
 
             return segments;
+        }
+
+        private Shape InsertSvgBlock(string svgContent, float left, float top)
+        {
+            Slide slide = app.ActiveWindow.View.Slide;
+            string tempFilePath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".svg");
+            try
+            {
+                File.WriteAllText(tempFilePath, svgContent, Encoding.UTF8);
+                Shape shape = slide.Shapes.AddPicture(
+                    tempFilePath,
+                    Office.MsoTriState.msoFalse,
+                    Office.MsoTriState.msoTrue,
+                    left,
+                    top,
+                    -1,
+                    -1
+                );
+
+                if (shape.Width > 500)
+                {
+                    float ratio = shape.Height / shape.Width;
+                    shape.Width = 500;
+                    shape.Height = 500 * ratio;
+                }
+
+                return shape;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"插入SVG图片时出错: {ex.Message}");
+                return null;
+            }
+            finally
+            {
+                if (File.Exists(tempFilePath))
+                {
+                    try
+                    {
+                        File.Delete(tempFilePath);
+                    }
+                    catch { }
+                }
+            }
         }
 
         private Shape InsertTable(string tableContent, float left, float top)
