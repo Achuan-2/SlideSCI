@@ -3241,8 +3241,13 @@ namespace SlideSCI
                     int hlType = Convert.ToInt32(hl.Type);
                     if (hlType != 0)
                     {
-                        _copiedFontSettings.HasHighlight = true;
-                        _copiedFontSettings.HighlightRGB = (int)hl.RGB;
+                        int rgb = (int)hl.RGB;
+                        // 如果高亮颜色为 0 (代表无高亮，或极其罕见的纯黑色高亮)，则不认为有高亮
+                        if (rgb != 0)
+                        {
+                            _copiedFontSettings.HighlightRGB = rgb;
+                            _copiedFontSettings.HasHighlight = true;
+                        }
                     }
                 }
                 catch { }
@@ -3357,8 +3362,13 @@ namespace SlideSCI
                     int hlType = Convert.ToInt32(hl.Type);
                     if (hlType != 0)
                     {
-                        _copiedFontSettings.HasHighlight = true;
-                        _copiedFontSettings.HighlightRGB = (int)hl.RGB;
+                        int rgb = (int)hl.RGB;
+                        // 如果高亮颜色为 0 (代表无高亮，或极其罕见的纯黑色高亮)，则不认为有高亮
+                        if (rgb != 0)
+                        {
+                            _copiedFontSettings.HighlightRGB = rgb;
+                            _copiedFontSettings.HasHighlight = true;
+                        }
                     }
                 }
                 catch { }
