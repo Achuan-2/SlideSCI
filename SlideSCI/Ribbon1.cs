@@ -1073,11 +1073,10 @@ namespace SlideSCI
                 Selection sel = app.ActiveWindow.Selection;
                 if (sel.Type == PpSelectionType.ppSelectionShapes && sel.ShapeRange.Count > 0)
                 {
-                    Slide slide = app.ActiveWindow.View.Slide;
                     if (sel.ShapeRange.Count == 1)
                     {
                         Shape shape = sel.ShapeRange[1];
-                        shape.Left = (slide.Master.Width - shape.Width) / 2f;
+                        shape.Left = (app.ActivePresentation.PageSetup.SlideWidth - shape.Width) / 2f;
                     }
                     else
                     {
@@ -1111,11 +1110,10 @@ namespace SlideSCI
                 Selection sel = app.ActiveWindow.Selection;
                 if (sel.Type == PpSelectionType.ppSelectionShapes && sel.ShapeRange.Count > 0)
                 {
-                    Slide slide = app.ActiveWindow.View.Slide;
                     if (sel.ShapeRange.Count == 1)
                     {
                         Shape shape = sel.ShapeRange[1];
-                        shape.Top = (slide.Master.Height - shape.Height) / 2f;
+                        shape.Top = (app.ActivePresentation.PageSetup.SlideHeight - shape.Height) / 2f;
                     }
                     else
                     {
