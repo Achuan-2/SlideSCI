@@ -1,3 +1,13 @@
+## v1.5 / 20260604
+- 🎨 新增水平居中和垂直居中按钮，默认以选中的第一个对象为参考
+- 🎨 复制粘贴格式升级，区分文本格式和形状格式
+- 🎨 复制位置支持选择位置
+- 🎨 支持全选页面文本框 [#67](https://github.com/Achuan-2/my_ppt_plugin/issues/67)
+- 🎨 插入latex文字优化 [#61](https://github.com/Achuan-2/my_ppt_plugin/issues/61)
+- 🎨 支持含有markdown的文本框直接转富文本
+- 🎨 插入Markdown多个段落时自动组合
+- 🎨 插入Markdown支持粘贴SVG
+
 
 ## v1.4 / 20251129
 
