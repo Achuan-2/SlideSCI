@@ -83,16 +83,16 @@ Github地址：[https://github.com/Achuan-2/SlideSCI](https://github.com/Achuan-
   - **支持切换黑白背景色**：默认是黑色背景色，切换为背景色，只需要点击「代码黑色背景色」按钮取消激活状态即可
 - **支持插入latex数学公式**  
   ​「插入Markdown」可以快速插入文字与数学混排
-  <img width="1926" height="1106" alt="image" src="https://github.com/user-attachments/assets/8d345baf-41af-473d-a182-3c7d2864c155" />
+  <img  alt="image" src="https://github.com/user-attachments/assets/8d345baf-41af-473d-a182-3c7d2864c155" />
 
   「插入LaTeX文字」单独插入可编辑的数学公式
 
-  <img width="1889" height="1203" alt="image" src="https://github.com/user-attachments/assets/d33eba81-4241-4ec6-bc73-057087be8a5e" />
+  <img  alt="image" src="https://github.com/user-attachments/assets/d33eba81-4241-4ec6-bc73-057087be8a5e" />
 
   如果数学公式比较复杂，PPT原生不支持，可以选择「插入LaTeX svg」，支持更多latex公式样式，只需要简单配置下node.js环境即可使用，而不需要像IguanaTeX等插件除了安装LaTeX环境还要安装很多插件才能实现latex转svg，本插件的安装简单很多
-  <img width="1756" height="1202" alt="PixPin_2025-09-30_10-21-00" src="https://github.com/user-attachments/assets/4d7732b2-47da-41e1-bb22-ddfceab4604b" />
+  <img  alt="PixPin_2025-09-30_10-21-00" src="https://github.com/user-attachments/assets/4d7732b2-47da-41e1-bb22-ddfceab4604b" />
   插入的svg的图片提示文字会保留原始LaTeX代码，方便修改后再插入
-  <img width="1768" height="979" alt="PixPin_2025-09-30_10-25-48" src="https://github.com/user-attachments/assets/b5bbeaf1-8b12-44b1-9664-4591741e83ea" />
+  <img  alt="PixPin_2025-09-30_10-25-48" src="https://github.com/user-attachments/assets/b5bbeaf1-8b12-44b1-9664-4591741e83ea" />
 
 
 
@@ -126,6 +126,17 @@ Github地址：[https://github.com/Achuan-2/SlideSCI](https://github.com/Achuan-
     - 引述块特别处理：
 
       - 独立文本框，添加黑色边框
+- **素材库功能**
+  - 支持把PPT里的形状保存为素材，后续可以方便插入到当前PPT页面​
+  - 支持创建文件夹​
+  - 支持搜索​
+  - 支持导入和导出，可以互相分享素材​
+  <img alt="PixPin_2026-06-05_18-49-00" src="https://assets.b3logfile.com/siyuan/1610205759005/assets/PixPin_2026-06-05_18-49-00-20260605184901-e9izh69.png" />
+- **AI助手T**
+  - 设置API地址、API key后，即可使用AI对当前PPT内容进行编辑，也可以根据需要修改系统提示词
+  <img alt="PixPin_2026-06-05_19-48-55" src="https://assets.b3logfile.com/siyuan/1610205759005/assets/PixPin_2026-06-05_19-48-55-20260605194857-k3xeayj.png" />
+
+  <img alt="PixPin_2026-06-05_19-41-17" src="https://assets.b3logfile.com/siyuan/1610205759005/assets/PixPin_2026-06-05_19-41-17-20260605194434-g59zugv.png" />
 
 ## 4 🪟 支持环境
 
