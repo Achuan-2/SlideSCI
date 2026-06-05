@@ -1,4 +1,4 @@
-﻿<Project ToolsVersion="17.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="17.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <!--
     This section defines project-level properties.
@@ -198,11 +198,15 @@
   -->
   <ItemGroup>
     <Compile Include="CodeHighlighter.cs" />
+    <Compile Include="CSharpExecutor.cs" />
     <Compile Include="LatexToSvgConverter.cs" />
     <Compile Include="InputDialog.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="ShapeLibraryControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="AISidebarControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">

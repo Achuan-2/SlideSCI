@@ -49,6 +49,35 @@ namespace SlideSCI
             }
         }
 
+        public Microsoft.Office.Tools.CustomTaskPane AISidebarTaskPane
+        {
+            get
+            {
+                try
+                {
+                    var app = this.Application;
+                    if (app.Windows.Count == 0) return null;
+                    var activeWindow = app.ActiveWindow;
+                    if (activeWindow == null) return null;
+
+                    foreach (Microsoft.Office.Tools.CustomTaskPane pane in this.CustomTaskPanes)
+                    {
+                        try
+                        {
+                            if (pane.Control is AISidebarControl ctrl)
+                            {
+                                if (ctrl.AssociatedWindow != null && AreWindowsEqual(ctrl.AssociatedWindow, activeWindow))
+                                    return pane;
+                            }
+                        }
+                        catch { }
+                    }
+                }
+                catch { }
+                return null;
+            }
+        }
+
         private void ThisAddIn_Startup(object sender, System.EventArgs e)
         {
             LatexSvgConverter = new LatexToSvgConverter();
@@ -93,6 +122,48 @@ namespace SlideSCI
             catch (System.Exception ex)
             {
                 System.Windows.Forms.MessageBox.Show($"无法打开素材库面板: {ex.Message}", "错误", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
+            }
+        }
+
+        public void ToggleAISidebarTaskPane(Microsoft.Office.Interop.PowerPoint.DocumentWindow contextWindow = null)
+        {
+            try
+            {
+                var app = this.Application;
+                if (app.Windows.Count == 0) return;
+                var activeWindow = contextWindow ?? app.ActiveWindow;
+                if (activeWindow == null) return;
+
+                Microsoft.Office.Tools.CustomTaskPane activePane = null;
+                foreach (Microsoft.Office.Tools.CustomTaskPane pane in this.CustomTaskPanes)
+                {
+                    try
+                    {
+                        if (pane.Control is AISidebarControl ctrl)
+                        {
+                            if (ctrl.AssociatedWindow != null && AreWindowsEqual(ctrl.AssociatedWindow, activeWindow))
+                            {
+                                activePane = pane;
+                                break;
+                            }
+                        }
+                    }
+                    catch { }
+                }
+
+                if (activePane == null)
+                {
+                    var control = new AISidebarControl();
+                    control.AssociatedWindow = activeWindow;
+                    activePane = this.CustomTaskPanes.Add(control, "SlideSCI AI 助手", activeWindow);
+                    activePane.Width = 320;
+                }
+
+                activePane.Visible = !activePane.Visible;
+            }
+            catch (System.Exception ex)
+            {
+                System.Windows.Forms.MessageBox.Show($"无法打开 AI 助手面板: {ex.Message}", "错误", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
             }
         }
 
