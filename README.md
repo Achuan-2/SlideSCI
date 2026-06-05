@@ -20,13 +20,13 @@
 
 
 
-## 1 ❤️ 友情推荐
+## ❤️ 友情推荐
 
 我的Adobe illustrator插件：[https://github.com/Achuan-2/illustrator_sci_plugin](https://github.com/Achuan-2/illustrator_sci_plugin)，专为科研组图设计，支持复制粘贴相对位置、形状尺寸批量设置、图片一键自动排列，一键添加子图label
 
 <img alt="image" src="https://s2.loli.net/2025/08/29/OxzyYpbiWrPKgfG.png" style="width: 249px;" />​
 
-## 2 📝 开发背景
+## 📝 开发背景
 
 不知道有没有人和我一样，对PPT积怨已久😡：
 
@@ -50,7 +50,7 @@
 
 Github地址：[https://github.com/Achuan-2/SlideSCI](https://github.com/Achuan-2/SlideSCI)
 
-## 3 ✨ 主要功能
+## ✨ 主要功能
 
 - **批量添加图片标题**：支持批量选中图片后，批量在图片下方添加居中图题，支持设置图片和图题是否自动编组  
   ​<img alt="" src="https://s2.loli.net/2025/08/29/OoXlgpGdrtx2bEP.png" />
@@ -138,13 +138,13 @@ Github地址：[https://github.com/Achuan-2/SlideSCI](https://github.com/Achuan-
 
   <img alt="PixPin_2026-06-05_19-41-17" src="https://assets.b3logfile.com/siyuan/1610205759005/assets/PixPin_2026-06-05_19-41-17-20260605194434-g59zugv.png" />
 
-## 4 🪟 支持环境
+## 🪟 支持环境
 
 插件在Windows11 使用[Visual Studio Tools For Office](https://www.visualstudio.com/de/vs/office-tools/) 和C#语言开发，专为Microsoft Powerpoint设计，兼容安装到WPS（注：WPS版本不支持插入latex数学公式、插入markdown笔记，强行使用会造成卡死）
 
 > 插件只支持Windows端，不支持Mac端（因为Windows端的PPT插件和Mac端插件开发架构不一样，市面上很多的PPT插件，Windows端和Mac端都是独立开发的界面）
 
-## 5 🖥️ 安装方法
+## 🖥️ 安装方法
 
 下载本插件Github页面[Release](https://github.com/Achuan-2/my_ppt_plugin/releases)中的exe文件，双击安装即可
 
@@ -157,16 +157,16 @@ Github地址：[https://github.com/Achuan-2/SlideSCI](https://github.com/Achuan-
 
 如果插件安装后无法正常运行、没有在PPT中显示，或者在开发工具→COM加载项里勾选插件，提示“未加载。加载COM加载项时出现运行错误”，请尝试安装上面的环境依赖。
 
-## 6 📝 使用介绍视频
+## 📝 使用介绍视频
 
 - [让AI帮我我开发了一个PPT插件！支持一键添加图片标题，复制粘贴位置、一键图片对齐、一键插入代码块、一键插入latex公式！_哔哩哔哩_bilibili](https://www.bilibili.com/video/BV15YcmeSEbq/?spm_id_from=0.0.homepage.video_card.click&vd_source=b4a1fcb6dce305e26d8d16d9cbb71304)
 - [可能是全网第一个支持插入Markdown到PPT的PPT插件_哔哩哔哩_bilibili](https://www.bilibili.com/video/BV1VXcZe2EyK/?spm_id_from=0.0.homepage.video_card.click)
 
-## 7 🤝参与开发
+## 🤝 参与开发
 
 我是如何开发PPT插件的分享：[如何开发一个PPT插件：使用VSTO开发](https://mp.weixin.qq.com/s/LpOw5tdbHTbC1FsG4seEOw)
 
-## 8 ❓ 常见问题
+## ❓ 常见问题
 
 - **如何把插件的功能添加到PPT的快捷工具栏？**   
   按钮右击，添加到「快速访问工具栏」即可  
@@ -186,7 +186,7 @@ Github地址：[https://github.com/Achuan-2/SlideSCI](https://github.com/Achuan-
 
 
 
-## 9 ❤️ 用爱发电
+## ❤️ 用爱发电
 
 开源与创作不易，如果喜欢我的作品，欢迎给我赞赏，这会激励我继续维护项目和持续创作新项目。
 
@@ -196,14 +196,14 @@ Github地址：[https://github.com/Achuan-2/SlideSCI](https://github.com/Achuan-
 
 <img alt="" src="https://s2.loli.net/2025/08/29/tI4HCGzql17nr2D.png" />
 
-## 10 👨💻 问题反馈
+## 👨‍💻 问题反馈
 
 如果使用过程中遇到问题，可以通过以下方式反馈:
 
 1. 在 GitHub 上提 [Issue](https://github.com/Achuan-2/SlideSCI/issues)
 2. 发送邮件到: [achuan-2@outlook.com](mailto:achuan-2@outlook.com)
 
-## 11 🔍 参考项目与致谢
+## 🔍 参考项目与致谢
 
 - [jph00/latex-ppt](https://github.com/jph00/latex-ppt): LaTeX in PowerPoint 支持
 - [Markdig](https://github.com/xoofx/markdig): Markdown 解析支持
@@ -211,7 +211,7 @@ Github地址：[https://github.com/Achuan-2/SlideSCI](https://github.com/Achuan-
 - 感谢 Visual Studio Tools For Office 提供的开发支持
 - 感谢所有提供建议反馈以及捐赠赞赏的用户
 
-## 12 📄 特别说明
+## 📄 特别说明
 
 - 本仓库发布的`SlideSCI`项目中涉及的任何脚本，仅用于测试和学习研究，禁止用于商业用途，不能保证其合法性，准确性，完整性和有效性，请根据情况自行判断。
 - ​`本人` 对任何脚本问题概不负责，包括但不限于由任何脚本错误导致的任何损失或损害.
