@@ -29,8 +29,6 @@ namespace SlideSCI
         private AIConfig currentConfig;
         private List<ChatMessage> conversationHistory = new List<ChatMessage>();
         private static readonly HttpClient httpClient = new HttpClient();
-        private ComboBox cmbPresets;
-
         private bool isGenerating = false;
         private CancellationTokenSource cts;
 
@@ -51,7 +49,6 @@ namespace SlideSCI
             InitializeConfigPath();
             LoadConfig();
             InitializeComponent();
-            UpdatePresetsCombo();
             InitializeSystemMessage();
         }
 
@@ -75,7 +72,7 @@ namespace SlideSCI
                     string json = File.ReadAllText(configPath);
                     currentConfig = JsonConvert.DeserializeObject<AIConfig>(json);
 
-                    // Migration: If no presets exist but we have old fields in json, create a default preset from them
+                    // Migration: If no presets exist but we have old single-config fields, create a default preset
                     if (currentConfig != null && (currentConfig.Presets == null || currentConfig.Presets.Count == 0))
                     {
                         var dict = JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
@@ -85,7 +82,6 @@ namespace SlideSCI
                         string oldPrompt = dict.ContainsKey("SystemPrompt") ? dict["SystemPrompt"]?.ToString() : null;
 
                         currentConfig.Presets = new List<AIPreset>();
-
                         if (!string.IsNullOrEmpty(oldUrl) || !string.IsNullOrEmpty(oldKey))
                         {
                             currentConfig.Presets.Add(new AIPreset
@@ -110,10 +106,7 @@ namespace SlideSCI
                 currentConfig = new AIConfig();
             }
 
-            if (currentConfig == null)
-            {
-                currentConfig = new AIConfig();
-            }
+            if (currentConfig == null) currentConfig = new AIConfig();
 
             // Ensure we have some default presets if list is still empty
             if (currentConfig.Presets == null || currentConfig.Presets.Count == 0)
@@ -128,7 +121,7 @@ namespace SlideSCI
                 SaveConfig();
             }
 
-            if (string.IsNullOrWhiteSpace(currentConfig.SystemPrompt) || 
+            if (string.IsNullOrWhiteSpace(currentConfig.SystemPrompt) ||
                 currentConfig.SystemPrompt.Contains("Office.MsoShapeType.msoShapeRectangle") ||
                 currentConfig.SystemPrompt.Contains("msoShapeRoundRectangle"))
             {
@@ -768,25 +761,38 @@ namespace SlideSCI
     // --- Settings Dialog Form ---
     public class AISettingsForm : Form
     {
+        private ComboBox cmbPresets;
+        private Button btnAddPreset;
+        private Button btnDeletePreset;
+        private TextBox txtPresetName;
         private TextBox txtApiUrl;
         private TextBox txtApiKey;
+        private CheckBox chkShowKey;
         private TextBox txtModel;
         private TextBox txtSystemPrompt;
         private Button btnSave;
         private Button btnCancel;
         private Button btnRestoreDefault;
         private AIConfig config;
+        private List<AIPreset> tempPresets;
+        private string activePresetName;
+        private AIPreset currentEditingPreset = null;
 
         public AISettingsForm(AIConfig currentConfig)
         {
             this.config = currentConfig;
+            this.tempPresets = new List<AIPreset>();
+            foreach (var p in currentConfig.Presets)
+                tempPresets.Add(new AIPreset { Name = p.Name, ApiUrl = p.ApiUrl, ApiKey = p.ApiKey, Model = p.Model, SystemPrompt = p.SystemPrompt });
+            this.activePresetName = currentConfig.CurrentPresetName;
             InitializeComponent();
+            LoadPresetsToCombo();
         }
 
         private void InitializeComponent()
         {
             this.Text = "AI 助手设置";
-            this.Size = new Size(550, 460);
+            this.Size = new Size(620, 580);
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
@@ -794,86 +800,193 @@ namespace SlideSCI
             this.Font = new Font("Microsoft YaHei", 9F);
             this.BackColor = Color.White;
 
-            Label lblUrl = new Label { Text = "API 地址:", Location = new Point(15, 20), Width = 70, Height = 18, TextAlign = ContentAlignment.MiddleLeft };
-            txtApiUrl = new TextBox { Text = config.ApiUrl, Location = new Point(90, 18), Width = 425 };
+            Label lblSelectPreset = new Label { Text = "选择预设:", Location = new Point(15, 20), Width = 80, Height = 22, TextAlign = ContentAlignment.MiddleLeft };
+            cmbPresets = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Location = new Point(100, 20), Width = 280, Height = 24 };
 
-            Label lblKey = new Label { Text = "API Key:", Location = new Point(15, 60), Width = 70, Height = 18, TextAlign = ContentAlignment.MiddleLeft };
-            txtApiKey = new TextBox { Text = config.ApiKey, Location = new Point(90, 58), Width = 425, PasswordChar = '*' };
+            btnAddPreset = new Button { Text = "新增", Location = new Point(390, 18), Width = 90, Height = 28, BackColor = Color.FromArgb(240, 240, 240), FlatStyle = FlatStyle.Flat };
+            btnAddPreset.FlatAppearance.BorderColor = Color.LightGray;
+            btnDeletePreset = new Button { Text = "删除", Location = new Point(490, 18), Width = 90, Height = 28, BackColor = Color.FromArgb(240, 240, 240), FlatStyle = FlatStyle.Flat };
+            btnDeletePreset.FlatAppearance.BorderColor = Color.LightGray;
 
-            Label lblModel = new Label { Text = "模型名称:", Location = new Point(15, 100), Width = 70, Height = 18, TextAlign = ContentAlignment.MiddleLeft };
-            txtModel = new TextBox { Text = config.Model, Location = new Point(90, 98), Width = 425 };
+            Label lblPresetName = new Label { Text = "预设名称:", Location = new Point(15, 60), Width = 80, Height = 22, TextAlign = ContentAlignment.MiddleLeft };
+            txtPresetName = new TextBox { Location = new Point(100, 60), Width = 480 };
+            txtPresetName.TextChanged += TxtPresetName_TextChanged;
 
-            Label lblPrompt = new Label { Text = "系统提示词:", Location = new Point(15, 140), Width = 75, Height = 18, TextAlign = ContentAlignment.MiddleLeft };
-            txtSystemPrompt = new TextBox 
-            { 
-                Text = config.SystemPrompt, 
-                Location = new Point(90, 138), 
-                Width = 425, 
-                Height = 220, 
-                Multiline = true, 
-                ScrollBars = ScrollBars.Vertical,
-                Font = new Font("Microsoft YaHei", 9F)
-            };
+            Label lblUrl = new Label { Text = "API 地址:", Location = new Point(15, 100), Width = 80, Height = 22, TextAlign = ContentAlignment.MiddleLeft };
+            txtApiUrl = new TextBox { Location = new Point(100, 100), Width = 480 };
 
-            btnRestoreDefault = new Button
-            {
-                Text = "恢复默认",
-                Location = new Point(90, 375),
-                Width = 80,
-                Height = 28,
-                FlatStyle = FlatStyle.Flat
-            };
+            Label lblKey = new Label { Text = "API Key:", Location = new Point(15, 140), Width = 80, Height = 22, TextAlign = ContentAlignment.MiddleLeft };
+            txtApiKey = new TextBox { Location = new Point(100, 140), Width = 400, PasswordChar = '*' };
+            chkShowKey = new CheckBox { Text = "显示", Location = new Point(510, 140), Width = 70, Height = 22, TextAlign = ContentAlignment.MiddleLeft };
+            chkShowKey.CheckedChanged += (s, e) => { txtApiKey.PasswordChar = chkShowKey.Checked ? '\0' : '*'; };
+
+            Label lblModel = new Label { Text = "模型名称:", Location = new Point(15, 180), Width = 80, Height = 22, TextAlign = ContentAlignment.MiddleLeft };
+            txtModel = new TextBox { Location = new Point(100, 180), Width = 480 };
+
+            Label lblPrompt = new Label { Text = "系统提示词:", Location = new Point(15, 220), Width = 85, Height = 22, TextAlign = ContentAlignment.MiddleLeft };
+            txtSystemPrompt = new TextBox { Location = new Point(100, 220), Width = 480, Height = 240, Multiline = true, ScrollBars = ScrollBars.Vertical, Font = new Font("Microsoft YaHei", 9F) };
+
+            btnRestoreDefault = new Button { Text = "恢复默认提示词", Location = new Point(100, 485), Width = 150, Height = 28, FlatStyle = FlatStyle.Flat };
             btnRestoreDefault.FlatAppearance.BorderColor = Color.LightGray;
-            btnRestoreDefault.Click += (s, e) => {
-                txtSystemPrompt.Text = AISidebarControl.GetDefaultSystemPrompt();
-            };
+            btnRestoreDefault.Click += (s, e) => { txtSystemPrompt.Text = AISidebarControl.GetDefaultSystemPrompt(); };
 
-            btnSave = new Button
-            {
-                Text = "保存",
-                DialogResult = DialogResult.OK,
-                Location = new Point(340, 375),
-                Width = 80,
-                Height = 28,
-                BackColor = Color.FromArgb(0, 120, 212),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat
-            };
+            btnSave = new Button { Text = "保存", DialogResult = DialogResult.OK, Location = new Point(380, 485), Width = 90, Height = 28, BackColor = Color.FromArgb(0, 120, 212), ForeColor = Color.White, FlatStyle = FlatStyle.Flat };
             btnSave.FlatAppearance.BorderSize = 0;
-
-            btnCancel = new Button
-            {
-                Text = "取消",
-                DialogResult = DialogResult.Cancel,
-                Location = new Point(435, 375),
-                Width = 80,
-                Height = 28,
-                FlatStyle = FlatStyle.Flat
-            };
+            btnCancel = new Button { Text = "取消", DialogResult = DialogResult.Cancel, Location = new Point(490, 485), Width = 90, Height = 28, FlatStyle = FlatStyle.Flat };
             btnCancel.FlatAppearance.BorderColor = Color.LightGray;
 
-            this.Controls.AddRange(new Control[] { lblUrl, txtApiUrl, lblKey, txtApiKey, lblModel, txtModel, lblPrompt, txtSystemPrompt, btnRestoreDefault, btnSave, btnCancel });
-
+            this.Controls.AddRange(new Control[] {
+                lblSelectPreset, cmbPresets, btnAddPreset, btnDeletePreset,
+                lblPresetName, txtPresetName, lblUrl, txtApiUrl,
+                lblKey, txtApiKey, chkShowKey, lblModel, txtModel,
+                lblPrompt, txtSystemPrompt, btnRestoreDefault, btnSave, btnCancel
+            });
             this.AcceptButton = btnSave;
             this.CancelButton = btnCancel;
+            btnAddPreset.Click += BtnAddPreset_Click;
+            btnDeletePreset.Click += BtnDeletePreset_Click;
+        }
+
+        private void LoadPresetsToCombo()
+        {
+            cmbPresets.SelectedIndexChanged -= CmbPresets_SelectedIndexChanged;
+            cmbPresets.DataSource = null;
+            cmbPresets.DataSource = tempPresets;
+            cmbPresets.DisplayMember = "Name";
+            int idx = tempPresets.FindIndex(p => p.Name == activePresetName);
+            if (idx < 0 && tempPresets.Count > 0) idx = 0;
+            cmbPresets.SelectedIndex = idx;
+            if (idx >= 0) { LoadPresetToFields(tempPresets[idx]); activePresetName = tempPresets[idx].Name; }
+            cmbPresets.SelectedIndexChanged += CmbPresets_SelectedIndexChanged;
+        }
+
+        private void SaveCurrentPresetEdits()
+        {
+            if (currentEditingPreset != null)
+            {
+                currentEditingPreset.Name = txtPresetName.Text.Trim();
+                currentEditingPreset.ApiUrl = txtApiUrl.Text.Trim();
+                currentEditingPreset.ApiKey = txtApiKey.Text.Trim();
+                currentEditingPreset.Model = txtModel.Text.Trim();
+                currentEditingPreset.SystemPrompt = txtSystemPrompt.Text;
+            }
+        }
+
+        private void LoadPresetToFields(AIPreset preset)
+        {
+            currentEditingPreset = preset;
+            if (preset != null)
+            {
+                txtPresetName.Text = preset.Name;
+                txtApiUrl.Text = preset.ApiUrl;
+                txtApiKey.Text = preset.ApiKey;
+                txtModel.Text = preset.Model;
+                txtSystemPrompt.Text = preset.SystemPrompt;
+            }
+        }
+
+        private void CmbPresets_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            SaveCurrentPresetEdits();
+            if (cmbPresets.SelectedIndex >= 0)
+            {
+                var selected = cmbPresets.SelectedItem as AIPreset;
+                LoadPresetToFields(selected);
+                this.activePresetName = selected?.Name ?? "";
+            }
+        }
+
+        private void TxtPresetName_TextChanged(object sender, EventArgs e)
+        {
+            if (currentEditingPreset != null && cmbPresets.SelectedItem == currentEditingPreset)
+            {
+                string newName = txtPresetName.Text.Trim();
+                if (!string.IsNullOrEmpty(newName) && currentEditingPreset.Name != newName)
+                {
+                    currentEditingPreset.Name = newName;
+                    int idx = cmbPresets.SelectedIndex;
+                    cmbPresets.SelectedIndexChanged -= CmbPresets_SelectedIndexChanged;
+                    cmbPresets.DataSource = null;
+                    cmbPresets.DataSource = tempPresets;
+                    cmbPresets.DisplayMember = "Name";
+                    cmbPresets.SelectedIndex = idx;
+                    cmbPresets.SelectedIndexChanged += CmbPresets_SelectedIndexChanged;
+                }
+            }
+        }
+
+        private void BtnAddPreset_Click(object sender, EventArgs e)
+        {
+            SaveCurrentPresetEdits();
+            int count = 1;
+            string newName = "New Preset";
+            while (tempPresets.Exists(p => p.Name == $"{newName} {count}")) count++;
+            string finalName = $"{newName} {count}";
+            var newPreset = new AIPreset { Name = finalName, ApiUrl = "https://api.openai.com/v1", ApiKey = "", Model = "gpt-4o", SystemPrompt = AISidebarControl.GetDefaultSystemPrompt() };
+            tempPresets.Add(newPreset);
+            activePresetName = finalName;
+            LoadPresetsToCombo();
+        }
+
+        private void BtnDeletePreset_Click(object sender, EventArgs e)
+        {
+            if (tempPresets.Count <= 1) { MessageBox.Show("必须保留至少一个预设！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning); return; }
+            if (cmbPresets.SelectedItem is AIPreset selected)
+            {
+                if (MessageBox.Show($"确定删除预设 '{selected.Name}' 吗？", "确认删除", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                {
+                    tempPresets.Remove(selected);
+                    currentEditingPreset = null;
+                    activePresetName = tempPresets[0].Name;
+                    LoadPresetsToCombo();
+                }
+            }
         }
 
         public void UpdateConfig(AIConfig targetConfig)
         {
-            targetConfig.ApiUrl = txtApiUrl.Text.Trim();
-            targetConfig.ApiKey = txtApiKey.Text.Trim();
-            targetConfig.Model = txtModel.Text.Trim();
-            targetConfig.SystemPrompt = txtSystemPrompt.Text; // Keep formatting and whitespace
+            SaveCurrentPresetEdits();
+            targetConfig.Presets = this.tempPresets;
+            targetConfig.CurrentPresetName = this.activePresetName;
         }
     }
 
     // --- Data Models for API ---
-    public class AIConfig
+    public class AIPreset
     {
+        public string Name { get; set; } = "Default";
         public string ApiUrl { get; set; } = "https://api.openai.com/v1";
         public string ApiKey { get; set; } = "";
         public string Model { get; set; } = "gpt-4o";
         public string SystemPrompt { get; set; } = "";
+        public override string ToString() => Name;
+    }
+
+    public class AIConfig
+    {
+        public List<AIPreset> Presets { get; set; } = new List<AIPreset>();
+        public string CurrentPresetName { get; set; } = "";
+
+        [JsonIgnore]
+        public AIPreset CurrentPreset
+        {
+            get
+            {
+                if (Presets == null || Presets.Count == 0)
+                {
+                    Presets = new List<AIPreset> { new AIPreset { Name = "Default" } };
+                    CurrentPresetName = "Default";
+                }
+                var active = Presets.Find(p => p.Name == CurrentPresetName);
+                if (active == null) { active = Presets[0]; CurrentPresetName = active.Name; }
+                return active;
+            }
+        }
+
+        [JsonIgnore] public string ApiUrl { get => CurrentPreset.ApiUrl; set => CurrentPreset.ApiUrl = value; }
+        [JsonIgnore] public string ApiKey { get => CurrentPreset.ApiKey; set => CurrentPreset.ApiKey = value; }
+        [JsonIgnore] public string Model { get => CurrentPreset.Model; set => CurrentPreset.Model = value; }
+        [JsonIgnore] public string SystemPrompt { get => CurrentPreset.SystemPrompt; set => CurrentPreset.SystemPrompt = value; }
     }
 
     public class ChatRequest
