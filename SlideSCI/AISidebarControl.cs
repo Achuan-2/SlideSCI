@@ -29,6 +29,7 @@ namespace SlideSCI
         private AIConfig currentConfig;
         private List<ChatMessage> conversationHistory = new List<ChatMessage>();
         private static readonly HttpClient httpClient = new HttpClient();
+        private ComboBox cmbPresets;
 
         private bool isGenerating = false;
         private CancellationTokenSource cts;
@@ -50,6 +51,7 @@ namespace SlideSCI
             InitializeConfigPath();
             LoadConfig();
             InitializeComponent();
+            UpdatePresetsCombo();
             InitializeSystemMessage();
         }
 
@@ -72,6 +74,31 @@ namespace SlideSCI
                 {
                     string json = File.ReadAllText(configPath);
                     currentConfig = JsonConvert.DeserializeObject<AIConfig>(json);
+
+                    // Migration: If no presets exist but we have old fields in json, create a default preset from them
+                    if (currentConfig != null && (currentConfig.Presets == null || currentConfig.Presets.Count == 0))
+                    {
+                        var dict = JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
+                        string oldUrl = dict.ContainsKey("ApiUrl") ? dict["ApiUrl"]?.ToString() : null;
+                        string oldKey = dict.ContainsKey("ApiKey") ? dict["ApiKey"]?.ToString() : null;
+                        string oldModel = dict.ContainsKey("Model") ? dict["Model"]?.ToString() : null;
+                        string oldPrompt = dict.ContainsKey("SystemPrompt") ? dict["SystemPrompt"]?.ToString() : null;
+
+                        currentConfig.Presets = new List<AIPreset>();
+
+                        if (!string.IsNullOrEmpty(oldUrl) || !string.IsNullOrEmpty(oldKey))
+                        {
+                            currentConfig.Presets.Add(new AIPreset
+                            {
+                                Name = "Default",
+                                ApiUrl = oldUrl ?? "https://api.openai.com/v1",
+                                ApiKey = oldKey ?? "",
+                                Model = oldModel ?? "gpt-4o",
+                                SystemPrompt = oldPrompt ?? GetDefaultSystemPrompt()
+                            });
+                            currentConfig.CurrentPresetName = "Default";
+                        }
+                    }
                 }
                 catch
                 {
@@ -86,6 +113,19 @@ namespace SlideSCI
             if (currentConfig == null)
             {
                 currentConfig = new AIConfig();
+            }
+
+            // Ensure we have some default presets if list is still empty
+            if (currentConfig.Presets == null || currentConfig.Presets.Count == 0)
+            {
+                currentConfig.Presets = new List<AIPreset>
+                {
+                    new AIPreset { Name = "Kimi", ApiUrl = "https://api.moonshot.cn/v1", Model = "kimi-latest", SystemPrompt = GetDefaultSystemPrompt() },
+                    new AIPreset { Name = "DeepSeek", ApiUrl = "https://api.deepseek.com/v1", Model = "deepseek-chat", SystemPrompt = GetDefaultSystemPrompt() },
+                    new AIPreset { Name = "OpenAI", ApiUrl = "https://api.openai.com/v1", Model = "gpt-4o", SystemPrompt = GetDefaultSystemPrompt() }
+                };
+                currentConfig.CurrentPresetName = "Kimi";
+                SaveConfig();
             }
 
             if (string.IsNullOrWhiteSpace(currentConfig.SystemPrompt) || 
@@ -854,6 +894,8 @@ namespace SlideSCI
         public string Role { get; set; }
         [JsonProperty("content", NullValueHandling = NullValueHandling.Ignore)]
         public string Content { get; set; }
+        [JsonProperty("reasoning_content", NullValueHandling = NullValueHandling.Ignore)]
+        public string ReasoningContent { get; set; }
         [JsonProperty("tool_calls", NullValueHandling = NullValueHandling.Ignore)]
         public List<ToolCall> ToolCalls { get; set; }
         [JsonProperty("tool_call_id", NullValueHandling = NullValueHandling.Ignore)]
