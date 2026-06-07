@@ -1424,8 +1424,8 @@ namespace SlideSCI
                             string codeText = line.Substring(i + 1, next - (i + 1));
                             
                             rtb.SelectionFont = new Font("Consolas", rtb.Font.Size);
-                            rtb.SelectionBackColor = isUser ? Color.FromArgb(0, 100, 185) : Color.FromArgb(228, 229, 230);
-                            rtb.SelectionColor = isUser ? Color.White : Color.FromArgb(190, 50, 50);
+                            rtb.SelectionBackColor = isUser ? Color.FromArgb(0, 60, 120) : Color.FromArgb(228, 229, 230);
+                            rtb.SelectionColor = isUser ? Color.FromArgb(200, 230, 255) : Color.FromArgb(190, 50, 50);
 
                             rtb.AppendText(codeText);
                             
