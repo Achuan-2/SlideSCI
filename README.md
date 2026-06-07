@@ -52,6 +52,19 @@ Github地址：[https://github.com/Achuan-2/SlideSCI](https://github.com/Achuan-
 
 ## ✨ 主要功能
 
+
+
+- **素材库功能**
+  - 支持把PPT里的形状保存为素材，后续可以方便插入到当前PPT页面​
+  - 支持创建文件夹​
+  - 支持搜索​
+  - 支持导入和导出，可以互相分享素材​
+  <img alt="PixPin_2026-06-05_18-49-00" src="https://assets.b3logfile.com/siyuan/1610205759005/assets/PixPin_2026-06-05_18-49-00-20260605184901-e9izh69.png" />
+- **AI助手T**
+  - 设置API地址、API key后，即可使用AI对当前PPT内容进行编辑，也可以根据需要修改系统提示词
+  <img alt="PixPin_2026-06-05_19-48-55" src="https://assets.b3logfile.com/siyuan/1610205759005/assets/PixPin_2026-06-05_19-48-55-20260605194857-k3xeayj.png" />
+
+  <img alt="PixPin_2026-06-05_19-41-17" src="https://assets.b3logfile.com/siyuan/1610205759005/assets/PixPin_2026-06-05_19-41-17-20260605194434-g59zugv.png" />
 - **批量添加图片标题**：支持批量选中图片后，批量在图片下方添加居中图题，支持设置图片和图题是否自动编组  
   ​<img alt="" src="https://s2.loli.net/2025/08/29/OoXlgpGdrtx2bEP.png" />
 - **批量添加图片标签**：用于科研绘图，可选择添加的标签模板（`A`、`a`、`A)`、`a)`、`1`、`1)`），默认添加的标签字体为`Arial`<img alt="" src="assets/network-asset-68747470733a2f2f666173746c792e6a7364656c6976722e6e65742f67682f41636875616e2d322f5069634265642f6173736574732f50697850696e5f323032352d30312d32345f31382d33342d31312d323032352d30312d32342e706e6-20250417103743-vry4kvj.png" />
@@ -126,17 +139,7 @@ Github地址：[https://github.com/Achuan-2/SlideSCI](https://github.com/Achuan-
     - 引述块特别处理：
 
       - 独立文本框，添加黑色边框
-- **素材库功能**
-  - 支持把PPT里的形状保存为素材，后续可以方便插入到当前PPT页面​
-  - 支持创建文件夹​
-  - 支持搜索​
-  - 支持导入和导出，可以互相分享素材​
-  <img alt="PixPin_2026-06-05_18-49-00" src="https://assets.b3logfile.com/siyuan/1610205759005/assets/PixPin_2026-06-05_18-49-00-20260605184901-e9izh69.png" />
-- **AI助手T**
-  - 设置API地址、API key后，即可使用AI对当前PPT内容进行编辑，也可以根据需要修改系统提示词
-  <img alt="PixPin_2026-06-05_19-48-55" src="https://assets.b3logfile.com/siyuan/1610205759005/assets/PixPin_2026-06-05_19-48-55-20260605194857-k3xeayj.png" />
 
-  <img alt="PixPin_2026-06-05_19-41-17" src="https://assets.b3logfile.com/siyuan/1610205759005/assets/PixPin_2026-06-05_19-41-17-20260605194434-g59zugv.png" />
 
 ## 🪟 支持环境
 
