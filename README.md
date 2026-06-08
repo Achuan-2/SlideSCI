@@ -139,6 +139,7 @@ Github地址：[https://github.com/Achuan-2/SlideSCI](https://github.com/Achuan-
     - 引述块特别处理：
 
       - 独立文本框，添加黑色边框
+  - 支持插入SVG代码来插入SVG图片
 - **添加水平居中和垂直居中按钮，默认以选中的第一个对象为参考进行对齐**：PPT自带的水平居中和垂直居中，是以选中的所有对象的整体中线进行对齐的，无法像illustrator一样设置关键对象来参考，这样比如一个文字已经排好了，想要底部加一个形状并对齐，进行水平、垂直居中很容易会导致文字位置被移动，居中之后又得再调整位置。
   <img width="1080" height="1440" alt="image" src="https://github.com/user-attachments/assets/41edddf8-d363-43f9-ae79-63ef1961a7db" />
 
