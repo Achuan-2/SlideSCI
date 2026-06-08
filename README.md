@@ -60,7 +60,7 @@ Github地址：[https://github.com/Achuan-2/SlideSCI](https://github.com/Achuan-
   - 支持搜索​
   - 支持导入和导出，可以互相分享素材​
   <img alt="PixPin_2026-06-05_18-49-00" src="https://assets.b3logfile.com/siyuan/1610205759005/assets/PixPin_2026-06-05_18-49-00-20260605184901-e9izh69.png" />
-- **AI助手T**
+- **AI助手**
   - 设置API地址、API key后，即可使用AI对当前PPT内容进行编辑，也可以根据需要修改系统提示词
   <img alt="PixPin_2026-06-05_19-48-55" src="https://assets.b3logfile.com/siyuan/1610205759005/assets/PixPin_2026-06-05_19-48-55-20260605194857-k3xeayj.png" />
 
