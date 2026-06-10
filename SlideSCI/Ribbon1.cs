@@ -42,6 +42,7 @@ namespace SlideSCI
         }
 
         private AlignmentPosition lastCopiedAlignment = AlignmentPosition.Center;
+        private AlignmentPosition lastSwapAlignment = AlignmentPosition.TopLeft;
 
         private (float X, float Y) GetShapeAlignmentPoint(Shape shape, AlignmentPosition alignment)
         {
@@ -1063,6 +1064,72 @@ namespace SlideSCI
             else
             {
                 MessageBox.Show("Please select shapes to paste positions.");
+            }
+        }
+
+        private void swapPosition_Click(object sender, RibbonControlEventArgs e)
+        {
+            SwapPositionInternal(lastSwapAlignment);
+        }
+
+        private void swapPositionWithAlignment_Click(object sender, RibbonControlEventArgs e)
+        {
+            var button = sender as Microsoft.Office.Tools.Ribbon.RibbonButton;
+            if (button == null) return;
+
+            AlignmentPosition alignment = AlignmentPosition.TopLeft;
+            switch (button.Name)
+            {
+                case "swapPosTopLeft":
+                    alignment = AlignmentPosition.TopLeft;
+                    break;
+                case "swapPosTopCenter":
+                    alignment = AlignmentPosition.TopCenter;
+                    break;
+                case "swapPosTopRight":
+                    alignment = AlignmentPosition.TopRight;
+                    break;
+                case "swapPosMiddleLeft":
+                    alignment = AlignmentPosition.MiddleLeft;
+                    break;
+                case "swapPosCenter":
+                    alignment = AlignmentPosition.Center;
+                    break;
+                case "swapPosMiddleRight":
+                    alignment = AlignmentPosition.MiddleRight;
+                    break;
+                case "swapPosBottomLeft":
+                    alignment = AlignmentPosition.BottomLeft;
+                    break;
+                case "swapPosBottomCenter":
+                    alignment = AlignmentPosition.BottomCenter;
+                    break;
+                case "swapPosBottomRight":
+                    alignment = AlignmentPosition.BottomRight;
+                    break;
+            }
+
+            lastSwapAlignment = alignment;
+            SwapPositionInternal(alignment);
+        }
+
+        private void SwapPositionInternal(AlignmentPosition alignment)
+        {
+            Selection sel = app.ActiveWindow.Selection;
+            if (sel.Type == PpSelectionType.ppSelectionShapes && sel.ShapeRange.Count == 2)
+            {
+                Shape shape1 = sel.ShapeRange[1];
+                Shape shape2 = sel.ShapeRange[2];
+
+                var pt1 = GetShapeAlignmentPoint(shape1, alignment);
+                var pt2 = GetShapeAlignmentPoint(shape2, alignment);
+
+                SetShapeAlignmentPoint(shape1, alignment, pt2.X, pt2.Y);
+                SetShapeAlignmentPoint(shape2, alignment, pt1.X, pt1.Y);
+            }
+            else
+            {
+                MessageBox.Show("请选择两个图形以交换位置。");
             }
         }
 

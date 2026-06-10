@@ -176,6 +176,16 @@ namespace SlideSCI
             this.copyPosBottomCenter = this.Factory.CreateRibbonButton();
             this.copyPosBottomRight = this.Factory.CreateRibbonButton();
             this.pastePosition = this.Factory.CreateRibbonButton();
+            this.swapPosition = this.Factory.CreateRibbonSplitButton();
+            this.swapPosTopLeft = this.Factory.CreateRibbonButton();
+            this.swapPosTopCenter = this.Factory.CreateRibbonButton();
+            this.swapPosTopRight = this.Factory.CreateRibbonButton();
+            this.swapPosMiddleLeft = this.Factory.CreateRibbonButton();
+            this.swapPosCenter = this.Factory.CreateRibbonButton();
+            this.swapPosMiddleRight = this.Factory.CreateRibbonButton();
+            this.swapPosBottomLeft = this.Factory.CreateRibbonButton();
+            this.swapPosBottomCenter = this.Factory.CreateRibbonButton();
+            this.swapPosBottomRight = this.Factory.CreateRibbonButton();
             this.separator5 = this.Factory.CreateRibbonSeparator();
             this.alignHorizontalCenter = this.Factory.CreateRibbonButton();
             this.alignVerticalCenter = this.Factory.CreateRibbonButton();
@@ -702,6 +712,7 @@ namespace SlideSCI
             this.复制图片格式.Items.Add(this.separator1);
             this.复制图片格式.Items.Add(this.copyPosition);
             this.复制图片格式.Items.Add(this.pastePosition);
+            this.复制图片格式.Items.Add(this.swapPosition);
             this.复制图片格式.Items.Add(this.separator5);
             this.复制图片格式.Items.Add(this.copyImgWidth);
             this.复制图片格式.Items.Add(this.pasteImgWidth);
@@ -903,7 +914,86 @@ namespace SlideSCI
             this.pastePosition.Name = "pastePosition";
             this.pastePosition.ShowImage = true;
             this.pastePosition.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.pastePosition_Click);
-            // 
+            //
+            // swapPosition
+            //
+            this.swapPosition.Image = ((System.Drawing.Image)(resources.GetObject("copyPosition.Image")));
+            this.swapPosition.Items.Add(this.swapPosTopLeft);
+            this.swapPosition.Items.Add(this.swapPosTopCenter);
+            this.swapPosition.Items.Add(this.swapPosTopRight);
+            this.swapPosition.Items.Add(this.swapPosMiddleLeft);
+            this.swapPosition.Items.Add(this.swapPosCenter);
+            this.swapPosition.Items.Add(this.swapPosMiddleRight);
+            this.swapPosition.Items.Add(this.swapPosBottomLeft);
+            this.swapPosition.Items.Add(this.swapPosBottomCenter);
+            this.swapPosition.Items.Add(this.swapPosBottomRight);
+            this.swapPosition.Label = "交换位置";
+            this.swapPosition.Name = "swapPosition";
+            this.swapPosition.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.swapPosition_Click);
+            //
+            // swapPosTopLeft
+            //
+            this.swapPosTopLeft.Label = "左上角";
+            this.swapPosTopLeft.Name = "swapPosTopLeft";
+            this.swapPosTopLeft.ShowImage = true;
+            this.swapPosTopLeft.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.swapPositionWithAlignment_Click);
+            //
+            // swapPosTopCenter
+            //
+            this.swapPosTopCenter.Label = "上居中";
+            this.swapPosTopCenter.Name = "swapPosTopCenter";
+            this.swapPosTopCenter.ShowImage = true;
+            this.swapPosTopCenter.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.swapPositionWithAlignment_Click);
+            //
+            // swapPosTopRight
+            //
+            this.swapPosTopRight.Label = "右上角";
+            this.swapPosTopRight.Name = "swapPosTopRight";
+            this.swapPosTopRight.ShowImage = true;
+            this.swapPosTopRight.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.swapPositionWithAlignment_Click);
+            //
+            // swapPosMiddleLeft
+            //
+            this.swapPosMiddleLeft.Label = "左居中";
+            this.swapPosMiddleLeft.Name = "swapPosMiddleLeft";
+            this.swapPosMiddleLeft.ShowImage = true;
+            this.swapPosMiddleLeft.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.swapPositionWithAlignment_Click);
+            //
+            // swapPosCenter
+            //
+            this.swapPosCenter.Label = "中心";
+            this.swapPosCenter.Name = "swapPosCenter";
+            this.swapPosCenter.ShowImage = true;
+            this.swapPosCenter.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.swapPositionWithAlignment_Click);
+            //
+            // swapPosMiddleRight
+            //
+            this.swapPosMiddleRight.Label = "右居中";
+            this.swapPosMiddleRight.Name = "swapPosMiddleRight";
+            this.swapPosMiddleRight.ShowImage = true;
+            this.swapPosMiddleRight.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.swapPositionWithAlignment_Click);
+            //
+            // swapPosBottomLeft
+            //
+            this.swapPosBottomLeft.Label = "左下角";
+            this.swapPosBottomLeft.Name = "swapPosBottomLeft";
+            this.swapPosBottomLeft.ShowImage = true;
+            this.swapPosBottomLeft.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.swapPositionWithAlignment_Click);
+            //
+            // swapPosBottomCenter
+            //
+            this.swapPosBottomCenter.Label = "下居中";
+            this.swapPosBottomCenter.Name = "swapPosBottomCenter";
+            this.swapPosBottomCenter.ShowImage = true;
+            this.swapPosBottomCenter.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.swapPositionWithAlignment_Click);
+            //
+            // swapPosBottomRight
+            //
+            this.swapPosBottomRight.Label = "右下角";
+            this.swapPosBottomRight.Name = "swapPosBottomRight";
+            this.swapPosBottomRight.ShowImage = true;
+            this.swapPosBottomRight.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.swapPositionWithAlignment_Click);
+            //
             // separator5
             // 
             this.separator5.Name = "separator5";
@@ -1179,6 +1269,16 @@ namespace SlideSCI
         internal Microsoft.Office.Tools.Ribbon.RibbonButton copyPosBottomCenter;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton copyPosBottomRight;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton pastePosition;
+        internal Microsoft.Office.Tools.Ribbon.RibbonSplitButton swapPosition;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton swapPosTopLeft;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton swapPosTopCenter;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton swapPosTopRight;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton swapPosMiddleLeft;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton swapPosCenter;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton swapPosMiddleRight;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton swapPosBottomLeft;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton swapPosBottomCenter;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton swapPosBottomRight;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton alignHorizontalCenter;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton alignVerticalCenter;
         internal Microsoft.Office.Tools.Ribbon.RibbonSeparator separator2;
