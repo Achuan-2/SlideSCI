@@ -114,7 +114,7 @@ namespace SlideSCI
                     var control = new ShapeLibraryControl();
                     control.AssociatedWindow = activeWindow;
                     activePane = this.CustomTaskPanes.Add(control, "PPT素材库", activeWindow);
-                    activePane.Width = 400;
+                    activePane.Width = 360;
                 }
 
                 activePane.Visible = !activePane.Visible;
