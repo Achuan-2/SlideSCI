@@ -830,6 +830,43 @@ namespace SlideSCI
             }
         }
 
+        private void UpdateAsset(LibraryCard card)
+        {
+            PowerPoint.Application app = Globals.ThisAddIn.Application;
+            if (app.Presentations.Count == 0 || app.ActiveWindow == null || app.ActiveWindow.View == null)
+            {
+                MessageBox.Show("当前未打开任何幻灯片，请先打开演示文稿并选中形状。", "操作提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            PowerPoint.Selection selection = null;
+            try
+            {
+                selection = app.ActiveWindow.Selection;
+            }
+            catch
+            {
+                MessageBox.Show("获取选择失败，请确保您选中了幻灯片中的形状。", "操作提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (selection == null || selection.Type != PowerPoint.PpSelectionType.ppSelectionShapes || selection.ShapeRange.Count == 0)
+            {
+                MessageBox.Show("请先在幻灯片中选择要更新的形状（可框选多个形状组合）。", "操作提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                if (selection != null) Marshal.ReleaseComObject(selection);
+                return;
+            }
+
+            var result = MessageBox.Show($"确定要用当前选中的形状更新素材「{card.AssetName}」吗？", "确认更新", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (result == DialogResult.Yes)
+            {
+                card.DisposeCard(); // Release image locks before overwriting
+                SaveSelectedShapes(selection.ShapeRange, card.AssetName, Path.GetDirectoryName(card.PptxPath));
+            }
+
+            Marshal.ReleaseComObject(selection);
+        }
+
         public void InsertAsset(string pptxPath)
         {
             if (!File.Exists(pptxPath))
@@ -1016,7 +1053,10 @@ namespace SlideSCI
             {
                 ToolStripMenuItem menuInsert = new ToolStripMenuItem("插入素材 (Enter)");
                 menuInsert.Click += (s, ev) => InsertAsset(card.PptxPath);
-                
+
+                ToolStripMenuItem menuUpdate = new ToolStripMenuItem("更新素材");
+                menuUpdate.Click += (s, ev) => UpdateAsset(card);
+
                 ToolStripMenuItem menuRename = new ToolStripMenuItem("重命名");
                 menuRename.Click += (s, ev) => RenameCard(card);
 
@@ -1030,6 +1070,7 @@ namespace SlideSCI
                 menuOpenDir.Click += (s, ev) => OpenFileLocation(card.PptxPath);
 
                 contextMenu.Items.Add(menuInsert);
+                contextMenu.Items.Add(menuUpdate);
                 contextMenu.Items.Add(menuRename);
                 contextMenu.Items.Add(menuMoveTo);
                 contextMenu.Items.Add(menuDelete);
