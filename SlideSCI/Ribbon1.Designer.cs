@@ -34,6 +34,7 @@ namespace SlideSCI
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Ribbon1));
             Microsoft.Office.Tools.Ribbon.RibbonDropDownItem ribbonDropDownItemImpl1 = this.Factory.CreateRibbonDropDownItem();
             Microsoft.Office.Tools.Ribbon.RibbonDropDownItem ribbonDropDownItemImpl2 = this.Factory.CreateRibbonDropDownItem();
             Microsoft.Office.Tools.Ribbon.RibbonDropDownItem ribbonDropDownItemImpl3 = this.Factory.CreateRibbonDropDownItem();
@@ -108,9 +109,9 @@ namespace SlideSCI
             Microsoft.Office.Tools.Ribbon.RibbonDropDownItem ribbonDropDownItemImpl72 = this.Factory.CreateRibbonDropDownItem();
             Microsoft.Office.Tools.Ribbon.RibbonDropDownItem ribbonDropDownItemImpl73 = this.Factory.CreateRibbonDropDownItem();
             Microsoft.Office.Tools.Ribbon.RibbonDropDownItem ribbonDropDownItemImpl74 = this.Factory.CreateRibbonDropDownItem();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Ribbon1));
             this.tab2 = this.Factory.CreateRibbonTab();
             this.图片自动对齐 = this.Factory.CreateRibbonGroup();
+            this.imgAutoAlign = this.Factory.CreateRibbonButton();
             this.imgAutoAlignSortTypeDropDown = this.Factory.CreateRibbonDropDown();
             this.imgAutoAlignAlignTypeDropDown = this.Factory.CreateRibbonDropDown();
             this.excludeTextcheckBox = this.Factory.CreateRibbonCheckBox();
@@ -120,6 +121,8 @@ namespace SlideSCI
             this.imgWidthEditBpx = this.Factory.CreateRibbonComboBox();
             this.imgHeightEditBox = this.Factory.CreateRibbonComboBox();
             this.图片处理 = this.Factory.CreateRibbonGroup();
+            this.AddTitleButton = this.Factory.CreateRibbonButton();
+            this.图片上标题 = this.Factory.CreateRibbonButton();
             this.fontNameEditBox = this.Factory.CreateRibbonComboBox();
             this.fontSizeEditBox = this.Factory.CreateRibbonComboBox();
             this.distanceFromBottomEditBox = this.Factory.CreateRibbonComboBox();
@@ -127,6 +130,8 @@ namespace SlideSCI
             this.autoGroupCheckBox = this.Factory.CreateRibbonCheckBox();
             this.titleCenterCheckbox = this.Factory.CreateRibbonCheckBox();
             this.group1 = this.Factory.CreateRibbonGroup();
+            this.addLabelsButton = this.Factory.CreateRibbonButton();
+            this.updateLabelsButton = this.Factory.CreateRibbonButton();
             this.labelFontSizeEditBox = this.Factory.CreateRibbonComboBox();
             this.labelFontNameEditBox = this.Factory.CreateRibbonComboBox();
             this.labelTemplateComboBox = this.Factory.CreateRibbonComboBox();
@@ -135,36 +140,23 @@ namespace SlideSCI
             this.labelBoldcheckBox = this.Factory.CreateRibbonCheckBox();
             this.labelIndex = this.Factory.CreateRibbonEditBox();
             this.labelIndexUpdatecheckBox = this.Factory.CreateRibbonCheckBox();
-            this.shapeLibraryGroup = this.Factory.CreateRibbonGroup();
             this.group3 = this.Factory.CreateRibbonGroup();
-            this.tab1 = this.Factory.CreateRibbonTab();
-            this.复制图片格式 = this.Factory.CreateRibbonGroup();
-            this.separator6 = this.Factory.CreateRibbonSeparator();
-            this.separator1 = this.Factory.CreateRibbonSeparator();
-            this.separator5 = this.Factory.CreateRibbonSeparator();
-            this.separator2 = this.Factory.CreateRibbonSeparator();
-            this.separator3 = this.Factory.CreateRibbonSeparator();
-            this.separator4 = this.Factory.CreateRibbonSeparator();
-            this.codeGroup = this.Factory.CreateRibbonGroup();
-            this.toggleBackgroundCheckBox = this.Factory.CreateRibbonCheckBox();
-            this.group2 = this.Factory.CreateRibbonGroup();
-            this.imgAutoAlign = this.Factory.CreateRibbonButton();
-            this.AddTitleButton = this.Factory.CreateRibbonButton();
-            this.图片上标题 = this.Factory.CreateRibbonButton();
-            this.addLabelsButton = this.Factory.CreateRibbonButton();
-            this.updateLabelsButton = this.Factory.CreateRibbonButton();
-            this.btnShapeLibrary = this.Factory.CreateRibbonButton();
-            this.btnAISidebar = this.Factory.CreateRibbonButton();
             this.exportImageButton = this.Factory.CreateRibbonButton();
             this.导出原图 = this.Factory.CreateRibbonButton();
             this.复制大图 = this.Factory.CreateRibbonButton();
             this.button1 = this.Factory.CreateRibbonButton();
             this.selectAllTextBoxesButton = this.Factory.CreateRibbonButton();
+            this.shapeLibraryGroup = this.Factory.CreateRibbonGroup();
+            this.btnShapeLibrary = this.Factory.CreateRibbonButton();
+            this.btnAISidebar = this.Factory.CreateRibbonButton();
+            this.tab1 = this.Factory.CreateRibbonTab();
+            this.复制图片格式 = this.Factory.CreateRibbonGroup();
             this.copyShapeStyle = this.Factory.CreateRibbonSplitButton();
             this.copyShapeStyleAll = this.Factory.CreateRibbonButton();
             this.copyShapeStyleFill = this.Factory.CreateRibbonButton();
             this.copyShapeStyleLine = this.Factory.CreateRibbonButton();
             this.pasteShapeStyle = this.Factory.CreateRibbonButton();
+            this.separator6 = this.Factory.CreateRibbonSeparator();
             this.copyTextStyle = this.Factory.CreateRibbonSplitButton();
             this.copyTextStyleAll = this.Factory.CreateRibbonButton();
             this.copyTextStyleName = this.Factory.CreateRibbonButton();
@@ -172,6 +164,7 @@ namespace SlideSCI
             this.copyTextStyleSize = this.Factory.CreateRibbonButton();
             this.copyTextStyleEffect = this.Factory.CreateRibbonButton();
             this.pasteTextStyle = this.Factory.CreateRibbonButton();
+            this.separator1 = this.Factory.CreateRibbonSeparator();
             this.copyPosition = this.Factory.CreateRibbonSplitButton();
             this.copyPosTopLeft = this.Factory.CreateRibbonButton();
             this.copyPosTopCenter = this.Factory.CreateRibbonButton();
@@ -183,33 +176,42 @@ namespace SlideSCI
             this.copyPosBottomCenter = this.Factory.CreateRibbonButton();
             this.copyPosBottomRight = this.Factory.CreateRibbonButton();
             this.pastePosition = this.Factory.CreateRibbonButton();
+            this.separator5 = this.Factory.CreateRibbonSeparator();
             this.alignHorizontalCenter = this.Factory.CreateRibbonButton();
             this.alignVerticalCenter = this.Factory.CreateRibbonButton();
+            this.separator2 = this.Factory.CreateRibbonSeparator();
             this.copyImgWidth = this.Factory.CreateRibbonButton();
             this.pasteImgWidth = this.Factory.CreateRibbonButton();
+            this.separator3 = this.Factory.CreateRibbonSeparator();
             this.copyImgHeight = this.Factory.CreateRibbonButton();
             this.pasteImgHeight = this.Factory.CreateRibbonButton();
+            this.separator4 = this.Factory.CreateRibbonSeparator();
             this.copyCrop = this.Factory.CreateRibbonButton();
             this.pasteCrop = this.Factory.CreateRibbonButton();
+            this.codeGroup = this.Factory.CreateRibbonGroup();
             this.button2 = this.Factory.CreateRibbonButton();
             this.textboxToRichText = this.Factory.CreateRibbonButton();
             this.insertEquationButton = this.Factory.CreateRibbonButton();
             this.button8 = this.Factory.CreateRibbonButton();
             this.insertCodeBlockButton = this.Factory.CreateRibbonButton();
+            this.toggleBackgroundCheckBox = this.Factory.CreateRibbonCheckBox();
+            this.group2 = this.Factory.CreateRibbonGroup();
             this.赞赏 = this.Factory.CreateRibbonButton();
             this.button4 = this.Factory.CreateRibbonButton();
             this.开发者 = this.Factory.CreateRibbonButton();
             this.button5 = this.Factory.CreateRibbonButton();
+            this.排列 = this.Factory.CreateRibbonGroup();
             this.tab2.SuspendLayout();
             this.图片自动对齐.SuspendLayout();
             this.图片处理.SuspendLayout();
             this.group1.SuspendLayout();
-            this.shapeLibraryGroup.SuspendLayout();
             this.group3.SuspendLayout();
+            this.shapeLibraryGroup.SuspendLayout();
             this.tab1.SuspendLayout();
             this.复制图片格式.SuspendLayout();
             this.codeGroup.SuspendLayout();
             this.group2.SuspendLayout();
+            this.排列.SuspendLayout();
             this.SuspendLayout();
             // 
             // tab2
@@ -235,6 +237,15 @@ namespace SlideSCI
             this.图片自动对齐.Items.Add(this.imgHeightEditBox);
             this.图片自动对齐.Label = "图片自动排列";
             this.图片自动对齐.Name = "图片自动对齐";
+            // 
+            // imgAutoAlign
+            // 
+            this.imgAutoAlign.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
+            this.imgAutoAlign.Image = ((System.Drawing.Image)(resources.GetObject("imgAutoAlign.Image")));
+            this.imgAutoAlign.Label = "图片排列";
+            this.imgAutoAlign.Name = "imgAutoAlign";
+            this.imgAutoAlign.ShowImage = true;
+            this.imgAutoAlign.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.imgAutoAlign_Click);
             // 
             // imgAutoAlignSortTypeDropDown
             // 
@@ -432,6 +443,25 @@ namespace SlideSCI
             this.图片处理.Label = "添加图片标题";
             this.图片处理.Name = "图片处理";
             // 
+            // AddTitleButton
+            // 
+            this.AddTitleButton.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
+            this.AddTitleButton.Description = "添加图片下标题";
+            this.AddTitleButton.Image = ((System.Drawing.Image)(resources.GetObject("AddTitleButton.Image")));
+            this.AddTitleButton.Label = "图片下标题";
+            this.AddTitleButton.Name = "AddTitleButton";
+            this.AddTitleButton.ShowImage = true;
+            this.AddTitleButton.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.AddTitleToImage);
+            // 
+            // 图片上标题
+            // 
+            this.图片上标题.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
+            this.图片上标题.Image = ((System.Drawing.Image)(resources.GetObject("图片上标题.Image")));
+            this.图片上标题.Label = "图片上标题";
+            this.图片上标题.Name = "图片上标题";
+            this.图片上标题.ShowImage = true;
+            this.图片上标题.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.AddTopTitleToImage);
+            // 
             // fontNameEditBox
             // 
             this.fontNameEditBox.Label = "字体名";
@@ -482,6 +512,24 @@ namespace SlideSCI
             this.group1.Items.Add(this.labelIndexUpdatecheckBox);
             this.group1.Label = "添加图片标签";
             this.group1.Name = "group1";
+            // 
+            // addLabelsButton
+            // 
+            this.addLabelsButton.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
+            this.addLabelsButton.Image = ((System.Drawing.Image)(resources.GetObject("addLabelsButton.Image")));
+            this.addLabelsButton.Label = "添加标签";
+            this.addLabelsButton.Name = "addLabelsButton";
+            this.addLabelsButton.ShowImage = true;
+            this.addLabelsButton.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.addLabelsButton_Click);
+            // 
+            // updateLabelsButton
+            // 
+            this.updateLabelsButton.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
+            this.updateLabelsButton.Image = ((System.Drawing.Image)(resources.GetObject("updateLabelsButton.Image")));
+            this.updateLabelsButton.Label = "更新标签";
+            this.updateLabelsButton.Name = "updateLabelsButton";
+            this.updateLabelsButton.ShowImage = true;
+            this.updateLabelsButton.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.updateLabelsButton_Click);
             // 
             // labelFontSizeEditBox
             // 
@@ -559,13 +607,6 @@ namespace SlideSCI
             this.labelIndexUpdatecheckBox.Label = "编号自动更新";
             this.labelIndexUpdatecheckBox.Name = "labelIndexUpdatecheckBox";
             // 
-            // shapeLibraryGroup
-            // 
-            this.shapeLibraryGroup.Items.Add(this.btnShapeLibrary);
-            this.shapeLibraryGroup.Items.Add(this.btnAISidebar);
-            this.shapeLibraryGroup.Label = "侧边栏";
-            this.shapeLibraryGroup.Name = "shapeLibraryGroup";
-            // 
             // group3
             // 
             this.group3.Items.Add(this.exportImageButton);
@@ -575,158 +616,6 @@ namespace SlideSCI
             this.group3.Items.Add(this.selectAllTextBoxesButton);
             this.group3.Label = "其他";
             this.group3.Name = "group3";
-            // 
-            // tab1
-            // 
-            this.tab1.Groups.Add(this.复制图片格式);
-            this.tab1.Groups.Add(this.codeGroup);
-            this.tab1.Groups.Add(this.group2);
-            this.tab1.Label = "SlideSCI(2)";
-            this.tab1.Name = "tab1";
-            // 
-            // 复制图片格式
-            // 
-            this.复制图片格式.Items.Add(this.copyShapeStyle);
-            this.复制图片格式.Items.Add(this.pasteShapeStyle);
-            this.复制图片格式.Items.Add(this.separator6);
-            this.复制图片格式.Items.Add(this.copyTextStyle);
-            this.复制图片格式.Items.Add(this.pasteTextStyle);
-            this.复制图片格式.Items.Add(this.separator1);
-            this.复制图片格式.Items.Add(this.copyPosition);
-            this.复制图片格式.Items.Add(this.pastePosition);
-            this.复制图片格式.Items.Add(this.separator5);
-            this.复制图片格式.Items.Add(this.alignHorizontalCenter);
-            this.复制图片格式.Items.Add(this.alignVerticalCenter);
-            this.复制图片格式.Items.Add(this.separator2);
-            this.复制图片格式.Items.Add(this.copyImgWidth);
-            this.复制图片格式.Items.Add(this.pasteImgWidth);
-            this.复制图片格式.Items.Add(this.separator3);
-            this.复制图片格式.Items.Add(this.copyImgHeight);
-            this.复制图片格式.Items.Add(this.pasteImgHeight);
-            this.复制图片格式.Items.Add(this.separator4);
-            this.复制图片格式.Items.Add(this.copyCrop);
-            this.复制图片格式.Items.Add(this.pasteCrop);
-            this.复制图片格式.Label = "复制格式";
-            this.复制图片格式.Name = "复制图片格式";
-            // 
-            // separator6
-            // 
-            this.separator6.Name = "separator6";
-            // 
-            // separator1
-            // 
-            this.separator1.Name = "separator1";
-            // 
-            // separator5
-            // 
-            this.separator5.Name = "separator5";
-            // 
-            // separator2
-            // 
-            this.separator2.Name = "separator2";
-            // 
-            // separator3
-            // 
-            this.separator3.Name = "separator3";
-            // 
-            // separator4
-            // 
-            this.separator4.Name = "separator4";
-            // 
-            // codeGroup
-            // 
-            this.codeGroup.Items.Add(this.button2);
-            this.codeGroup.Items.Add(this.textboxToRichText);
-            this.codeGroup.Items.Add(this.insertEquationButton);
-            this.codeGroup.Items.Add(this.button8);
-            this.codeGroup.Items.Add(this.insertCodeBlockButton);
-            this.codeGroup.Items.Add(this.toggleBackgroundCheckBox);
-            this.codeGroup.Label = "Markdown";
-            this.codeGroup.Name = "codeGroup";
-            // 
-            // toggleBackgroundCheckBox
-            // 
-            this.toggleBackgroundCheckBox.Checked = true;
-            this.toggleBackgroundCheckBox.Label = "黑色背景";
-            this.toggleBackgroundCheckBox.Name = "toggleBackgroundCheckBox";
-            this.toggleBackgroundCheckBox.ScreenTip = "代码设置为黑色背景";
-            // 
-            // group2
-            // 
-            this.group2.Items.Add(this.赞赏);
-            this.group2.Items.Add(this.button4);
-            this.group2.Items.Add(this.开发者);
-            this.group2.Items.Add(this.button5);
-            this.group2.Label = "关于";
-            this.group2.Name = "group2";
-            // 
-            // imgAutoAlign
-            // 
-            this.imgAutoAlign.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
-            this.imgAutoAlign.Image = ((System.Drawing.Image)(resources.GetObject("imgAutoAlign.Image")));
-            this.imgAutoAlign.Label = "图片排列";
-            this.imgAutoAlign.Name = "imgAutoAlign";
-            this.imgAutoAlign.ShowImage = true;
-            this.imgAutoAlign.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.imgAutoAlign_Click);
-            // 
-            // AddTitleButton
-            // 
-            this.AddTitleButton.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
-            this.AddTitleButton.Description = "添加图片下标题";
-            this.AddTitleButton.Image = ((System.Drawing.Image)(resources.GetObject("AddTitleButton.Image")));
-            this.AddTitleButton.Label = "图片下标题";
-            this.AddTitleButton.Name = "AddTitleButton";
-            this.AddTitleButton.ShowImage = true;
-            this.AddTitleButton.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.AddTitleToImage);
-            // 
-            // 图片上标题
-            // 
-            this.图片上标题.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
-            this.图片上标题.Image = ((System.Drawing.Image)(resources.GetObject("图片上标题.Image")));
-            this.图片上标题.Label = "图片上标题";
-            this.图片上标题.Name = "图片上标题";
-            this.图片上标题.ShowImage = true;
-            this.图片上标题.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.AddTopTitleToImage);
-            // 
-            // addLabelsButton
-            // 
-            this.addLabelsButton.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
-            this.addLabelsButton.Image = ((System.Drawing.Image)(resources.GetObject("addLabelsButton.Image")));
-            this.addLabelsButton.Label = "添加标签";
-            this.addLabelsButton.Name = "addLabelsButton";
-            this.addLabelsButton.ShowImage = true;
-            this.addLabelsButton.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.addLabelsButton_Click);
-            // 
-            // updateLabelsButton
-            // 
-            this.updateLabelsButton.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
-            this.updateLabelsButton.Image = ((System.Drawing.Image)(resources.GetObject("updateLabelsButton.Image")));
-            this.updateLabelsButton.Label = "更新标签";
-            this.updateLabelsButton.Name = "updateLabelsButton";
-            this.updateLabelsButton.ShowImage = true;
-            this.updateLabelsButton.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.updateLabelsButton_Click);
-            // 
-            // btnShapeLibrary
-            // 
-            this.btnShapeLibrary.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
-            this.btnShapeLibrary.Image = ((System.Drawing.Image)(resources.GetObject("btnShapeLibrary.Image")));
-            this.btnShapeLibrary.Label = "素材库";
-            this.btnShapeLibrary.Name = "btnShapeLibrary";
-            this.btnShapeLibrary.OfficeImageId = "OrganizerTaskPane";
-            this.btnShapeLibrary.ScreenTip = "打开PPT素材库，支持保存、预览 and 便捷插入形状";
-            this.btnShapeLibrary.ShowImage = true;
-            this.btnShapeLibrary.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.btnShapeLibrary_Click);
-            // 
-            // btnAISidebar
-            // 
-            this.btnAISidebar.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
-            this.btnAISidebar.Image = ((System.Drawing.Image)(resources.GetObject("btnAISidebar.Image")));
-            this.btnAISidebar.Label = "AI 助手";
-            this.btnAISidebar.Name = "btnAISidebar";
-            this.btnAISidebar.OfficeImageId = "Brainstorming";
-            this.btnAISidebar.ScreenTip = "与 AI 助手交流，支持执行 PowerPoint 自动化操作";
-            this.btnAISidebar.ShowImage = true;
-            this.btnAISidebar.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.btnAISidebar_Click);
             // 
             // exportImageButton
             // 
@@ -764,6 +653,67 @@ namespace SlideSCI
             this.selectAllTextBoxesButton.ScreenTip = "全选当前幻灯片上的所有文本框";
             this.selectAllTextBoxesButton.ShowImage = true;
             this.selectAllTextBoxesButton.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.selectAllTextBoxesButton_Click);
+            // 
+            // shapeLibraryGroup
+            // 
+            this.shapeLibraryGroup.Items.Add(this.btnShapeLibrary);
+            this.shapeLibraryGroup.Items.Add(this.btnAISidebar);
+            this.shapeLibraryGroup.Label = "侧边栏";
+            this.shapeLibraryGroup.Name = "shapeLibraryGroup";
+            // 
+            // btnShapeLibrary
+            // 
+            this.btnShapeLibrary.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
+            this.btnShapeLibrary.Image = ((System.Drawing.Image)(resources.GetObject("btnShapeLibrary.Image")));
+            this.btnShapeLibrary.Label = "素材库";
+            this.btnShapeLibrary.Name = "btnShapeLibrary";
+            this.btnShapeLibrary.OfficeImageId = "OrganizerTaskPane";
+            this.btnShapeLibrary.ScreenTip = "打开PPT素材库，支持保存、预览 and 便捷插入形状";
+            this.btnShapeLibrary.ShowImage = true;
+            this.btnShapeLibrary.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.btnShapeLibrary_Click);
+            // 
+            // btnAISidebar
+            // 
+            this.btnAISidebar.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
+            this.btnAISidebar.Image = ((System.Drawing.Image)(resources.GetObject("btnAISidebar.Image")));
+            this.btnAISidebar.Label = "AI 助手";
+            this.btnAISidebar.Name = "btnAISidebar";
+            this.btnAISidebar.OfficeImageId = "Brainstorming";
+            this.btnAISidebar.ScreenTip = "与 AI 助手交流，支持执行 PowerPoint 自动化操作";
+            this.btnAISidebar.ShowImage = true;
+            this.btnAISidebar.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.btnAISidebar_Click);
+            // 
+            // tab1
+            // 
+            this.tab1.Groups.Add(this.复制图片格式);
+            this.tab1.Groups.Add(this.排列);
+            this.tab1.Groups.Add(this.codeGroup);
+            this.tab1.Groups.Add(this.group2);
+            this.tab1.Label = "SlideSCI(2)";
+            this.tab1.Name = "tab1";
+            // 
+            // 复制图片格式
+            // 
+            this.复制图片格式.Items.Add(this.copyShapeStyle);
+            this.复制图片格式.Items.Add(this.pasteShapeStyle);
+            this.复制图片格式.Items.Add(this.separator6);
+            this.复制图片格式.Items.Add(this.copyTextStyle);
+            this.复制图片格式.Items.Add(this.pasteTextStyle);
+            this.复制图片格式.Items.Add(this.separator1);
+            this.复制图片格式.Items.Add(this.copyPosition);
+            this.复制图片格式.Items.Add(this.pastePosition);
+            this.复制图片格式.Items.Add(this.separator5);
+            this.复制图片格式.Items.Add(this.copyImgWidth);
+            this.复制图片格式.Items.Add(this.pasteImgWidth);
+            this.复制图片格式.Items.Add(this.separator3);
+            this.复制图片格式.Items.Add(this.copyImgHeight);
+            this.复制图片格式.Items.Add(this.pasteImgHeight);
+            this.复制图片格式.Items.Add(this.separator4);
+            this.复制图片格式.Items.Add(this.copyCrop);
+            this.复制图片格式.Items.Add(this.pasteCrop);
+            this.复制图片格式.Items.Add(this.separator2);
+            this.复制图片格式.Label = "复制格式";
+            this.复制图片格式.Name = "复制图片格式";
             // 
             // copyShapeStyle
             // 
@@ -803,6 +753,10 @@ namespace SlideSCI
             this.pasteShapeStyle.OfficeImageId = "ShapeFillColor";
             this.pasteShapeStyle.ShowImage = true;
             this.pasteShapeStyle.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.pasteShapeStyle_Click);
+            // 
+            // separator6
+            // 
+            this.separator6.Name = "separator6";
             // 
             // copyTextStyle
             // 
@@ -858,6 +812,10 @@ namespace SlideSCI
             this.pasteTextStyle.OfficeImageId = "FontProperties";
             this.pasteTextStyle.ShowImage = true;
             this.pasteTextStyle.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.pasteTextStyle_Click);
+            // 
+            // separator1
+            // 
+            this.separator1.Name = "separator1";
             // 
             // copyPosition
             // 
@@ -946,6 +904,10 @@ namespace SlideSCI
             this.pastePosition.ShowImage = true;
             this.pastePosition.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.pastePosition_Click);
             // 
+            // separator5
+            // 
+            this.separator5.Name = "separator5";
+            // 
             // alignHorizontalCenter
             // 
             this.alignHorizontalCenter.Label = "水平居中";
@@ -961,6 +923,10 @@ namespace SlideSCI
             this.alignVerticalCenter.OfficeImageId = "ObjectsAlignMiddleVertical";
             this.alignVerticalCenter.ShowImage = true;
             this.alignVerticalCenter.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.alignVerticalCenter_Click);
+            // 
+            // separator2
+            // 
+            this.separator2.Name = "separator2";
             // 
             // copyImgWidth
             // 
@@ -978,6 +944,10 @@ namespace SlideSCI
             this.pasteImgWidth.ShowImage = true;
             this.pasteImgWidth.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.pasteImgWidth_Click);
             // 
+            // separator3
+            // 
+            this.separator3.Name = "separator3";
+            // 
             // copyImgHeight
             // 
             this.copyImgHeight.Image = ((System.Drawing.Image)(resources.GetObject("copyImgHeight.Image")));
@@ -994,6 +964,10 @@ namespace SlideSCI
             this.pasteImgHeight.ShowImage = true;
             this.pasteImgHeight.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.pasteImgHeight_Click);
             // 
+            // separator4
+            // 
+            this.separator4.Name = "separator4";
+            // 
             // copyCrop
             // 
             this.copyCrop.Image = ((System.Drawing.Image)(resources.GetObject("copyCrop.Image")));
@@ -1009,6 +983,17 @@ namespace SlideSCI
             this.pasteCrop.Name = "pasteCrop";
             this.pasteCrop.ShowImage = true;
             this.pasteCrop.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.pasteCrop_Click);
+            // 
+            // codeGroup
+            // 
+            this.codeGroup.Items.Add(this.button2);
+            this.codeGroup.Items.Add(this.textboxToRichText);
+            this.codeGroup.Items.Add(this.insertEquationButton);
+            this.codeGroup.Items.Add(this.button8);
+            this.codeGroup.Items.Add(this.insertCodeBlockButton);
+            this.codeGroup.Items.Add(this.toggleBackgroundCheckBox);
+            this.codeGroup.Label = "Markdown";
+            this.codeGroup.Name = "codeGroup";
             // 
             // button2
             // 
@@ -1052,6 +1037,22 @@ namespace SlideSCI
             this.insertCodeBlockButton.ShowImage = true;
             this.insertCodeBlockButton.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.insertCodeBlockButton_Click);
             // 
+            // toggleBackgroundCheckBox
+            // 
+            this.toggleBackgroundCheckBox.Checked = true;
+            this.toggleBackgroundCheckBox.Label = "黑色背景";
+            this.toggleBackgroundCheckBox.Name = "toggleBackgroundCheckBox";
+            this.toggleBackgroundCheckBox.ScreenTip = "代码设置为黑色背景";
+            // 
+            // group2
+            // 
+            this.group2.Items.Add(this.赞赏);
+            this.group2.Items.Add(this.button4);
+            this.group2.Items.Add(this.开发者);
+            this.group2.Items.Add(this.button5);
+            this.group2.Label = "关于";
+            this.group2.Name = "group2";
+            // 
             // 赞赏
             // 
             this.赞赏.Image = ((System.Drawing.Image)(resources.GetObject("赞赏.Image")));
@@ -1084,6 +1085,12 @@ namespace SlideSCI
             this.button5.ShowImage = true;
             this.button5.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.current_Version);
             // 
+            // 排列
+            // 
+            this.排列.Items.Add(this.alignVerticalCenter);
+            this.排列.Items.Add(this.alignHorizontalCenter);
+            this.排列.Name = "排列";
+            // 
             // Ribbon1
             // 
             this.Name = "Ribbon1";
@@ -1099,10 +1106,10 @@ namespace SlideSCI
             this.图片处理.PerformLayout();
             this.group1.ResumeLayout(false);
             this.group1.PerformLayout();
-            this.shapeLibraryGroup.ResumeLayout(false);
-            this.shapeLibraryGroup.PerformLayout();
             this.group3.ResumeLayout(false);
             this.group3.PerformLayout();
+            this.shapeLibraryGroup.ResumeLayout(false);
+            this.shapeLibraryGroup.PerformLayout();
             this.tab1.ResumeLayout(false);
             this.tab1.PerformLayout();
             this.复制图片格式.ResumeLayout(false);
@@ -1111,6 +1118,8 @@ namespace SlideSCI
             this.codeGroup.PerformLayout();
             this.group2.ResumeLayout(false);
             this.group2.PerformLayout();
+            this.排列.ResumeLayout(false);
+            this.排列.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -1208,6 +1217,7 @@ namespace SlideSCI
         internal Microsoft.Office.Tools.Ribbon.RibbonGroup shapeLibraryGroup;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton btnShapeLibrary;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton btnAISidebar;
+        internal Microsoft.Office.Tools.Ribbon.RibbonGroup 排列;
     }
 
     partial class ThisRibbonCollection
