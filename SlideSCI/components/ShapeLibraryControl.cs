@@ -26,6 +26,10 @@ namespace SlideSCI
         private ContextMenuStrip contextMenu;
         private string libraryDir;
         private string currentDir;
+        private Button btnToggleViewMode;
+        private static bool isCardMode = false;
+
+        public bool IsCardMode => isCardMode;
 
         public PowerPoint.DocumentWindow AssociatedWindow { get; set; }
 
@@ -378,6 +382,91 @@ namespace SlideSCI
             // 3. Context Menu Setup
             contextMenu = new ContextMenuStrip();
             contextMenu.Opening += ContextMenu_Opening;
+
+            // 4. View Mode Toggle Button Setup
+            btnToggleViewMode = new Button
+            {
+                Size = new Size(36, 36),
+                FlatStyle = FlatStyle.Flat,
+                BackColor = Color.White,
+                Cursor = Cursors.Hand,
+            };
+            btnToggleViewMode.FlatAppearance.BorderSize = 0;
+
+            // Make it circular
+            try
+            {
+                System.Drawing.Drawing2D.GraphicsPath path = new System.Drawing.Drawing2D.GraphicsPath();
+                path.AddEllipse(0, 0, btnToggleViewMode.Width, btnToggleViewMode.Height);
+                btnToggleViewMode.Region = new Region(path);
+            }
+            catch { }
+
+            // Custom drawing with hover state
+            bool isBtnHovered = false;
+            btnToggleViewMode.MouseEnter += (s, e) => { isBtnHovered = true; btnToggleViewMode.Invalidate(); };
+            btnToggleViewMode.MouseLeave += (s, e) => { isBtnHovered = false; btnToggleViewMode.Invalidate(); };
+
+            btnToggleViewMode.Paint += (s, e) =>
+            {
+                e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+                Color circleColor;
+                Color iconColor;
+                if (isCardMode)
+                {
+                    circleColor = isBtnHovered ? Color.FromArgb(0, 90, 158) : Color.FromArgb(0, 120, 212);
+                    iconColor = Color.White;
+                }
+                else
+                {
+                    circleColor = isBtnHovered ? Color.FromArgb(240, 240, 240) : Color.White;
+                    iconColor = Color.FromArgb(51, 51, 51);
+                }
+
+                using (Brush b = new SolidBrush(circleColor))
+                {
+                    e.Graphics.FillEllipse(b, 0, 0, btnToggleViewMode.Width, btnToggleViewMode.Height);
+                }
+
+                // Draw border for white button
+                if (!isCardMode)
+                {
+                    using (Pen p = new Pen(Color.FromArgb(220, 220, 220), 1))
+                    {
+                        e.Graphics.DrawEllipse(p, 0, 0, btnToggleViewMode.Width - 1, btnToggleViewMode.Height - 1);
+                    }
+                }
+
+                // Draw the icon centered (grid when card mode is active, card when grid mode is active)
+                string iconType = isCardMode ? "grid" : "card";
+                using (Bitmap icon = CreateIcon(iconType, 16, iconColor))
+                {
+                    int x = (btnToggleViewMode.Width - icon.Width) / 2;
+                    int y = (btnToggleViewMode.Height - icon.Height) / 2;
+                    e.Graphics.DrawImage(icon, x, y);
+                }
+            };
+
+            btnToggleViewMode.Click += (s, e) =>
+            {
+                isCardMode = !isCardMode;
+                btnToggleViewMode.Invalidate();
+                toolTip.SetToolTip(btnToggleViewMode, isCardMode ? "切换至网格视图" : "切换至卡片视图");
+                LoadLibraryItems();
+            };
+
+            toolTip.SetToolTip(btnToggleViewMode, isCardMode ? "切换至网格视图" : "切换至卡片视图");
+            this.Controls.Add(btnToggleViewMode);
+            btnToggleViewMode.BringToFront();
+
+            // Hook layout resize events
+            this.Resize += (s, e) => UpdateToggleButtonPosition();
+            flowLayout.Resize += (s, e) => {
+                if (isCardMode)
+                {
+                    UpdateCardsLayout();
+                }
+            };
         }
 
         private void SetSearchPlaceholder()
@@ -493,6 +582,7 @@ namespace SlideSCI
             }
 
             flowLayout.ResumeLayout();
+            UpdateToggleButtonPosition();
         }
 
         private void SearchAndFlattenMaterials(string query)
@@ -555,6 +645,7 @@ namespace SlideSCI
             }
 
             flowLayout.ResumeLayout();
+            UpdateToggleButtonPosition();
         }
 
         private void OpenLibraryFolder()
@@ -975,6 +1066,50 @@ namespace SlideSCI
                             {
                                 try
                                 {
+                                    float minLeft = float.MaxValue;
+                                    float minTop = float.MaxValue;
+                                    float maxRight = float.MinValue;
+                                    float maxBottom = float.MinValue;
+
+                                    for (int i = 1; i <= pastedRange.Count; i++)
+                                    {
+                                        PowerPoint.Shape shape = pastedRange[i];
+                                        float left = shape.Left;
+                                        float top = shape.Top;
+                                        float right = left + shape.Width;
+                                        float bottom = top + shape.Height;
+
+                                        if (left < minLeft) minLeft = left;
+                                        if (top < minTop) minTop = top;
+                                        if (right > maxRight) maxRight = right;
+                                        if (bottom > maxBottom) maxBottom = bottom;
+                                    }
+
+                                    if (minLeft != float.MaxValue)
+                                    {
+                                        float rangeWidth = maxRight - minLeft;
+                                        float rangeHeight = maxBottom - minTop;
+
+                                        float slideWidth = activePres.PageSetup.SlideWidth;
+                                        float slideHeight = activePres.PageSetup.SlideHeight;
+
+                                        float targetLeft = (slideWidth - rangeWidth) / 2f;
+                                        float targetTop = (slideHeight - rangeHeight) / 2f;
+                                        float offsetX = targetLeft - minLeft;
+                                        float offsetY = targetTop - minTop;
+
+                                        for (int i = 1; i <= pastedRange.Count; i++)
+                                        {
+                                            PowerPoint.Shape shape = pastedRange[i];
+                                            shape.Left += offsetX;
+                                            shape.Top += offsetY;
+                                        }
+                                    }
+                                }
+                                catch { }
+
+                                try
+                                {
                                     pastedRange.Select(); // Highlight/select the pasted shapes
                                 }
                                 catch { }
@@ -1330,6 +1465,51 @@ namespace SlideSCI
             contextMenu.Show(source, loc);
         }
 
+        private void UpdateToggleButtonPosition()
+        {
+            if (btnToggleViewMode != null)
+            {
+                int x = this.ClientSize.Width - btnToggleViewMode.Width - 24;
+                int y = this.ClientSize.Height - btnToggleViewMode.Height - 24;
+
+                if (x < 10) x = 10;
+                if (y < (topPanel != null ? topPanel.Bottom : 120) + 10)
+                    y = (topPanel != null ? topPanel.Bottom : 120) + 10;
+
+                btnToggleViewMode.Location = new Point(x, y);
+                btnToggleViewMode.BringToFront();
+            }
+        }
+
+        public int GetFlowLayoutWidth()
+        {
+            if (flowLayout == null) return 200;
+            int w = flowLayout.ClientSize.Width - flowLayout.Padding.Left - flowLayout.Padding.Right;
+            return w > 130 ? w : 200;
+        }
+
+        public void UpdateCardsLayout()
+        {
+            if (!isCardMode || flowLayout == null) return;
+
+            flowLayout.SuspendLayout();
+            int targetWidth = GetFlowLayoutWidth() - 24;
+            if (targetWidth < 130) targetWidth = 130;
+
+            foreach (Control ctrl in flowLayout.Controls)
+            {
+                if (ctrl is LibraryCard card)
+                {
+                    card.ApplyCardModeLayout(targetWidth);
+                }
+                else if (ctrl is FolderCard fCard)
+                {
+                    fCard.ApplyCardModeLayout(targetWidth);
+                }
+            }
+            flowLayout.ResumeLayout();
+        }
+
         public void GoBackToParent()
         {
             if (currentDir != libraryDir)
@@ -1463,6 +1643,20 @@ namespace SlideSCI
                         g.DrawLine(pen, 6, 6, 6, size - 4);
                         g.DrawLine(pen, size - 7, 6, size - 7, size - 4);
                     }
+                    else if (type == "grid")
+                    {
+                        int s = size / 2 - 2;
+                        g.DrawRectangle(pen, 2, 2, s, s);
+                        g.DrawRectangle(pen, size / 2 + 1, 2, s, s);
+                        g.DrawRectangle(pen, 2, size / 2 + 1, s, s);
+                        g.DrawRectangle(pen, size / 2 + 1, size / 2 + 1, s, s);
+                    }
+                    else if (type == "card")
+                    {
+                        int h = size / 2 - 2;
+                        g.DrawRectangle(pen, 2, 2, size - 4, h);
+                        g.DrawRectangle(pen, 2, size / 2 + 1, size - 4, h);
+                    }
                 }
             }
             return bmp;
@@ -1589,6 +1783,12 @@ namespace SlideSCI
 
             // Keyboard navigation (delete key)
             this.KeyUp += LibraryCard_KeyUp;
+
+            if (parentContainer.IsCardMode)
+            {
+                int targetWidth = parentContainer.GetFlowLayoutWidth() - 24;
+                ApplyCardModeLayout(targetWidth);
+            }
         }
 
         private void LibraryCard_KeyUp(object sender, KeyEventArgs e)
@@ -1699,6 +1899,28 @@ namespace SlideSCI
             {
                 parentContainer.DeleteCardAsset(this);
             }
+        }
+
+        public void ApplyCardModeLayout(int targetWidth)
+        {
+            int padding = 6;
+            int labelHeight = 25;
+            int spacing = 6;
+
+            int picWidth = targetWidth - (padding * 2);
+            int picHeight = picWidth * 3 / 4; // 4:3 aspect ratio
+
+            int cardHeight = padding + picHeight + spacing + labelHeight + padding;
+
+            this.Size = new Size(targetWidth, cardHeight);
+
+            picPreview.Location = new Point(padding, padding);
+            picPreview.Size = new Size(picWidth, picHeight);
+
+            lblName.Location = new Point(padding, padding + picHeight + spacing);
+            lblName.Size = new Size(picWidth, labelHeight);
+
+            btnTrash.Location = new Point(targetWidth - btnTrash.Width - padding - 2, padding + 2);
         }
 
         public void DisposeCard()
@@ -1882,6 +2104,12 @@ namespace SlideSCI
 
             // Keyboard navigation (delete key)
             this.KeyUp += FolderCard_KeyUp;
+
+            if (parentContainer.IsCardMode)
+            {
+                int targetWidth = parentContainer.GetFlowLayoutWidth() - 24;
+                ApplyCardModeLayout(targetWidth);
+            }
         }
 
         private void FolderCard_KeyUp(object sender, KeyEventArgs e)
@@ -2049,6 +2277,36 @@ namespace SlideSCI
                 int offset = borderThickness == 1 ? 0 : 1;
                 e.Graphics.DrawRectangle(pen, offset, offset, this.Width - borderThickness - offset, this.Height - borderThickness - offset);
             }
+        }
+
+        public void ApplyCardModeLayout(int targetWidth)
+        {
+            this.Size = new Size(targetWidth, 60);
+
+            picPreview.Location = new Point(6, 6);
+            picPreview.Size = new Size(48, 48);
+            picPreview.SizeMode = PictureBoxSizeMode.Zoom;
+
+            lblName.Location = new Point(60, 17);
+            lblName.Size = new Size(targetWidth - 140, 25);
+            lblName.TextAlign = ContentAlignment.MiddleLeft;
+
+            Label lblBadge = null;
+            foreach (Control c in this.Controls)
+            {
+                if (c is Label && c != lblName)
+                {
+                    lblBadge = (Label)c;
+                    break;
+                }
+            }
+
+            if (lblBadge != null)
+            {
+                lblBadge.Location = new Point(targetWidth - 70, 21);
+            }
+
+            btnTrash.Location = new Point(targetWidth - btnTrash.Width - 10, 20);
         }
 
         private void BtnTrash_Click(object sender, EventArgs e)
