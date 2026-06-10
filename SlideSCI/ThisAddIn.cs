@@ -3,7 +3,7 @@ namespace SlideSCI
     public partial class ThisAddIn
     {
         public LatexToSvgConverter LatexSvgConverter { get; private set; }
-        
+
         public static bool AreWindowsEqual(Microsoft.Office.Interop.PowerPoint.DocumentWindow win1, Microsoft.Office.Interop.PowerPoint.DocumentWindow win2)
         {
             if (win1 == null || win2 == null) return win1 == win2;
@@ -114,7 +114,7 @@ namespace SlideSCI
                     var control = new ShapeLibraryControl();
                     control.AssociatedWindow = activeWindow;
                     activePane = this.CustomTaskPanes.Add(control, "PPT素材库", activeWindow);
-                    activePane.Width = 320;
+                    activePane.Width = 400;
                 }
 
                 activePane.Visible = !activePane.Visible;
