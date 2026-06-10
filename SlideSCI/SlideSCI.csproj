@@ -197,16 +197,16 @@
     can be found.
   -->
   <ItemGroup>
-    <Compile Include="CodeHighlighter.cs" />
-    <Compile Include="CSharpExecutor.cs" />
-    <Compile Include="LatexToSvgConverter.cs" />
-    <Compile Include="InputDialog.cs">
+    <Compile Include="components\CodeHighlighter.cs" />
+    <Compile Include="components\CSharpExecutor.cs" />
+    <Compile Include="components\LatexToSvgConverter.cs" />
+    <Compile Include="components\InputDialog.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="ShapeLibraryControl.cs">
+    <Compile Include="components\ShapeLibraryControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="AISidebarControl.cs">
+    <Compile Include="components\AISidebarControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">
