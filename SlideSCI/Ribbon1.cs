@@ -3253,101 +3253,13 @@ namespace SlideSCI
             _currentTextCopyOption = option;
             try
             {
-                dynamic textRange2 = sel.TextRange2;
-                dynamic font2 = textRange2.Font;
-
                 _copiedFontSettings = new CopiedFontSettings();
                 _copiedFontSettings.HasValue = true;
 
-                try { _copiedFontSettings.Name = font2.Name; } catch { }
-                try { _copiedFontSettings.NameFarEast = font2.NameFarEast; } catch { }
-                try { _copiedFontSettings.NameAscii = font2.NameAscii; } catch { }
-                try { _copiedFontSettings.Size = font2.Size; } catch { }
-                try { _copiedFontSettings.ColorRGB = font2.Fill.ForeColor.RGB; } catch { }
-                try { _copiedFontSettings.Transparency = font2.Fill.Transparency; } catch { }
-                try { _copiedFontSettings.Bold = font2.Bold; } catch { }
-                try { _copiedFontSettings.Italic = font2.Italic; } catch { }
-                try { _copiedFontSettings.Underline = font2.UnderlineStyle != 0 ? Office.MsoTriState.msoTrue : Office.MsoTriState.msoFalse; } catch { }
-                try { _copiedFontSettings.Shadow = font2.Shadow; } catch { }
-                try { _copiedFontSettings.Emboss = font2.Emboss; } catch { }
-                try { _copiedFontSettings.BaselineOffset = font2.BaselineOffset; } catch { }
-                try { _copiedFontSettings.Subscript = font2.Subscript; } catch { }
-                try { _copiedFontSettings.Superscript = font2.Superscript; } catch { }
-
-                try
-                {
-                    dynamic glow = font2.Glow;
-                    _copiedFontSettings.GlowRadius = glow.Radius;
-                    _copiedFontSettings.GlowTransparency = glow.Transparency;
-                    _copiedFontSettings.GlowColorRGB = glow.Color.RGB;
-                    _copiedFontSettings.HasGlow = glow.Radius > 0;
-                }
-                catch { }
-
-                try
-                {
-                    dynamic refl = font2.Reflection;
-                    _copiedFontSettings.ReflectionType = (int)refl.Type;
-                }
-                catch { }
-
-                try
-                {
-                    dynamic fontLine = font2.Line;
-                    bool lineVisible = false;
-                    try
-                    {
-                        var visVal = fontLine.Visible;
-                        if (visVal is bool)
-                        {
-                            lineVisible = (bool)visVal;
-                        }
-                        else
-                        {
-                            int visInt = Convert.ToInt32(visVal);
-                            // msoTrue=-1, msoTriStateMixed=-2, msoCTrue=1 都代表有轮廓
-                            lineVisible = (visInt == -1 || visInt == -2 || visInt == 1);
-                        }
-                    }
-                    catch { }
-
-                    _copiedFontSettings.HasOutline = lineVisible;
-                    if (lineVisible)
-                    {
-                        try { _copiedFontSettings.OutlineColorRGB = (int)fontLine.ForeColor.RGB; } catch { }
-                        try { _copiedFontSettings.OutlineTransparency = (float)fontLine.Transparency; } catch { }
-                        try { _copiedFontSettings.OutlineWeight = (float)fontLine.Weight; } catch { }
-                        try { _copiedFontSettings.OutlineDashStyle = (int)fontLine.DashStyle; } catch { }
-                    }
-                }
-                catch { }
-
-                // 复制突出显示高亮
-                try
-                {
-                    dynamic hl = font2.Highlight;
-                    int hlType = Convert.ToInt32(hl.Type);
-                    if (hlType != 0)
-                    {
-                        int rgb = (int)hl.RGB;
-                        // 如果高亮颜色为 0 (代表无高亮，或极其罕见的纯黑色高亮)，则不认为有高亮
-                        if (rgb != 0)
-                        {
-                            _copiedFontSettings.HighlightRGB = rgb;
-                            _copiedFontSettings.HasHighlight = true;
-                        }
-                    }
-                }
-                catch { }
-            }
-            catch
-            {
+                // 1. 先从经典的 Font 对象复制基础文字格式（非常稳定可靠，特别是加粗、斜体等状态）
                 try
                 {
                     PowerPoint.Font font = sel.TextRange.Font;
-                    _copiedFontSettings = new CopiedFontSettings();
-                    _copiedFontSettings.HasValue = true;
-
                     try { _copiedFontSettings.Name = font.Name; } catch { }
                     try { _copiedFontSettings.NameFarEast = font.NameFarEast; } catch { }
                     try { _copiedFontSettings.NameAscii = font.Name; } catch { }
@@ -3363,10 +3275,95 @@ namespace SlideSCI
                     try { _copiedFontSettings.Subscript = font.Subscript; } catch { }
                     try { _copiedFontSettings.Superscript = font.Superscript; } catch { }
                 }
-                catch (Exception ex)
+                catch { }
+
+                // 2. 再尝试从 Font2 复制高级文字格式（如发光、倒影、描边、高亮等），并作为补充
+                try
                 {
-                    MessageBox.Show($"复制文字格式时出错: {ex.Message}");
+                    dynamic textRange2 = sel.TextRange2;
+                    dynamic font2 = textRange2.Font;
+
+                    try { if (!string.IsNullOrEmpty(font2.Name)) _copiedFontSettings.Name = font2.Name; } catch { }
+                    try { if (!string.IsNullOrEmpty(font2.NameFarEast)) _copiedFontSettings.NameFarEast = font2.NameFarEast; } catch { }
+                    try { if (!string.IsNullOrEmpty(font2.NameAscii)) _copiedFontSettings.NameAscii = font2.NameAscii; } catch { }
+                    try { if (font2.Size > 0) _copiedFontSettings.Size = font2.Size; } catch { }
+                    try { _copiedFontSettings.ColorRGB = font2.Fill.ForeColor.RGB; } catch { }
+                    try { _copiedFontSettings.Transparency = font2.Fill.Transparency; } catch { }
+                    try { _copiedFontSettings.Bold = font2.Bold; } catch { }
+                    try { _copiedFontSettings.Italic = font2.Italic; } catch { }
+                    try { _copiedFontSettings.Underline = font2.UnderlineStyle != 0 ? Office.MsoTriState.msoTrue : Office.MsoTriState.msoFalse; } catch { }
+
+                    try
+                    {
+                        dynamic glow = font2.Glow;
+                        _copiedFontSettings.GlowRadius = glow.Radius;
+                        _copiedFontSettings.GlowTransparency = glow.Transparency;
+                        _copiedFontSettings.GlowColorRGB = glow.Color.RGB;
+                        _copiedFontSettings.HasGlow = glow.Radius > 0;
+                    }
+                    catch { }
+
+                    try
+                    {
+                        dynamic refl = font2.Reflection;
+                        _copiedFontSettings.ReflectionType = (int)refl.Type;
+                    }
+                    catch { }
+
+                    try
+                    {
+                        dynamic fontLine = font2.Line;
+                        bool lineVisible = false;
+                        try
+                        {
+                            var visVal = fontLine.Visible;
+                            if (visVal is bool)
+                            {
+                                lineVisible = (bool)visVal;
+                            }
+                            else
+                            {
+                                int visInt = Convert.ToInt32(visVal);
+                                // msoTrue=-1, msoTriStateMixed=-2, msoCTrue=1 都代表有轮廓
+                                lineVisible = (visInt == -1 || visInt == -2 || visInt == 1);
+                            }
+                        }
+                        catch { }
+
+                        _copiedFontSettings.HasOutline = lineVisible;
+                        if (lineVisible)
+                        {
+                            try { _copiedFontSettings.OutlineColorRGB = (int)fontLine.ForeColor.RGB; } catch { }
+                            try { _copiedFontSettings.OutlineTransparency = (float)fontLine.Transparency; } catch { }
+                            try { _copiedFontSettings.OutlineWeight = (float)fontLine.Weight; } catch { }
+                            try { _copiedFontSettings.OutlineDashStyle = (int)fontLine.DashStyle; } catch { }
+                        }
+                    }
+                    catch { }
+
+                    // 复制突出显示高亮
+                    try
+                    {
+                        dynamic hl = font2.Highlight;
+                        int hlType = Convert.ToInt32(hl.Type);
+                        if (hlType != 0)
+                        {
+                            int rgb = (int)hl.RGB;
+                            // 如果高亮颜色为 0 (代表无高亮，或极其罕见的纯黑色高亮)，则不认为有高亮
+                            if (rgb != 0)
+                            {
+                                _copiedFontSettings.HighlightRGB = rgb;
+                                _copiedFontSettings.HasHighlight = true;
+                            }
+                        }
+                    }
+                    catch { }
                 }
+                catch { }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"复制文字格式时出错: {ex.Message}");
             }
         }
 
@@ -3374,101 +3371,13 @@ namespace SlideSCI
         {
             try
             {
-                dynamic textRange2 = shape.TextFrame2.TextRange;
-                dynamic font2 = textRange2.Font;
-
                 _copiedFontSettings = new CopiedFontSettings();
                 _copiedFontSettings.HasValue = true;
 
-                try { _copiedFontSettings.Name = font2.Name; } catch { }
-                try { _copiedFontSettings.NameFarEast = font2.NameFarEast; } catch { }
-                try { _copiedFontSettings.NameAscii = font2.NameAscii; } catch { }
-                try { _copiedFontSettings.Size = font2.Size; } catch { }
-                try { _copiedFontSettings.ColorRGB = font2.Fill.ForeColor.RGB; } catch { }
-                try { _copiedFontSettings.Transparency = font2.Fill.Transparency; } catch { }
-                try { _copiedFontSettings.Bold = font2.Bold; } catch { }
-                try { _copiedFontSettings.Italic = font2.Italic; } catch { }
-                try { _copiedFontSettings.Underline = font2.UnderlineStyle != 0 ? Office.MsoTriState.msoTrue : Office.MsoTriState.msoFalse; } catch { }
-                try { _copiedFontSettings.Shadow = font2.Shadow; } catch { }
-                try { _copiedFontSettings.Emboss = font2.Emboss; } catch { }
-                try { _copiedFontSettings.BaselineOffset = font2.BaselineOffset; } catch { }
-                try { _copiedFontSettings.Subscript = font2.Subscript; } catch { }
-                try { _copiedFontSettings.Superscript = font2.Superscript; } catch { }
-
-                try
-                {
-                    dynamic glow = font2.Glow;
-                    _copiedFontSettings.GlowRadius = glow.Radius;
-                    _copiedFontSettings.GlowTransparency = glow.Transparency;
-                    _copiedFontSettings.GlowColorRGB = glow.Color.RGB;
-                    _copiedFontSettings.HasGlow = glow.Radius > 0;
-                }
-                catch { }
-
-                try
-                {
-                    dynamic refl = font2.Reflection;
-                    _copiedFontSettings.ReflectionType = (int)refl.Type;
-                }
-                catch { }
-
-                try
-                {
-                    dynamic fontLine = font2.Line;
-                    bool lineVisible = false;
-                    try
-                    {
-                        var visVal = fontLine.Visible;
-                        if (visVal is bool)
-                        {
-                            lineVisible = (bool)visVal;
-                        }
-                        else
-                        {
-                            int visInt = Convert.ToInt32(visVal);
-                            // msoTrue=-1, msoTriStateMixed=-2, msoCTrue=1 都代表有轮廓
-                            lineVisible = (visInt == -1 || visInt == -2 || visInt == 1);
-                        }
-                    }
-                    catch { }
-
-                    _copiedFontSettings.HasOutline = lineVisible;
-                    if (lineVisible)
-                    {
-                        try { _copiedFontSettings.OutlineColorRGB = (int)fontLine.ForeColor.RGB; } catch { }
-                        try { _copiedFontSettings.OutlineTransparency = (float)fontLine.Transparency; } catch { }
-                        try { _copiedFontSettings.OutlineWeight = (float)fontLine.Weight; } catch { }
-                        try { _copiedFontSettings.OutlineDashStyle = (int)fontLine.DashStyle; } catch { }
-                    }
-                }
-                catch { }
-
-                // 复制突出显示高亮
-                try
-                {
-                    dynamic hl = font2.Highlight;
-                    int hlType = Convert.ToInt32(hl.Type);
-                    if (hlType != 0)
-                    {
-                        int rgb = (int)hl.RGB;
-                        // 如果高亮颜色为 0 (代表无高亮，或极其罕见的纯黑色高亮)，则不认为有高亮
-                        if (rgb != 0)
-                        {
-                            _copiedFontSettings.HighlightRGB = rgb;
-                            _copiedFontSettings.HasHighlight = true;
-                        }
-                    }
-                }
-                catch { }
-            }
-            catch
-            {
+                // 1. 先从经典的 Font 对象复制基础文字格式（非常稳定可靠，特别是加粗、斜体等状态）
                 try
                 {
                     PowerPoint.Font font = shape.TextFrame.TextRange.Font;
-                    _copiedFontSettings = new CopiedFontSettings();
-                    _copiedFontSettings.HasValue = true;
-
                     try { _copiedFontSettings.Name = font.Name; } catch { }
                     try { _copiedFontSettings.NameFarEast = font.NameFarEast; } catch { }
                     try { _copiedFontSettings.NameAscii = font.Name; } catch { }
@@ -3485,7 +3394,97 @@ namespace SlideSCI
                     try { _copiedFontSettings.Superscript = font.Superscript; } catch { }
                 }
                 catch { }
+
+                // 2. 再尝试从 Font2 复制高级文字格式
+                try
+                {
+                    dynamic textRange2 = shape.TextFrame2.TextRange;
+                    dynamic font2 = textRange2.Font;
+
+                    try { if (!string.IsNullOrEmpty(font2.Name)) _copiedFontSettings.Name = font2.Name; } catch { }
+                    try { if (!string.IsNullOrEmpty(font2.NameFarEast)) _copiedFontSettings.NameFarEast = font2.NameFarEast; } catch { }
+                    try { if (!string.IsNullOrEmpty(font2.NameAscii)) _copiedFontSettings.NameAscii = font2.NameAscii; } catch { }
+                    try { if (font2.Size > 0) _copiedFontSettings.Size = font2.Size; } catch { }
+                    try { _copiedFontSettings.ColorRGB = font2.Fill.ForeColor.RGB; } catch { }
+                    try { _copiedFontSettings.Transparency = font2.Fill.Transparency; } catch { }
+                    try { _copiedFontSettings.Bold = font2.Bold; } catch { }
+                    try { _copiedFontSettings.Italic = font2.Italic; } catch { }
+                    try { _copiedFontSettings.Underline = font2.UnderlineStyle != 0 ? Office.MsoTriState.msoTrue : Office.MsoTriState.msoFalse; } catch { }
+                    try { _copiedFontSettings.Shadow = font2.Shadow; } catch { }
+                    try { _copiedFontSettings.Emboss = font2.Emboss; } catch { }
+                    try { _copiedFontSettings.BaselineOffset = font2.BaselineOffset; } catch { }
+                    try { _copiedFontSettings.Subscript = font2.Subscript; } catch { }
+                    try { _copiedFontSettings.Superscript = font2.Superscript; } catch { }
+
+                    try
+                    {
+                        dynamic glow = font2.Glow;
+                        _copiedFontSettings.GlowRadius = glow.Radius;
+                        _copiedFontSettings.GlowTransparency = glow.Transparency;
+                        _copiedFontSettings.GlowColorRGB = glow.Color.RGB;
+                        _copiedFontSettings.HasGlow = glow.Radius > 0;
+                    }
+                    catch { }
+
+                    try
+                    {
+                        dynamic refl = font2.Reflection;
+                        _copiedFontSettings.ReflectionType = (int)refl.Type;
+                    }
+                    catch { }
+
+                    try
+                    {
+                        dynamic fontLine = font2.Line;
+                        bool lineVisible = false;
+                        try
+                        {
+                            var visVal = fontLine.Visible;
+                            if (visVal is bool)
+                            {
+                                lineVisible = (bool)visVal;
+                            }
+                            else
+                            {
+                                int visInt = Convert.ToInt32(visVal);
+                                // msoTrue=-1, msoTriStateMixed=-2, msoCTrue=1 都代表有轮廓
+                                lineVisible = (visInt == -1 || visInt == -2 || visInt == 1);
+                            }
+                        }
+                        catch { }
+
+                        _copiedFontSettings.HasOutline = lineVisible;
+                        if (lineVisible)
+                        {
+                            try { _copiedFontSettings.OutlineColorRGB = (int)fontLine.ForeColor.RGB; } catch { }
+                            try { _copiedFontSettings.OutlineTransparency = (float)fontLine.Transparency; } catch { }
+                            try { _copiedFontSettings.OutlineWeight = (float)fontLine.Weight; } catch { }
+                            try { _copiedFontSettings.OutlineDashStyle = (int)fontLine.DashStyle; } catch { }
+                        }
+                    }
+                    catch { }
+
+                    // 复制突出显示高亮
+                    try
+                    {
+                        dynamic hl = font2.Highlight;
+                        int hlType = Convert.ToInt32(hl.Type);
+                        if (hlType != 0)
+                        {
+                            int rgb = (int)hl.RGB;
+                            // 如果高亮颜色为 0 (代表无高亮，或极其罕见的纯黑色高亮)，则不认为有高亮
+                            if (rgb != 0)
+                            {
+                                _copiedFontSettings.HighlightRGB = rgb;
+                                _copiedFontSettings.HasHighlight = true;
+                            }
+                        }
+                    }
+                    catch { }
+                }
+                catch { }
             }
+            catch { }
         }
 
         private void CopyShapeFormat(Shape sourceShape, string option)
@@ -3921,22 +3920,17 @@ namespace SlideSCI
                         // 如果之前复制了文本，并且目标形状含有文本框，同时应用文本格式
                         if (_copiedFontSettings.HasValue && shape.HasTextFrame == Office.MsoTriState.msoTrue)
                         {
-                            bool success = false;
                             try
                             {
                                 ApplyFont2Format(shape.TextFrame2.TextRange.Font, _currentTextCopyOption);
-                                success = true;
                             }
                             catch { }
 
-                            if (!success)
+                            try
                             {
-                                try
-                                {
-                                    ApplyPowerPointFontFormat(shape.TextFrame.TextRange.Font, _currentTextCopyOption);
-                                }
-                                catch { }
+                                ApplyPowerPointFontFormat(shape.TextFrame.TextRange.Font, _currentTextCopyOption);
                             }
+                            catch { }
                         }
                     }
                 }
@@ -4050,22 +4044,17 @@ namespace SlideSCI
                 {
                     if (_copiedFontSettings.HasValue)
                     {
-                        bool success = false;
                         try
                         {
                             ApplyFont2Format(sel.TextRange2.Font, _currentTextCopyOption);
-                            success = true;
                         }
                         catch { }
 
-                        if (!success)
+                        try
                         {
-                            try
-                            {
-                                ApplyPowerPointFontFormat(sel.TextRange.Font, _currentTextCopyOption);
-                            }
-                            catch { }
+                            ApplyPowerPointFontFormat(sel.TextRange.Font, _currentTextCopyOption);
                         }
+                        catch { }
                     }
                     else
                     {
@@ -4078,22 +4067,17 @@ namespace SlideSCI
                     {
                         if (_copiedFontSettings.HasValue && shape.HasTextFrame == Office.MsoTriState.msoTrue)
                         {
-                            bool success = false;
                             try
                             {
                                 ApplyFont2Format(shape.TextFrame2.TextRange.Font, _currentTextCopyOption);
-                                success = true;
                             }
                             catch { }
 
-                            if (!success)
+                            try
                             {
-                                try
-                                {
-                                    ApplyPowerPointFontFormat(shape.TextFrame.TextRange.Font, _currentTextCopyOption);
-                                }
-                                catch { }
+                                ApplyPowerPointFontFormat(shape.TextFrame.TextRange.Font, _currentTextCopyOption);
                             }
+                            catch { }
                         }
                     }
                 }
