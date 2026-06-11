@@ -897,7 +897,7 @@ namespace SlideSCI
             this.copyGroupStyle.OfficeImageId = "ObjectsGroup";
             this.copyGroupStyle.ScreenTip = "复制组格式";
             this.copyGroupStyle.ShowImage = true;
-            this.copyGroupStyle.SuperTip = "复制选中的组或多个形状的整体排版结构和文字样式格式。";
+            this.copyGroupStyle.SuperTip = "复制选中的组的整体排版结构和文字样式格式。";
             this.copyGroupStyle.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.copyGroupStyle_Click);
             // 
             // pasteGroupStyle
@@ -907,7 +907,7 @@ namespace SlideSCI
             this.pasteGroupStyle.OfficeImageId = "ObjectsGroup";
             this.pasteGroupStyle.ScreenTip = "粘贴组格式";
             this.pasteGroupStyle.ShowImage = true;
-            this.pasteGroupStyle.SuperTip = "将复制的组格式应用到当前选择的形状/组或光标所在的文本框中，自动将文字从上到下依次替换。";
+            this.pasteGroupStyle.SuperTip = "将复制的组格式应用到当前选择的形状/文本框中，自动将文字从上到下依次替换。";
             this.pasteGroupStyle.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.pasteGroupStyle_Click);
             // 
             // copyPosition
