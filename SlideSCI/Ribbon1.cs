@@ -4118,6 +4118,7 @@ namespace SlideSCI
             public string Text { get; set; }
             public float Top { get; set; }
             public float Left { get; set; }
+            public List<string> Lines { get; set; }
         }
 
         private void ExtractTextsFromShape(Shape shape, List<ShapeTextInfo> textList)
@@ -4142,21 +4143,25 @@ namespace SlideSCI
 
                     if (!string.IsNullOrEmpty(text))
                     {
-                        string[] lines = text.Split(new[] { "\r\n", "\r", "\n", "\v" }, StringSplitOptions.None);
-                        int lineIndex = 0;
-                        foreach (string line in lines)
+                        // 提取所有行，用于可能的分拆分发
+                        string[] linesArray = text.Split(new[] { "\r\n", "\r", "\n", "\v" }, StringSplitOptions.None);
+                        List<string> linesList = new List<string>();
+                        foreach (string line in linesArray)
                         {
                             string trimmed = line.Trim();
-                            if (string.IsNullOrEmpty(trimmed)) continue;
-
-                            textList.Add(new ShapeTextInfo
+                            if (!string.IsNullOrEmpty(trimmed))
                             {
-                                Text = trimmed,
-                                Top = shape.Top + (lineIndex * 0.1f),
-                                Left = shape.Left
-                            });
-                            lineIndex++;
+                                linesList.Add(trimmed);
+                            }
                         }
+
+                        textList.Add(new ShapeTextInfo
+                        {
+                            Text = text, // 保留完整文本（含换行符）
+                            Top = shape.Top,
+                            Left = shape.Left,
+                            Lines = linesList
+                        });
                     }
                 }
             }
@@ -4307,12 +4312,46 @@ namespace SlideSCI
                     .ToList();
 
                 // 7. 顺序替换文字内容
-                int count = Math.Min(targetTexts.Count, pastedTextShapes.Count);
+                // 判断是否需要按行分发文本。如果目标文本框数量少于粘贴后的文本框数量，且有文本框包含多行，则尝试按行分发文本
+                bool shouldSplit = false;
+                foreach (var t in targetTexts)
+                {
+                    if (t.Lines != null && t.Lines.Count > 1)
+                    {
+                        shouldSplit = true;
+                        break;
+                    }
+                }
+
+                List<string> textPieces = new List<string>();
+                if (shouldSplit && targetTexts.Count < pastedTextShapes.Count)
+                {
+                    foreach (var t in targetTexts)
+                    {
+                        if (t.Lines != null && t.Lines.Count > 0)
+                        {
+                            textPieces.AddRange(t.Lines);
+                        }
+                        else
+                        {
+                            textPieces.Add(t.Text);
+                        }
+                    }
+                }
+                else
+                {
+                    foreach (var t in targetTexts)
+                    {
+                        textPieces.Add(t.Text);
+                    }
+                }
+
+                int count = Math.Min(textPieces.Count, pastedTextShapes.Count);
                 for (int i = 0; i < count; i++)
                 {
                     try
                     {
-                        pastedTextShapes[i].TextFrame.TextRange.Text = targetTexts[i].Text;
+                        pastedTextShapes[i].TextFrame.TextRange.Text = textPieces[i];
                     }
                     catch (Exception ex)
                     {
