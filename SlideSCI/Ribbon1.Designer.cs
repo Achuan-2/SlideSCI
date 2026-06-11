@@ -135,8 +135,8 @@ namespace SlideSCI
             this.labelFontSizeEditBox = this.Factory.CreateRibbonComboBox();
             this.labelFontNameEditBox = this.Factory.CreateRibbonComboBox();
             this.labelTemplateComboBox = this.Factory.CreateRibbonComboBox();
-            this.labelOffsetYEditBox = this.Factory.CreateRibbonComboBox();
-            this.labelOffsetXEditBox = this.Factory.CreateRibbonComboBox();
+            this.labelOffsetYEditBox = this.Factory.CreateRibbonEditBox();
+            this.labelOffsetXEditBox = this.Factory.CreateRibbonEditBox();
             this.labelBoldcheckBox = this.Factory.CreateRibbonCheckBox();
             this.labelIndex = this.Factory.CreateRibbonEditBox();
             this.labelIndexUpdatecheckBox = this.Factory.CreateRibbonCheckBox();
@@ -164,6 +164,9 @@ namespace SlideSCI
             this.copyTextStyleSize = this.Factory.CreateRibbonButton();
             this.copyTextStyleEffect = this.Factory.CreateRibbonButton();
             this.pasteTextStyle = this.Factory.CreateRibbonButton();
+            this.separatorGroup = this.Factory.CreateRibbonSeparator();
+            this.copyGroupStyle = this.Factory.CreateRibbonButton();
+            this.pasteGroupStyle = this.Factory.CreateRibbonButton();
             this.separator1 = this.Factory.CreateRibbonSeparator();
             this.copyPosition = this.Factory.CreateRibbonSplitButton();
             this.copyPosTopLeft = this.Factory.CreateRibbonButton();
@@ -709,6 +712,9 @@ namespace SlideSCI
             this.复制图片格式.Items.Add(this.separator6);
             this.复制图片格式.Items.Add(this.copyTextStyle);
             this.复制图片格式.Items.Add(this.pasteTextStyle);
+            this.复制图片格式.Items.Add(this.separatorGroup);
+            this.复制图片格式.Items.Add(this.copyGroupStyle);
+            this.复制图片格式.Items.Add(this.pasteGroupStyle);
             this.复制图片格式.Items.Add(this.separator1);
             this.复制图片格式.Items.Add(this.copyPosition);
             this.复制图片格式.Items.Add(this.pastePosition);
@@ -733,6 +739,8 @@ namespace SlideSCI
             this.copyShapeStyle.Label = "复制形状格式";
             this.copyShapeStyle.Name = "copyShapeStyle";
             this.copyShapeStyle.OfficeImageId = "ShapeFillColor";
+            this.copyShapeStyle.ScreenTip = "复制形状格式";
+            this.copyShapeStyle.SuperTip = "复制选中的形状填充、边框轮廓、阴影、三维等格式样式。";
             this.copyShapeStyle.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.copyShapeStyle_Click);
             // 
             // copyShapeStyleAll
@@ -761,6 +769,8 @@ namespace SlideSCI
             this.pasteShapeStyle.Label = "粘贴形状格式";
             this.pasteShapeStyle.Name = "pasteShapeStyle";
             this.pasteShapeStyle.OfficeImageId = "ShapeFillColor";
+            this.pasteShapeStyle.ScreenTip = "粘贴形状格式";
+            this.pasteShapeStyle.SuperTip = "将复制的形状填充、边框和阴影等格式应用到选中的目标形状上。";
             this.pasteShapeStyle.ShowImage = true;
             this.pasteShapeStyle.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.pasteShapeStyle_Click);
             // 
@@ -778,6 +788,8 @@ namespace SlideSCI
             this.copyTextStyle.Label = "复制文字格式";
             this.copyTextStyle.Name = "copyTextStyle";
             this.copyTextStyle.OfficeImageId = "FontProperties";
+            this.copyTextStyle.ScreenTip = "复制文字格式";
+            this.copyTextStyle.SuperTip = "复制选中的文字字体、颜色、大小、加粗、倾斜、下划线及阴影高亮等格式样式。";
             this.copyTextStyle.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.copyTextStyle_Click);
             // 
             // copyTextStyleAll
@@ -820,8 +832,34 @@ namespace SlideSCI
             this.pasteTextStyle.Label = "粘贴文字格式";
             this.pasteTextStyle.Name = "pasteTextStyle";
             this.pasteTextStyle.OfficeImageId = "FontProperties";
+            this.pasteTextStyle.ScreenTip = "粘贴文字格式";
+            this.pasteTextStyle.SuperTip = "将复制的文字样式应用到选中的文本框或选中的文字上。";
             this.pasteTextStyle.ShowImage = true;
             this.pasteTextStyle.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.pasteTextStyle_Click);
+            // 
+            // separatorGroup
+            // 
+            this.separatorGroup.Name = "separatorGroup";
+            // 
+            // copyGroupStyle
+            // 
+            this.copyGroupStyle.Label = "复制组格式";
+            this.copyGroupStyle.Name = "copyGroupStyle";
+            this.copyGroupStyle.OfficeImageId = "ObjectsGroup";
+            this.copyGroupStyle.ScreenTip = "复制组格式";
+            this.copyGroupStyle.SuperTip = "复制选中的组或多个形状的整体排版结构和文字样式格式。";
+            this.copyGroupStyle.ShowImage = true;
+            this.copyGroupStyle.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.copyGroupStyle_Click);
+            // 
+            // pasteGroupStyle
+            // 
+            this.pasteGroupStyle.Label = "粘贴组格式";
+            this.pasteGroupStyle.Name = "pasteGroupStyle";
+            this.pasteGroupStyle.OfficeImageId = "ObjectsGroup";
+            this.pasteGroupStyle.ScreenTip = "粘贴组格式";
+            this.pasteGroupStyle.SuperTip = "将复制的组格式应用到当前选择的形状/组或光标所在的文本框中，自动将文字从上到下依次替换。";
+            this.pasteGroupStyle.ShowImage = true;
+            this.pasteGroupStyle.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.pasteGroupStyle_Click);
             // 
             // separator1
             // 
@@ -841,6 +879,8 @@ namespace SlideSCI
             this.copyPosition.Items.Add(this.copyPosBottomRight);
             this.copyPosition.Label = "复制位置";
             this.copyPosition.Name = "copyPosition";
+            this.copyPosition.ScreenTip = "复制位置";
+            this.copyPosition.SuperTip = "复制当前选中的形状位置。支持选择不同的基准点对齐位置。";
             this.copyPosition.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.copyPosition_Click);
             // 
             // copyPosTopLeft
@@ -911,6 +951,8 @@ namespace SlideSCI
             this.pastePosition.Image = ((System.Drawing.Image)(resources.GetObject("pastePosition.Image")));
             this.pastePosition.Label = "粘贴位置";
             this.pastePosition.Name = "pastePosition";
+            this.pastePosition.ScreenTip = "粘贴位置";
+            this.pastePosition.SuperTip = "将复制的位置应用到当前选中的形状上，可实现跨幻灯片甚至跨文档的精准对齐。";
             this.pastePosition.ShowImage = true;
             this.pastePosition.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.pastePosition_Click);
             // 
@@ -928,6 +970,8 @@ namespace SlideSCI
             this.swapPosition.Items.Add(this.swapPosBottomRight);
             this.swapPosition.Label = "交换位置";
             this.swapPosition.Name = "swapPosition";
+            this.swapPosition.ScreenTip = "交换位置";
+            this.swapPosition.SuperTip = "将当前选中的两个形状或组的相对位置进行互换。";
             this.swapPosition.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.swapPosition_Click);
             // 
             // swapPosTopLeft
@@ -1002,6 +1046,8 @@ namespace SlideSCI
             this.copyImgWidth.Image = ((System.Drawing.Image)(resources.GetObject("copyImgWidth.Image")));
             this.copyImgWidth.Label = "复制宽度";
             this.copyImgWidth.Name = "copyImgWidth";
+            this.copyImgWidth.ScreenTip = "复制宽度";
+            this.copyImgWidth.SuperTip = "复制当前选中的形状或图片的宽度。";
             this.copyImgWidth.ShowImage = true;
             this.copyImgWidth.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.copyImgWidth_Click);
             // 
@@ -1010,6 +1056,8 @@ namespace SlideSCI
             this.pasteImgWidth.Image = ((System.Drawing.Image)(resources.GetObject("pasteImgWidth.Image")));
             this.pasteImgWidth.Label = "粘贴宽度";
             this.pasteImgWidth.Name = "pasteImgWidth";
+            this.pasteImgWidth.ScreenTip = "粘贴宽度";
+            this.pasteImgWidth.SuperTip = "将复制的宽度应用到当前选中的形状或图片上，支持多选批量应用。";
             this.pasteImgWidth.ShowImage = true;
             this.pasteImgWidth.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.pasteImgWidth_Click);
             // 
@@ -1022,6 +1070,8 @@ namespace SlideSCI
             this.copyImgHeight.Image = ((System.Drawing.Image)(resources.GetObject("copyImgHeight.Image")));
             this.copyImgHeight.Label = "复制高度";
             this.copyImgHeight.Name = "copyImgHeight";
+            this.copyImgHeight.ScreenTip = "复制高度";
+            this.copyImgHeight.SuperTip = "复制当前选中的形状或图片的高度。";
             this.copyImgHeight.ShowImage = true;
             this.copyImgHeight.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.copyImgHeight_Click);
             // 
@@ -1030,6 +1080,8 @@ namespace SlideSCI
             this.pasteImgHeight.Image = ((System.Drawing.Image)(resources.GetObject("pasteImgHeight.Image")));
             this.pasteImgHeight.Label = "粘贴高度";
             this.pasteImgHeight.Name = "pasteImgHeight";
+            this.pasteImgHeight.ScreenTip = "粘贴高度";
+            this.pasteImgHeight.SuperTip = "将复制的高度应用到当前选中的形状或图片上，支持多选批量应用。";
             this.pasteImgHeight.ShowImage = true;
             this.pasteImgHeight.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.pasteImgHeight_Click);
             // 
@@ -1042,6 +1094,8 @@ namespace SlideSCI
             this.copyCrop.Image = ((System.Drawing.Image)(resources.GetObject("copyCrop.Image")));
             this.copyCrop.Label = "复制图片裁剪";
             this.copyCrop.Name = "copyCrop";
+            this.copyCrop.ScreenTip = "复制图片裁剪";
+            this.copyCrop.SuperTip = "复制当前选中图片的裁剪区域及位置参数。";
             this.copyCrop.ShowImage = true;
             this.copyCrop.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.copyCrop_Click);
             // 
@@ -1050,6 +1104,8 @@ namespace SlideSCI
             this.pasteCrop.Image = ((System.Drawing.Image)(resources.GetObject("pasteCrop.Image")));
             this.pasteCrop.Label = "粘贴图片裁剪";
             this.pasteCrop.Name = "pasteCrop";
+            this.pasteCrop.ScreenTip = "粘贴图片裁剪";
+            this.pasteCrop.SuperTip = "将复制的裁剪区域参数应用到选中的其他图片上，实现统一的裁剪比例和位置。";
             this.pasteCrop.ShowImage = true;
             this.pasteCrop.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.pasteCrop_Click);
             // 
@@ -1245,8 +1301,8 @@ namespace SlideSCI
         internal Microsoft.Office.Tools.Ribbon.RibbonComboBox labelFontNameEditBox;
         internal Microsoft.Office.Tools.Ribbon.RibbonComboBox imgWidthEditBpx;
         internal Microsoft.Office.Tools.Ribbon.RibbonComboBox imgHeightEditBox;
-        internal Microsoft.Office.Tools.Ribbon.RibbonComboBox labelOffsetYEditBox;
-        internal Microsoft.Office.Tools.Ribbon.RibbonComboBox labelOffsetXEditBox;
+        internal Microsoft.Office.Tools.Ribbon.RibbonEditBox labelOffsetYEditBox;
+        internal Microsoft.Office.Tools.Ribbon.RibbonEditBox labelOffsetXEditBox;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton exportImageButton; // 添加按钮声明
         internal Microsoft.Office.Tools.Ribbon.RibbonTab tab1;
         internal Microsoft.Office.Tools.Ribbon.RibbonGroup 复制图片格式;
@@ -1262,6 +1318,9 @@ namespace SlideSCI
         internal Microsoft.Office.Tools.Ribbon.RibbonButton copyTextStyleSize;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton copyTextStyleEffect;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton pasteTextStyle;
+        internal Microsoft.Office.Tools.Ribbon.RibbonSeparator separatorGroup;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton copyGroupStyle;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton pasteGroupStyle;
         internal Microsoft.Office.Tools.Ribbon.RibbonSeparator separator1;
         internal Microsoft.Office.Tools.Ribbon.RibbonSplitButton copyPosition;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton copyPosTopLeft;

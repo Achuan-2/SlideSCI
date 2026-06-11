@@ -225,22 +225,8 @@ namespace SlideSCI
                 "Times new Roman",
                 "微软雅黑",
                 "黑体",
-                "方正兰亭黑体",
-                "仿宋",
                 "楷体",
                 "宋体",
-                "新宋体",
-                "华文中宋",
-                "华文仿宋",
-                "华文行楷",
-                "华文新魏",
-                "汉仪综艺体简",
-                "思源黑体",
-                "思源宋体",
-                "庞门正道标题体",
-                "方正清刻本悦宋",
-                "文悦新青年体",
-                "演示新手书",
             };
             FreshCombobox(fontNameEditBox, FontNames);
             FreshCombobox(labelFontNameEditBox, FontNames);
@@ -387,8 +373,6 @@ namespace SlideSCI
                 "30",
                 "40",
             };
-            FreshCombobox(labelOffsetYEditBox, OffsetValues);
-            FreshCombobox(labelOffsetXEditBox, OffsetValues);
             //列间距
             List<string> columnGap = new List<string>()
             {
@@ -3259,6 +3243,7 @@ namespace SlideSCI
         }
 
         private static CopiedShapeSettings _copiedShapeSettings = new CopiedShapeSettings();
+        private static bool _hasCopiedGroupFormat = false;
 
         private string _currentShapeCopyOption = "All";
         private string _currentTextCopyOption = "All";
@@ -4120,6 +4105,247 @@ namespace SlideSCI
             catch (Exception ex)
             {
                 MessageBox.Show($"粘贴文字格式时出错: {ex.Message}");
+            }
+        }
+
+        private void copyGroupStyle_Click(object sender, RibbonControlEventArgs e)
+        {
+            try
+            {
+                Selection sel = app.ActiveWindow.Selection;
+                if (sel.Type == PpSelectionType.ppSelectionShapes && sel.ShapeRange.Count > 0)
+                {
+                    sel.ShapeRange.Copy();
+                    _hasCopiedGroupFormat = true;
+                }
+                else
+                {
+                    MessageBox.Show("请选择一个组或多个形状来复制组格式。", "提示");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"复制组格式时出错: {ex.Message}");
+            }
+        }
+
+        private class ShapeTextInfo
+        {
+            public string Text { get; set; }
+            public float Top { get; set; }
+            public float Left { get; set; }
+        }
+
+        private void ExtractTextsFromShape(Shape shape, List<ShapeTextInfo> textList)
+        {
+            if (shape.Type == Office.MsoShapeType.msoGroup)
+            {
+                foreach (Shape child in shape.GroupItems)
+                {
+                    ExtractTextsFromShape(child, textList);
+                }
+            }
+            else
+            {
+                if (shape.HasTextFrame == Office.MsoTriState.msoTrue && shape.TextFrame.HasText == Office.MsoTriState.msoTrue)
+                {
+                    string text = "";
+                    try
+                    {
+                        text = shape.TextFrame.TextRange.Text;
+                    }
+                    catch { }
+
+                    if (!string.IsNullOrEmpty(text))
+                    {
+                        string[] lines = text.Split(new[] { "\r\n", "\r", "\n", "\v" }, StringSplitOptions.None);
+                        int lineIndex = 0;
+                        foreach (string line in lines)
+                        {
+                            string trimmed = line.Trim();
+                            if (string.IsNullOrEmpty(trimmed)) continue;
+
+                            textList.Add(new ShapeTextInfo
+                            {
+                                Text = trimmed,
+                                Top = shape.Top + (lineIndex * 0.1f),
+                                Left = shape.Left
+                            });
+                            lineIndex++;
+                        }
+                    }
+                }
+            }
+        }
+
+        private void CollectTextShapes(Shape shape, List<Shape> list)
+        {
+            if (shape.Type == Office.MsoShapeType.msoGroup)
+            {
+                foreach (Shape child in shape.GroupItems)
+                {
+                    CollectTextShapes(child, list);
+                }
+            }
+            else
+            {
+                if (shape.HasTextFrame == Office.MsoTriState.msoTrue && shape.TextFrame.HasText == Office.MsoTriState.msoTrue)
+                {
+                    list.Add(shape);
+                }
+            }
+        }
+
+        private List<Shape> GetTargetShapesFromSelection(Selection sel)
+        {
+            List<Shape> targetShapes = new List<Shape>();
+            if (sel.Type == PpSelectionType.ppSelectionShapes)
+            {
+                foreach (Shape shape in sel.ShapeRange)
+                {
+                    targetShapes.Add(shape);
+                }
+            }
+            else if (sel.Type == PpSelectionType.ppSelectionText)
+            {
+                try
+                {
+                    if (sel.ShapeRange.Count > 0)
+                    {
+                        targetShapes.Add(sel.ShapeRange[1]);
+                    }
+                }
+                catch
+                {
+                    try
+                    {
+                        dynamic parent = sel.TextRange.Parent;
+                        dynamic shape = parent.Parent;
+                        if (shape != null)
+                        {
+                            targetShapes.Add((Shape)shape);
+                        }
+                    }
+                    catch { }
+                }
+            }
+            return targetShapes;
+        }
+
+        private void pasteGroupStyle_Click(object sender, RibbonControlEventArgs e)
+        {
+            try
+            {
+                if (!_hasCopiedGroupFormat)
+                {
+                    MessageBox.Show("请先选择一个组或多个形状并点击“复制组格式”。", "提示");
+                    return;
+                }
+
+                Selection sel = app.ActiveWindow.Selection;
+                List<Shape> targetShapes = GetTargetShapesFromSelection(sel);
+
+                if (targetShapes.Count == 0)
+                {
+                    MessageBox.Show("请选择要应用格式的目标形状/组，或将光标定位在目标文本框中。", "提示");
+                    return;
+                }
+
+                // 1. 获取目标选择的包围盒位置
+                float targetLeft = float.MaxValue;
+                float targetTop = float.MaxValue;
+                bool hasCoords = false;
+                foreach (Shape s in targetShapes)
+                {
+                    try
+                    {
+                        if (s.Left < targetLeft) targetLeft = s.Left;
+                        if (s.Top < targetTop) targetTop = s.Top;
+                        hasCoords = true;
+                    }
+                    catch { }
+                }
+                if (!hasCoords)
+                {
+                    targetLeft = 0;
+                    targetTop = 0;
+                }
+
+                // 2. 提取目标选择的所有文字内容
+                List<ShapeTextInfo> targetTexts = new List<ShapeTextInfo>();
+                foreach (Shape shape in targetShapes)
+                {
+                    ExtractTextsFromShape(shape, targetTexts);
+                }
+
+                // 按 Top 排序，如果 Top 相同则按 Left 排序 (从上到下)
+                targetTexts = targetTexts
+                    .OrderBy(t => t.Top)
+                    .ThenBy(t => t.Left)
+                    .ToList();
+
+                // 3. 删除原目标选择 (在此删除，因为下面 Paste 会改变 Selection)
+                foreach (Shape shape in targetShapes)
+                {
+                    try
+                    {
+                        shape.Delete();
+                    }
+                    catch { }
+                }
+
+                // 4. 粘贴已复制的格式组/形状到当前幻灯片
+                PowerPoint.Slide slide = app.ActiveWindow.View.Slide;
+                ShapeRange pastedRange = slide.Shapes.Paste();
+
+                // 5. 将粘贴的组/形状移动到目标位置
+                try
+                {
+                    pastedRange.Left = targetLeft;
+                    pastedRange.Top = targetTop;
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"移动粘贴形状失败: {ex.Message}");
+                }
+
+                // 6. 查找粘贴后图形中所有支持文本框的形状
+                List<Shape> pastedTextShapes = new List<Shape>();
+                foreach (Shape shape in pastedRange)
+                {
+                    CollectTextShapes(shape, pastedTextShapes);
+                }
+
+                // 按 Top 排序，如果 Top 相同则按 Left 排序 (从上到下)
+                pastedTextShapes = pastedTextShapes
+                    .OrderBy(s => s.Top)
+                    .ThenBy(s => s.Left)
+                    .ToList();
+
+                // 7. 顺序替换文字内容
+                int count = Math.Min(targetTexts.Count, pastedTextShapes.Count);
+                for (int i = 0; i < count; i++)
+                {
+                    try
+                    {
+                        pastedTextShapes[i].TextFrame.TextRange.Text = targetTexts[i].Text;
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"设置文本出错: {ex.Message}");
+                    }
+                }
+
+                // 8. 选中新粘贴的图形
+                try
+                {
+                    pastedRange.Select();
+                }
+                catch { }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"粘贴组格式时出错: {ex.Message}", "错误");
             }
         }
 
