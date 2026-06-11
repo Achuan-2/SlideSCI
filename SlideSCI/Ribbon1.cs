@@ -28,6 +28,7 @@ namespace SlideSCI
         private List<float> copiedTop = new List<float>();
         private List<int> selectedShapeIdsByOrder = new List<int>();
         private SpacingForm spacingForm = null;
+        private ScaleForm scaleForm = null;
 
         public enum AlignmentPosition
         {
@@ -752,6 +753,12 @@ namespace SlideSCI
                 if (spacingForm != null && !spacingForm.IsDisposed)
                 {
                     spacingForm.OnSelectionChanged();
+                }
+
+                // Notify ScaleForm if it is open
+                if (scaleForm != null && !scaleForm.IsDisposed)
+                {
+                    scaleForm.OnSelectionChanged();
                 }
             }
             catch (Exception)
@@ -4118,77 +4125,22 @@ namespace SlideSCI
 
         private void pastePictureAndText(object sender, RibbonControlEventArgs e)
         {
-            Selection sel = app.ActiveWindow.Selection;
-            if (sel.Type == PpSelectionType.ppSelectionShapes)
+            try
             {
-                try
+                if (scaleForm == null || scaleForm.IsDisposed)
                 {
-                    // Store original position
-                    // float left = sel.ShapeRange.Left;
-                    // float top = sel.ShapeRange.Top;
-
-                    // Group the shapes first if multiple shapes selected
-                    Shape groupedShape;
-                    try
-                    {
-                        // First attempt - try to group directly
-                        groupedShape =
-                            sel.ShapeRange.Count > 1 ? sel.ShapeRange.Group() : sel.ShapeRange[1];
-                    }
-                    catch (Exception ex)
-                    {
-                        // If direct grouping fails, try the copy-delete-paste-group approach
-                        try
-                        {
-                            // Copy the shapes
-                            sel.ShapeRange.Copy();
-
-                            // Delete original shapes
-                            sel.ShapeRange.Delete();
-
-                            // Paste back the shapes
-                            ShapeRange pastedShapes2 = app.ActiveWindow.View.Slide.Shapes.Paste();
-
-                            // Try grouping again
-                            groupedShape =
-                                pastedShapes2.Count > 1 ? pastedShapes2.Group() : pastedShapes2[1];
-                        }
-                        catch (Exception innerEx)
-                        {
-                            MessageBox.Show(
-                                $"无法组合对象: {innerEx.Message}\n原始错误: {ex.Message}"
-                            );
-                            return;
-                        }
-                    }
-
-                    // Copy grouped shape
-                    groupedShape.Copy();
-
-                    // Delete original shape
-                    groupedShape.Delete();
-
-                    // Paste as Enhanced Metafile
-                    ShapeRange pastedShapes = app.ActiveWindow.View.Slide.Shapes.PasteSpecial(
-                        PpPasteDataType.ppPasteEnhancedMetafile
-                    );
-
-                    // // Move to original position
-                    // if (pastedShapes != null)
-                    // {
-                    //     pastedShapes.Left = left;
-                    //     pastedShapes.Top = top;
-                    //     pastedShapes.Select();
-                    // }
+                    scaleForm = new ScaleForm(app, selectedShapeIdsByOrder);
+                    scaleForm.Show();
                 }
-                catch (Exception ex)
+                else
                 {
-                    MessageBox.Show($"粘贴为增强型图形时出错: {ex.Message}");
+                    scaleForm.Activate();
+                    scaleForm.RefreshSelection();
                 }
             }
-            else
+            catch (Exception ex)
             {
-                MessageBox.Show("请先选择要转换的对象。");
+                MessageBox.Show($"打开图文同缩窗口失败: {ex.Message}");
             }
         }
 
