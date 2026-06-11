@@ -59,12 +59,14 @@ Github地址：[https://github.com/Achuan-2/SlideSCI](https://github.com/Achuan-
   - 支持创建文件夹​
   - 支持搜索​
   - 支持导入和导出，可以互相分享素材​
-  <img alt="PixPin_2026-06-05_18-49-00" src="https://assets.b3logfile.com/siyuan/1610205759005/assets/PixPin_2026-06-05_18-49-00-20260605184901-e9izh69.png" />
+  ![](https://fastly.jsdelivr.net/gh/Achuan-2/PicBed/assets/PixPin_2026-06-11_19-39-47-2026-06-11.png)
 - **AI助手**
   - 设置API地址、API key后，即可使用AI对当前PPT内容进行编辑，也可以根据需要修改系统提示词
   <img alt="PixPin_2026-06-05_19-48-55" src="https://assets.b3logfile.com/siyuan/1610205759005/assets/PixPin_2026-06-05_19-48-55-20260605194857-k3xeayj.png" />
 
   <img alt="PixPin_2026-06-05_19-41-17" src="https://assets.b3logfile.com/siyuan/1610205759005/assets/PixPin_2026-06-05_19-41-17-20260605194434-g59zugv.png" />
+- **导出页面为图片和PDF**：可以快速导出PPT页面为高DPI图片或pdf
+  ![](https://fastly.jsdelivr.net/gh/Achuan-2/PicBed/assets/Achuan的PPT插件_页面10-2026-06-11.png)
 - **批量添加图片标题**：支持批量选中图片后，批量在图片下方添加居中图题，支持设置图片和图题是否自动编组  
   ​<img alt="" src="https://s2.loli.net/2025/08/29/OoXlgpGdrtx2bEP.png" />
 - **批量添加图片标签**：用于科研绘图，可选择添加的标签模板（`A`、`a`、`A)`、`a)`、`1`、`1)`），默认添加的标签字体为`Arial`<img alt="" src="assets/network-asset-68747470733a2f2f666173746c792e6a7364656c6976722e6e65742f67682f41636875616e2d322f5069634265642f6173736574732f50697850696e5f323032352d30312d32345f31382d33342d31312d323032352d30312d32342e706e6-20250417103743-vry4kvj.png" />
@@ -83,17 +85,17 @@ Github地址：[https://github.com/Achuan-2/SlideSCI](https://github.com/Achuan-
 - **复制粘贴格式功能**  
   ​<img alt="" src="https://s2.loli.net/2025/08/29/3fjcw5KWbsLJkAo.png" />
 
-  - **复制粘贴格式**：可以复制形状、文字的格式，粘贴给其他元素。
+  - **复制粘贴文字和形状格式**：可以复制形状、文字的格式，粘贴给其他元素。
+    ![](https://fastly.jsdelivr.net/gh/Achuan-2/PicBed/assets/Achuan的PPT插件_页面6-2026-06-11.png)
+  - **复制粘贴组格式**：快速把排版好的组合样式加给现有文本框
+    ![](https://fastly.jsdelivr.net/gh/Achuan-2/PicBed/assets/Achuan的PPT插件_页面7-2026-06-11.png)
   - **复制位置和粘贴元素位置**：可以复制多个元素的位置，粘贴给其他元素（可以多选复制和粘贴！），可以用来让不同页的PPT的多个元素位置一致，或者让同一页的不同元素都是一个位置（可以先排好一组元素，用这个功能让另一组元素自动排好，再调整位置）。  
     ​<img alt="" src="https://s2.loli.net/2025/08/29/q5vblI3nrDhewJ6.gif" />  
       
     ​<img alt="" src="https://s2.loli.net/2025/08/29/u19w8IMkOYjE3rz.gif" />
   - **复制和粘贴元素宽高**：支持多选同时粘贴宽高，快速统一图片宽高
-- **支持插入代码块自动高亮**  
-  ​<img alt="" src="https://s2.loli.net/2025/08/29/jbSgDfnP69eZopV.png" />
-
-  - **支持代码语言高亮列表**：matlab、python、r、js、html、css、csharp、Fortran
-  - **支持切换黑白背景色**：默认是黑色背景色，切换为背景色，只需要点击「代码黑色背景色」按钮取消激活状态即可
+- **图文同缩**：可以对文字与形状同时进行缩放
+  ![](https://fastly.jsdelivr.net/gh/Achuan-2/PicBed/assets/Achuan的PPT插件_页面9-2026-06-11.png)
 - **支持插入latex数学公式**  
   ​「插入Markdown」可以快速插入文字与数学混排
   <img  alt="image" src="https://github.com/user-attachments/assets/8d345baf-41af-473d-a182-3c7d2864c155" />
@@ -129,7 +131,10 @@ Github地址：[https://github.com/Achuan-2/SlideSCI](https://github.com/Achuan-
       - 支持任务列表粘贴，列表项符号会转化为☑和☐，代表完成和未完成
     - 代码块特别处理：
 
-      - 独立文本框，支持设置黑白背景高亮配色，支持PPT直接再编辑
+      ​<img alt="" src="https://s2.loli.net/2025/08/29/jbSgDfnP69eZopV.png" />
+
+      - **支持代码语言高亮列表**：matlab、python、r、js、html、css、csharp、Fortran
+      - **支持切换黑白背景色**：默认是黑色背景色，切换为背景色，只需要点击「代码黑色背景色」按钮取消激活状态即可
     - 表格特别处理：
 
       - 默认限制500px宽度，添加1pt黑色边框
@@ -140,8 +145,11 @@ Github地址：[https://github.com/Achuan-2/SlideSCI](https://github.com/Achuan-
 
       - 独立文本框，添加黑色边框
   - 支持插入SVG代码来插入SVG图片
-- **添加水平居中和垂直居中按钮，默认以选中的第一个对象为参考进行对齐**：PPT自带的水平居中和垂直居中，是以选中的所有对象的整体中线进行对齐的，无法像illustrator一样设置关键对象来参考，这样比如一个文字已经排好了，想要底部加一个形状并对齐，进行水平、垂直居中很容易会导致文字位置被移动，居中之后又得再调整位置。
-  <img width="1080" height="1440" alt="image" src="https://github.com/user-attachments/assets/41edddf8-d363-43f9-ae79-63ef1961a7db" />
+- 排列增强
+  - **添加水平居中和垂直居中按钮，默认以选中的第一个对象为参考进行对齐**：PPT自带的水平居中和垂直居中，是以选中的所有对象的整体中线进行对齐的，无法像illustrator一样设置关键对象来参考，这样比如一个文字已经排好了，想要底部加一个形状并对齐，进行水平、垂直居中很容易会导致文字位置被移动，居中之后又得再调整位置。
+  <img alt="image" src="https://github.com/user-attachments/assets/41edddf8-d363-43f9-ae79-63ef1961a7db" />
+- **支持设置间距**：可以统一设置各个形状之间的水平和垂直间距
+  ![](https://fastly.jsdelivr.net/gh/Achuan-2/PicBed/assets/Achuan的PPT插件_页面12-2026-06-11.png)
 
 
 
@@ -187,9 +195,9 @@ Github地址：[https://github.com/Achuan-2/SlideSCI](https://github.com/Achuan-
 - **如何及时获取插件版本更新**
 
   Github有关注功能，关注本项目的repo的release动态，当新版本发布后，Github就会自动发邮件通知
-  <img width="662" height="425" alt="PixPin_2025-10-14_20-54-44" src="https://github.com/user-attachments/assets/646144ed-8ed1-47d5-afb3-889dd0c2bfdf" />
+  <img alt="PixPin_2025-10-14_20-54-44" src="https://github.com/user-attachments/assets/646144ed-8ed1-47d5-afb3-889dd0c2bfdf" />
 
-  <img width="516" height="392" alt="PixPin_2025-10-14_20-55-32" src="https://github.com/user-attachments/assets/9eefb02d-e57f-4193-a331-18ca696745e9" />
+  <img alt="PixPin_2025-10-14_20-55-32" src="https://github.com/user-attachments/assets/9eefb02d-e57f-4193-a331-18ca696745e9" />
 
 
 
