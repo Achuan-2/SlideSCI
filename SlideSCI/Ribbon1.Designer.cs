@@ -198,6 +198,7 @@ namespace SlideSCI
             this.排列 = this.Factory.CreateRibbonGroup();
             this.alignVerticalCenter = this.Factory.CreateRibbonButton();
             this.alignHorizontalCenter = this.Factory.CreateRibbonButton();
+            this.setSpacingButton = this.Factory.CreateRibbonButton();
             this.codeGroup = this.Factory.CreateRibbonGroup();
             this.button2 = this.Factory.CreateRibbonButton();
             this.textboxToRichText = this.Factory.CreateRibbonButton();
@@ -1056,6 +1057,7 @@ namespace SlideSCI
             // 
             this.排列.Items.Add(this.alignVerticalCenter);
             this.排列.Items.Add(this.alignHorizontalCenter);
+            this.排列.Items.Add(this.setSpacingButton);
             this.排列.Label = "排列";
             this.排列.Name = "排列";
             // 
@@ -1074,6 +1076,14 @@ namespace SlideSCI
             this.alignHorizontalCenter.OfficeImageId = "ObjectsAlignCenterHorizontal";
             this.alignHorizontalCenter.ShowImage = true;
             this.alignHorizontalCenter.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.alignHorizontalCenter_Click);
+            // 
+            // setSpacingButton
+            // 
+            this.setSpacingButton.Label = "设置间距";
+            this.setSpacingButton.Name = "setSpacingButton";
+            this.setSpacingButton.OfficeImageId = "ObjectsDistributeHorizontal";
+            this.setSpacingButton.ShowImage = true;
+            this.setSpacingButton.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.setSpacingButton_Click);
             // 
             // codeGroup
             // 
@@ -1276,6 +1286,7 @@ namespace SlideSCI
         internal Microsoft.Office.Tools.Ribbon.RibbonButton swapPosBottomRight;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton alignHorizontalCenter;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton alignVerticalCenter;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton setSpacingButton;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton copyImgWidth;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton pasteImgWidth;
         internal Microsoft.Office.Tools.Ribbon.RibbonSeparator separator3;

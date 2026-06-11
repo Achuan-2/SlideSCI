@@ -203,6 +203,9 @@
     <Compile Include="components\InputDialog.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="components\SpacingForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="components\ShapeLibraryControl.cs">
       <SubType>UserControl</SubType>
     </Compile>

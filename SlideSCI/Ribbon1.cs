@@ -27,6 +27,7 @@ namespace SlideSCI
         private List<float> copiedLeft = new List<float>();
         private List<float> copiedTop = new List<float>();
         private List<int> selectedShapeIdsByOrder = new List<int>();
+        private SpacingForm spacingForm = null;
 
         public enum AlignmentPosition
         {
@@ -724,26 +725,33 @@ namespace SlideSCI
                 if (Sel.Type != PpSelectionType.ppSelectionShapes)
                 {
                     selectedShapeIdsByOrder.Clear();
-                    return;
                 }
-
-                // Get IDs of all currently selected shapes
-                HashSet<int> currentIds = new HashSet<int>();
-                foreach (Shape shape in Sel.ShapeRange)
+                else
                 {
-                    currentIds.Add(shape.Id);
-                }
-
-                // Remove IDs that are no longer selected
-                selectedShapeIdsByOrder.RemoveAll(id => !currentIds.Contains(id));
-
-                // Add new IDs that are selected but not yet in our ordered list
-                foreach (Shape shape in Sel.ShapeRange)
-                {
-                    if (!selectedShapeIdsByOrder.Contains(shape.Id))
+                    // Get IDs of all currently selected shapes
+                    HashSet<int> currentIds = new HashSet<int>();
+                    foreach (Shape shape in Sel.ShapeRange)
                     {
-                        selectedShapeIdsByOrder.Add(shape.Id);
+                        currentIds.Add(shape.Id);
                     }
+
+                    // Remove IDs that are no longer selected
+                    selectedShapeIdsByOrder.RemoveAll(id => !currentIds.Contains(id));
+
+                    // Add new IDs that are selected but not yet in our ordered list
+                    foreach (Shape shape in Sel.ShapeRange)
+                    {
+                        if (!selectedShapeIdsByOrder.Contains(shape.Id))
+                        {
+                            selectedShapeIdsByOrder.Add(shape.Id);
+                        }
+                    }
+                }
+
+                // Notify SpacingForm if it is open
+                if (spacingForm != null && !spacingForm.IsDisposed)
+                {
+                    spacingForm.OnSelectionChanged();
                 }
             }
             catch (Exception)
@@ -1204,6 +1212,27 @@ namespace SlideSCI
             catch (Exception ex)
             {
                 MessageBox.Show($"对齐过程中出错: {ex.Message}");
+            }
+        }
+
+        private void setSpacingButton_Click(object sender, RibbonControlEventArgs e)
+        {
+            try
+            {
+                if (spacingForm == null || spacingForm.IsDisposed)
+                {
+                    spacingForm = new SpacingForm(app, selectedShapeIdsByOrder);
+                    spacingForm.Show();
+                }
+                else
+                {
+                    spacingForm.Activate();
+                    spacingForm.RefreshSelection();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"打开间距设置窗口失败: {ex.Message}");
             }
         }
 
