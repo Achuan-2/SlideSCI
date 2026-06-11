@@ -1081,7 +1081,7 @@ namespace SlideSCI
             // 
             this.setSpacingButton.Label = "设置间距";
             this.setSpacingButton.Name = "setSpacingButton";
-            this.setSpacingButton.OfficeImageId = "AlignDistributeHorizontal";
+            this.setSpacingButton.OfficeImageId = "AlignDistributeHorizontally";
             this.setSpacingButton.ShowImage = true;
             this.setSpacingButton.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.setSpacingButton_Click);
             // 
