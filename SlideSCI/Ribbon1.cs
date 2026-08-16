@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Text;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -148,6 +149,8 @@ namespace SlideSCI
             app = Globals.ThisAddIn.Application;
             app.WindowSelectionChange += App_WindowSelectionChange;
 
+            iniCombobox();
+
             // Load Image Title Settings
             fontNameEditBox.Text = Properties.Settings.Default.TitleFontName;
             fontSizeEditBox.Text = Properties.Settings.Default.TitleFontSize;
@@ -210,7 +213,72 @@ namespace SlideSCI
 
             toggleBackgroundCheckBox.Click += SaveSettings;
             // exportImageButton.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.exportImageButton_Click); // Already set in Designer.cs
-            iniCombobox();
+        }
+
+        /// <summary>
+        /// 获取系统中已安装的所有字体名称（包含繁体中文、简体中文、英文字体等）
+        /// </summary>
+        private List<string> GetInstalledFontNames()
+        {
+            var fontNames = new List<string>();
+
+            // 常用推荐字体（置顶显示方便快速选取，包含繁中/简中/英文字体）
+            var commonFonts = new List<string>
+            {
+                "微軟正黑體",
+                "新細明體",
+                "標楷體",
+                "微软雅黑",
+                "黑体",
+                "楷体",
+                "宋体",
+                "Arial",
+                "Times New Roman",
+                "Calibri",
+                "Segoe UI"
+            };
+
+            try
+            {
+                using (var installedFonts = new InstalledFontCollection())
+                {
+                    var systemFonts = installedFonts.Families
+                        .Select(f => f.Name)
+                        .Where(name => !string.IsNullOrWhiteSpace(name))
+                        .Distinct()
+                        .OrderBy(name => name, StringComparer.CurrentCultureIgnoreCase)
+                        .ToList();
+
+                    // 先添加系统已安装的常用字体（置顶）
+                    foreach (var font in commonFonts)
+                    {
+                        if (systemFonts.Contains(font, StringComparer.OrdinalIgnoreCase))
+                        {
+                            fontNames.Add(font);
+                        }
+                    }
+
+                    // 再添加系统中所有其他已安装的字体（去重）
+                    foreach (var font in systemFonts)
+                    {
+                        if (!fontNames.Contains(font, StringComparer.OrdinalIgnoreCase))
+                        {
+                            fontNames.Add(font);
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                fontNames = commonFonts;
+            }
+
+            if (fontNames.Count == 0)
+            {
+                fontNames = commonFonts;
+            }
+
+            return fontNames;
         }
 
         /// <summary>
@@ -218,16 +286,8 @@ namespace SlideSCI
         /// </summary>
         public void iniCombobox()
         {
-            //字体名
-            List<string> FontNames = new List<string>()
-            {
-                "Arial",
-                "Times new Roman",
-                "微软雅黑",
-                "黑体",
-                "楷体",
-                "宋体",
-            };
+            // 字体名（动态获取系统中安装的所有字体，包含繁体中文及其他自定义字体）
+            List<string> FontNames = GetInstalledFontNames();
             FreshCombobox(fontNameEditBox, FontNames);
             FreshCombobox(labelFontNameEditBox, FontNames);
             //字号
@@ -3146,6 +3206,7 @@ namespace SlideSCI
                     // Set the text and font properties
                     textBox.TextFrame.TextRange.Text = label;
                     textBox.TextFrame.TextRange.Font.Size = fontSize;
+                    textBox.TextFrame.TextRange.Font.NameFarEast = fontFamily;
                     textBox.TextFrame.TextRange.Font.Name = fontFamily;
                     textBox.TextFrame.TextRange.ParagraphFormat.Alignment =
                         PpParagraphAlignment.ppAlignLeft;
@@ -5913,6 +5974,7 @@ namespace SlideSCI
                     // 更新文本框内容和字体设置
                     textBox.TextFrame.TextRange.Text = label;
                     textBox.TextFrame.TextRange.Font.Size = fontSize;
+                    textBox.TextFrame.TextRange.Font.NameFarEast = fontFamily;
                     textBox.TextFrame.TextRange.Font.Name = fontFamily;
                     
                     // 应用加粗设置
