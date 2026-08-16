@@ -8,8 +8,13 @@
 
 <img width="2406" height="753" alt="image" src="https://fastly.jsdelivr.net/gh/Achuan-2/PicBed@pic/assets/17664118034781766411794674.png" />
 
-
-[![Star History Chart](https://api.star-history.com/svg?repos=Achuan-2/SlideSCI&type=Date)](https://www.star-history.com/#Achuan-2/SlideSCI&Date)
+<a href="https://www.star-history.com/?repos=Achuan-2%2FSlideSCI&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=Achuan-2/SlideSCI&type=date&theme=dark&legend=top-left&sealed_token=6sD4feBP6uwpoEYUsdr18okyIWG2PCJ_Bm0GpR80ZE4A0_CIw0lzx01H3owSDoqs5ncA3CBWxaO2T63_eJVf2p8Z8oWaOvFdaFC0u2mtJvcipaWiozHU9KmoM3yfgLuVengmvc7RYOI3xUsllMjMyUHWzVhGKJEcKoMoKRatArOY_yOfHceyo7L_aGPY" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=Achuan-2/SlideSCI&type=date&legend=top-left&sealed_token=6sD4feBP6uwpoEYUsdr18okyIWG2PCJ_Bm0GpR80ZE4A0_CIw0lzx01H3owSDoqs5ncA3CBWxaO2T63_eJVf2p8Z8oWaOvFdaFC0u2mtJvcipaWiozHU9KmoM3yfgLuVengmvc7RYOI3xUsllMjMyUHWzVhGKJEcKoMoKRatArOY_yOfHceyo7L_aGPY" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=Achuan-2/SlideSCI&type=date&legend=top-left&sealed_token=6sD4feBP6uwpoEYUsdr18okyIWG2PCJ_Bm0GpR80ZE4A0_CIw0lzx01H3owSDoqs5ncA3CBWxaO2T63_eJVf2p8Z8oWaOvFdaFC0u2mtJvcipaWiozHU9KmoM3yfgLuVengmvc7RYOI3xUsllMjMyUHWzVhGKJEcKoMoKRatArOY_yOfHceyo7L_aGPY" />
+ </picture>
+</a>
 
 插件功能预览
 
