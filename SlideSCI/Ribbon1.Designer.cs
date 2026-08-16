@@ -379,7 +379,7 @@ namespace SlideSCI
             this.imgWidthEditBpx.Items.Add(ribbonDropDownItemImpl38);
             this.imgWidthEditBpx.Items.Add(ribbonDropDownItemImpl39);
             this.imgWidthEditBpx.Items.Add(ribbonDropDownItemImpl40);
-            this.imgWidthEditBpx.Label = "图宽";
+            this.imgWidthEditBpx.Label = "图宽(cm)";
             this.imgWidthEditBpx.Name = "imgWidthEditBpx";
             this.imgWidthEditBpx.ScreenTip = "统一设置图片宽度cm";
             this.imgWidthEditBpx.Text = null;
@@ -427,7 +427,7 @@ namespace SlideSCI
             this.imgHeightEditBox.Items.Add(ribbonDropDownItemImpl58);
             this.imgHeightEditBox.Items.Add(ribbonDropDownItemImpl59);
             this.imgHeightEditBox.Items.Add(ribbonDropDownItemImpl60);
-            this.imgHeightEditBox.Label = "图高";
+            this.imgHeightEditBox.Label = "图高(cm)";
             this.imgHeightEditBox.Name = "imgHeightEditBox";
             this.imgHeightEditBox.ScreenTip = "统一设置图片高度cm";
             this.imgHeightEditBox.Text = null;

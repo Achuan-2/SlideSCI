@@ -1298,6 +1298,25 @@ namespace SlideSCI
         }
 
         /// <summary>
+        /// 解析厘米(cm)字符串并转换为PowerPoint点数(Points)
+        /// 1 cm = 72 / 2.54 = 28.3464593 点
+        /// </summary>
+        private bool TryParseCmToPoints(string text, out float points)
+        {
+            points = 0f;
+            if (string.IsNullOrWhiteSpace(text)) return false;
+
+            // 移除 cm, CM, 厘米 等单位字符并清理空格
+            string cleanText = Regex.Replace(text.Trim(), @"(?i)cm|厘米|\s", "");
+            if (float.TryParse(cleanText, out float cmValue) && cmValue > 0)
+            {
+                points = (float)(cmValue * 28.3464593);
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
         /// 图片对齐排列
         /// </summary>
         private void AlignPics()
@@ -1335,14 +1354,8 @@ namespace SlideSCI
                     rowSpace = colSpace;
                 }
 
-                bool useCustomWidth =
-                    float.TryParse(imgWidthEditBpx.Text.Split('c')[0], out customWidth)
-                    && customWidth > 0;
-                bool useCustomHeight =
-                    float.TryParse(imgHeightEditBox.Text.Split('c')[0], out customHeight)
-                    && customHeight > 0;
-                customWidth = (float)(customWidth * 28.34646);
-                customHeight = (float)(customHeight * 28.34646);
+                bool useCustomWidth = TryParseCmToPoints(imgWidthEditBpx.Text, out customWidth);
+                bool useCustomHeight = TryParseCmToPoints(imgHeightEditBox.Text, out customHeight);
                 var selectedImgShape = new List<Shape>();
                 foreach (Shape shape in sel.ShapeRange)
                 {
