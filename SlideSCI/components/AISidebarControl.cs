@@ -87,9 +87,9 @@ namespace SlideSCI
                             currentConfig.Presets.Add(new AIPreset
                             {
                                 Name = "Default",
-                                ApiUrl = oldUrl ?? "https://api.openai.com/v1",
+                                ApiUrl = oldUrl ?? "https://api.apimart.ai/v1",
                                 ApiKey = oldKey ?? "",
-                                Model = oldModel ?? "gpt-4o",
+                                Model = oldModel ?? "deepseek-v4-flash",
                                 SystemPrompt = oldPrompt ?? GetDefaultSystemPrompt()
                             });
                             currentConfig.CurrentPresetName = "Default";
@@ -113,12 +113,27 @@ namespace SlideSCI
             {
                 currentConfig.Presets = new List<AIPreset>
                 {
+                    new AIPreset { Name = "APIMart", ApiUrl = "https://api.apimart.ai/v1", Model = "deepseek-v4-flash", SystemPrompt = GetDefaultSystemPrompt() },
                     new AIPreset { Name = "Kimi", ApiUrl = "https://api.moonshot.cn/v1", Model = "kimi-latest", SystemPrompt = GetDefaultSystemPrompt() },
                     new AIPreset { Name = "DeepSeek", ApiUrl = "https://api.deepseek.com/v1", Model = "deepseek-chat", SystemPrompt = GetDefaultSystemPrompt() },
                     new AIPreset { Name = "OpenAI", ApiUrl = "https://api.openai.com/v1", Model = "gpt-4o", SystemPrompt = GetDefaultSystemPrompt() }
                 };
-                currentConfig.CurrentPresetName = "Kimi";
+                currentConfig.CurrentPresetName = "APIMart";
                 SaveConfig();
+            }
+            else
+            {
+                if (!currentConfig.Presets.Exists(p => p.Name.Equals("APIMart", StringComparison.OrdinalIgnoreCase) || (p.ApiUrl != null && p.ApiUrl.Contains("apimart.ai"))))
+                {
+                    currentConfig.Presets.Insert(0, new AIPreset
+                    {
+                        Name = "APIMart",
+                        ApiUrl = "https://api.apimart.ai/v1",
+                        Model = "deepseek-v4-flash",
+                        SystemPrompt = GetDefaultSystemPrompt()
+                    });
+                    SaveConfig();
+                }
             }
 
             if (string.IsNullOrWhiteSpace(currentConfig.SystemPrompt) ||
@@ -922,7 +937,7 @@ namespace SlideSCI
             string newName = "New Preset";
             while (tempPresets.Exists(p => p.Name == $"{newName} {count}")) count++;
             string finalName = $"{newName} {count}";
-            var newPreset = new AIPreset { Name = finalName, ApiUrl = "https://api.openai.com/v1", ApiKey = "", Model = "gpt-4o", SystemPrompt = AISidebarControl.GetDefaultSystemPrompt() };
+            var newPreset = new AIPreset { Name = finalName, ApiUrl = "https://api.apimart.ai/v1", ApiKey = "", Model = "deepseek-v4-flash", SystemPrompt = AISidebarControl.GetDefaultSystemPrompt() };
             tempPresets.Add(newPreset);
             activePresetName = finalName;
             LoadPresetsToCombo();
@@ -954,10 +969,10 @@ namespace SlideSCI
     // --- Data Models for API ---
     public class AIPreset
     {
-        public string Name { get; set; } = "Default";
-        public string ApiUrl { get; set; } = "https://api.openai.com/v1";
+        public string Name { get; set; } = "APIMart";
+        public string ApiUrl { get; set; } = "https://api.apimart.ai/v1";
         public string ApiKey { get; set; } = "";
-        public string Model { get; set; } = "gpt-4o";
+        public string Model { get; set; } = "deepseek-v4-flash";
         public string SystemPrompt { get; set; } = "";
         public override string ToString() => Name;
     }
