@@ -16,7 +16,7 @@ Preview of Plugin Features
 
 ## 🙏 Sponsors
 
-| Logo | Description |
+| Sponsors | Description |
 | --- | --- |
 | ![17873186772188803ff9ca56b8aefe5fa96dcb51eb47d-20260821211408-jzsp68c.jpg](https://fastly.jsdelivr.net/gh/Achuan-2/PicBed@pic/assets/17873186772188803ff9ca56b8aefe5fa96dcb51eb47d-20260821211408-jzsp68c.jpg) | Thanks to APIMart for sponsoring this project! APIMart is a low-cost API platform for AI image & video generation — GPT-Image-2 from $0.006/image, 160+ images per dollar. One async API covers both image and video: submit a task, get an ID, fetch results via polling or callback. Batch tens of thousands of images without timeouts, switch models without changing code. Pay-as-you-go with no monthly fee — [sign up here](https://go.apimart.ai/gh-slidesci) to get started. |
 
