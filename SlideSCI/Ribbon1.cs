@@ -55,6 +55,14 @@ namespace SlideSCI
             Selection
         }
 
+        private enum ShapeEdge
+        {
+            Left,
+            Right,
+            Top,
+            Bottom
+        }
+
         private AlignmentPosition lastCopiedAlignment = AlignmentPosition.Center;
         private AlignmentPosition lastCopiedRelativeAlignment = AlignmentPosition.TopLeft;
         private AlignmentPosition lastSwapAlignment = AlignmentPosition.TopLeft;
@@ -1477,6 +1485,91 @@ namespace SlideSCI
                 else
                 {
                     MessageBox.Show("请先选择要对齐的形状。");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"对齐过程中出错: {ex.Message}");
+            }
+        }
+
+        private void alignLeft_Click(object sender, RibbonControlEventArgs e)
+        {
+            AlignSelectedShapesToEdge(ShapeEdge.Left);
+        }
+
+        private void alignRight_Click(object sender, RibbonControlEventArgs e)
+        {
+            AlignSelectedShapesToEdge(ShapeEdge.Right);
+        }
+
+        private void alignTop_Click(object sender, RibbonControlEventArgs e)
+        {
+            AlignSelectedShapesToEdge(ShapeEdge.Top);
+        }
+
+        private void alignBottom_Click(object sender, RibbonControlEventArgs e)
+        {
+            AlignSelectedShapesToEdge(ShapeEdge.Bottom);
+        }
+
+        private void AlignSelectedShapesToEdge(ShapeEdge edge)
+        {
+            try
+            {
+                Selection selection = app.ActiveWindow.Selection;
+                if (selection.Type != PpSelectionType.ppSelectionShapes || selection.ShapeRange.Count == 0)
+                {
+                    MessageBox.Show("请先选择要对齐的形状。");
+                    return;
+                }
+
+                Shape referenceShape = selection.ShapeRange.Count == 1
+                    ? null
+                    : GetFirstSelectedShape(selection);
+                float target;
+                switch (edge)
+                {
+                    case ShapeEdge.Left:
+                        target = referenceShape == null ? 0f : referenceShape.Left;
+                        break;
+                    case ShapeEdge.Right:
+                        target = referenceShape == null
+                            ? app.ActivePresentation.PageSetup.SlideWidth
+                            : referenceShape.Left + referenceShape.Width;
+                        break;
+                    case ShapeEdge.Top:
+                        target = referenceShape == null ? 0f : referenceShape.Top;
+                        break;
+                    default:
+                        target = referenceShape == null
+                            ? app.ActivePresentation.PageSetup.SlideHeight
+                            : referenceShape.Top + referenceShape.Height;
+                        break;
+                }
+
+                foreach (Shape shape in selection.ShapeRange)
+                {
+                    if (referenceShape != null && shape.Id == referenceShape.Id)
+                    {
+                        continue;
+                    }
+
+                    switch (edge)
+                    {
+                        case ShapeEdge.Left:
+                            shape.Left = target;
+                            break;
+                        case ShapeEdge.Right:
+                            shape.Left = target - shape.Width;
+                            break;
+                        case ShapeEdge.Top:
+                            shape.Top = target;
+                            break;
+                        case ShapeEdge.Bottom:
+                            shape.Top = target - shape.Height;
+                            break;
+                    }
                 }
             }
             catch (Exception ex)

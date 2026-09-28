@@ -160,7 +160,7 @@ Github地址：[https://github.com/Achuan-2/SlideSCI](https://github.com/Achuan-
       - 独立文本框，添加黑色边框
   - 支持插入SVG代码来插入SVG图片
 - 排列增强
-  - **添加水平居中和垂直居中按钮，默认以选中的第一个对象为参考进行对齐**：PPT自带的水平居中和垂直居中，是以选中的所有对象的整体中线进行对齐的，无法像illustrator一样设置关键对象来参考，这样比如一个文字已经排好了，想要底部加一个形状并对齐，进行水平、垂直居中很容易会导致文字位置被移动，居中之后又得再调整位置。
+  - **形状对齐**：支持左对齐、水平居中、右对齐、顶端对齐、垂直居中、底端对齐。只选一个形状时对齐到幻灯片边缘或中心；多选时以第一个选中的形状为基准，保持它的位置不变。
   <img alt="image" src="https://github.com/user-attachments/assets/41edddf8-d363-43f9-ae79-63ef1961a7db" />
 - **支持设置间距**：可以统一设置各个形状之间的水平和垂直间距
   ![](https://fastly.jsdelivr.net/gh/Achuan-2/PicBed/assets/Achuan的PPT插件_页面12-2026-06-11.png)
