@@ -31,6 +31,7 @@ namespace SlideSCI
             new List<(float DeltaX, float DeltaY)>();
         private List<Shape> copiedRelativeSourceShapes = new List<Shape>();
         private List<int> selectedShapeIdsByOrder = new List<int>();
+        private RelativePositionOrder copiedRelativeOrder = RelativePositionOrder.Horizontal;
         private SpacingForm spacingForm = null;
         private ScaleForm scaleForm = null;
 
@@ -45,6 +46,13 @@ namespace SlideSCI
             BottomLeft,
             BottomCenter,
             BottomRight
+        }
+
+        private enum RelativePositionOrder
+        {
+            Horizontal,
+            Vertical,
+            Selection
         }
 
         private AlignmentPosition lastCopiedAlignment = AlignmentPosition.Center;
@@ -154,6 +162,7 @@ namespace SlideSCI
             app.WindowSelectionChange += App_WindowSelectionChange;
 
             iniCombobox();
+            relativePositionOrderDropDown.SelectedItemIndex = 0;
 
             // Load Image Title Settings
             fontNameEditBox.Text = Properties.Settings.Default.TitleFontName;
@@ -1207,14 +1216,16 @@ namespace SlideSCI
             Selection sel = app.ActiveWindow.Selection;
             if (sel.Type != PpSelectionType.ppSelectionShapes || sel.ShapeRange.Count < 2)
             {
-                MessageBox.Show("请先选择参考图，再按住 Ctrl 选择至少一个标注。", "复制相对位置");
+                MessageBox.Show("请至少选择两个形状：参考图和标注。", "复制相对位置");
                 return;
             }
 
-            List<Shape> orderedShapes = GetSelectedShapesInSelectionOrder(sel);
+            RelativePositionOrder order = GetRelativePositionOrder();
+            List<Shape> orderedShapes = GetShapesForRelativePosition(sel, order);
             Shape referenceShape = orderedShapes[0];
             var referencePoint = GetShapeAlignmentPoint(referenceShape, alignment);
 
+            copiedRelativeOrder = order;
             copiedRelativePositions.Clear();
             copiedRelativeSourceShapes.Clear();
             for (int i = 1; i < orderedShapes.Count; i++)
@@ -1238,11 +1249,11 @@ namespace SlideSCI
             Selection sel = app.ActiveWindow.Selection;
             if (sel.Type != PpSelectionType.ppSelectionShapes || sel.ShapeRange.Count < 1)
             {
-                MessageBox.Show("请先选择目标图；如需复用已有标注，再按住 Ctrl 依次选择标注。", "粘贴相对位置");
+                MessageBox.Show("请先选择目标图；如需复用已有标注，再按住 Ctrl 选择标注。位置顺序模式以最左或最上的形状为目标图。", "粘贴相对位置");
                 return;
             }
 
-            List<Shape> orderedShapes = GetSelectedShapesInSelectionOrder(sel);
+            List<Shape> orderedShapes = GetShapesForRelativePosition(sel, copiedRelativeOrder);
             int targetShapeCount = orderedShapes.Count - 1;
             if (targetShapeCount > copiedRelativePositions.Count)
             {
@@ -1305,6 +1316,33 @@ namespace SlideSCI
                     referencePoint.Y + delta.DeltaY
                 );
             }
+        }
+
+        private RelativePositionOrder GetRelativePositionOrder()
+        {
+            switch (relativePositionOrderDropDown.SelectedItemIndex)
+            {
+                case 1:
+                    return RelativePositionOrder.Vertical;
+                case 2:
+                    return RelativePositionOrder.Selection;
+                default:
+                    return RelativePositionOrder.Horizontal;
+            }
+        }
+
+        private List<Shape> GetShapesForRelativePosition(Selection selection, RelativePositionOrder order)
+        {
+            List<Shape> selectedShapes = GetSelectedShapesInSelectionOrder(selection);
+            if (order == RelativePositionOrder.Selection)
+            {
+                return selectedShapes;
+            }
+
+            // 位置模式排序整个选择集，保证即使只选图和一个标注也不依赖点选先后。
+            return order == RelativePositionOrder.Horizontal
+                ? selectedShapes.OrderBy(shape => shape.Left).ThenBy(shape => shape.Top).ToList()
+                : selectedShapes.OrderBy(shape => shape.Top).ThenBy(shape => shape.Left).ToList();
         }
 
         private void swapPosition_Click(object sender, RibbonControlEventArgs e)

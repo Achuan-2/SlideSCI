@@ -108,6 +108,9 @@ namespace SlideSCI
             Microsoft.Office.Tools.Ribbon.RibbonDropDownItem ribbonDropDownItemImpl72 = this.Factory.CreateRibbonDropDownItem();
             Microsoft.Office.Tools.Ribbon.RibbonDropDownItem ribbonDropDownItemImpl73 = this.Factory.CreateRibbonDropDownItem();
             Microsoft.Office.Tools.Ribbon.RibbonDropDownItem ribbonDropDownItemImpl74 = this.Factory.CreateRibbonDropDownItem();
+            Microsoft.Office.Tools.Ribbon.RibbonDropDownItem relativeHorizontalOrderItem = this.Factory.CreateRibbonDropDownItem();
+            Microsoft.Office.Tools.Ribbon.RibbonDropDownItem relativeVerticalOrderItem = this.Factory.CreateRibbonDropDownItem();
+            Microsoft.Office.Tools.Ribbon.RibbonDropDownItem relativeSelectionOrderItem = this.Factory.CreateRibbonDropDownItem();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Ribbon1));
             this.tab2 = this.Factory.CreateRibbonTab();
             this.图片自动对齐 = this.Factory.CreateRibbonGroup();
@@ -187,6 +190,7 @@ namespace SlideSCI
             this.copyPosBottomRight = this.Factory.CreateRibbonButton();
             this.pastePosition = this.Factory.CreateRibbonButton();
             this.copyRelativePosition = this.Factory.CreateRibbonSplitButton();
+            this.relativePositionOrderDropDown = this.Factory.CreateRibbonDropDown();
             this.copyRelativePosTopLeft = this.Factory.CreateRibbonButton();
             this.copyRelativePosTopCenter = this.Factory.CreateRibbonButton();
             this.copyRelativePosTopRight = this.Factory.CreateRibbonButton();
@@ -627,6 +631,7 @@ namespace SlideSCI
             this.复制图片格式.Items.Add(this.swapPosition);
             this.复制图片格式.Items.Add(this.separator5);
             this.复制图片格式.Items.Add(this.copyRelativePosition);
+            this.复制图片格式.Items.Add(this.relativePositionOrderDropDown);
             this.复制图片格式.Items.Add(this.pasteRelativePosition);
             this.复制图片格式.Items.Add(this.separatorRelativePosition);
             this.复制图片格式.Items.Add(this.copyImgWidth);
@@ -1035,8 +1040,21 @@ namespace SlideSCI
             this.copyRelativePosition.Label = "复制相对位置";
             this.copyRelativePosition.Name = "copyRelativePosition";
             this.copyRelativePosition.ScreenTip = "复制相对位置";
-            this.copyRelativePosition.SuperTip = "先选择参考图，再按住 Ctrl 依次选择标注。记录各标注相对于参考图所选基准点的位置。";
+            this.copyRelativePosition.SuperTip = "选择参考图和标注后复制相对位置。“顺序”决定哪个形状作为参考图，以及其余标注的配对顺序。";
             this.copyRelativePosition.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.copyRelativePosition_Click);
+            //
+            // relativePositionOrderDropDown
+            //
+            relativeHorizontalOrderItem.Label = "水平位置（左→右）";
+            relativeVerticalOrderItem.Label = "垂直位置（上→下）";
+            relativeSelectionOrderItem.Label = "选中顺序";
+            this.relativePositionOrderDropDown.Items.Add(relativeHorizontalOrderItem);
+            this.relativePositionOrderDropDown.Items.Add(relativeVerticalOrderItem);
+            this.relativePositionOrderDropDown.Items.Add(relativeSelectionOrderItem);
+            this.relativePositionOrderDropDown.Label = "顺序";
+            this.relativePositionOrderDropDown.Name = "relativePositionOrderDropDown";
+            this.relativePositionOrderDropDown.ScreenTip = "复制相对位置的标注顺序";
+            this.relativePositionOrderDropDown.SuperTip = "水平位置以最左边的形状为参考，垂直位置以最上边的形状为参考；选中顺序以第一个选中的形状为参考。复制和粘贴使用同一种顺序。";
             //
             // copyRelativePosTopLeft
             //
@@ -1108,7 +1126,7 @@ namespace SlideSCI
             this.pasteRelativePosition.Name = "pasteRelativePosition";
             this.pasteRelativePosition.ScreenTip = "粘贴相对位置";
             this.pasteRelativePosition.ShowImage = true;
-            this.pasteRelativePosition.SuperTip = "先选择目标图；也可按住 Ctrl 依次选择已有标注。已有标注不足时，将自动复制源标注并按复制时的基准点恢复相对位置。";
+            this.pasteRelativePosition.SuperTip = "选择目标图，也可按住 Ctrl 选择已有标注；按复制时的顺序确定目标图并配对标注。已有标注不足时，自动复制源标注并恢复相对位置。";
             this.pasteRelativePosition.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.pasteRelativePosition_Click);
             //
             // swapPosition
@@ -1434,6 +1452,7 @@ namespace SlideSCI
         internal Microsoft.Office.Tools.Ribbon.RibbonButton copyPosBottomRight;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton pastePosition;
         internal Microsoft.Office.Tools.Ribbon.RibbonSplitButton copyRelativePosition;
+        internal Microsoft.Office.Tools.Ribbon.RibbonDropDown relativePositionOrderDropDown;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton copyRelativePosTopLeft;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton copyRelativePosTopCenter;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton copyRelativePosTopRight;
