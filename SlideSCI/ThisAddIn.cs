@@ -3,6 +3,7 @@ namespace SlideSCI
     public partial class ThisAddIn
     {
         public LatexToSvgConverter LatexSvgConverter { get; private set; }
+        internal ZoomGuideLineTracker ZoomGuideLines { get; private set; }
 
         public static bool AreWindowsEqual(Microsoft.Office.Interop.PowerPoint.DocumentWindow win1, Microsoft.Office.Interop.PowerPoint.DocumentWindow win2)
         {
@@ -81,6 +82,7 @@ namespace SlideSCI
         private void ThisAddIn_Startup(object sender, System.EventArgs e)
         {
             LatexSvgConverter = new LatexToSvgConverter();
+            ZoomGuideLines = new ZoomGuideLineTracker(Application);
         }
 
         public void ToggleShapeLibraryTaskPane(Microsoft.Office.Interop.PowerPoint.DocumentWindow contextWindow = null)
@@ -169,6 +171,8 @@ namespace SlideSCI
 
         private void ThisAddIn_Shutdown(object sender, System.EventArgs e)
         {
+            ZoomGuideLines?.Dispose();
+            ZoomGuideLines = null;
         }
 
         #region VSTO 生成的代码

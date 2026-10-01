@@ -162,6 +162,7 @@ namespace SlideSCI
             this.exportImageButton = this.Factory.CreateRibbonButton();
             this.导出原图 = this.Factory.CreateRibbonButton();
             this.复制大图 = this.Factory.CreateRibbonButton();
+            this.createZoomImageButton = this.Factory.CreateRibbonButton();
             this.button1 = this.Factory.CreateRibbonButton();
             this.selectAllTextBoxesButton = this.Factory.CreateRibbonButton();
             this.btnShapeLibrary = this.Factory.CreateRibbonButton();
@@ -598,6 +599,7 @@ namespace SlideSCI
             this.group3.Items.Add(this.exportImageButton);
             this.group3.Items.Add(this.导出原图);
             this.group3.Items.Add(this.复制大图);
+            this.group3.Items.Add(this.createZoomImageButton);
             this.group3.Items.Add(this.button1);
             this.group3.Items.Add(this.selectAllTextBoxesButton);
             this.group3.Label = "其他";
@@ -795,6 +797,14 @@ namespace SlideSCI
             this.复制大图.Name = "复制大图";
             this.复制大图.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.CopyOriginalPicture_Click);
             // 
+            // createZoomImageButton
+            //
+            this.createZoomImageButton.Label = "制作放大图";
+            this.createZoomImageButton.Name = "createZoomImageButton";
+            this.createZoomImageButton.ScreenTip = "选择原图，添加多个放大图或编辑已有放大图";
+            this.createZoomImageButton.SuperTip = "自动加载原图关联的放大区域。点击矩形切换各自的描边、放大图和辅助线设置；添加放大图时继承当前样式。手动矩形也可载入编辑，确认后设为无填充。原图移动或缩放时矩形跟随，放大图移动时辅助线更新。";
+            this.createZoomImageButton.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.createZoomImageButton_Click);
+            //
             // button1
             // 
             this.button1.Label = "图文同缩";
@@ -1543,6 +1553,7 @@ namespace SlideSCI
         internal Microsoft.Office.Tools.Ribbon.RibbonButton selectAllTextBoxesButton;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton 赞赏;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton 复制大图;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton createZoomImageButton;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton 导出原图;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton 图片上标题;
         internal Microsoft.Office.Tools.Ribbon.RibbonCheckBox titleCenterCheckbox;

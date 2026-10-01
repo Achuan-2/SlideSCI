@@ -334,5 +334,69 @@ namespace SlideSCI.Properties {
                 this["selectedCodeLanguage"] = value;
             }
         }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1.5")]
+        public double ZoomOutlineWidthPoints {
+            get { return ((double)(this["ZoomOutlineWidthPoints"])); }
+            set { this["ZoomOutlineWidthPoints"] = value; }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("-65536")]
+        public int ZoomOutlineColorArgb {
+            get { return ((int)(this["ZoomOutlineColorArgb"])); }
+            set { this["ZoomOutlineColorArgb"] = value; }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1")]
+        public int ZoomOutlineDashStyle {
+            get { return ((int)(this["ZoomOutlineDashStyle"])); }
+            set { this["ZoomOutlineDashStyle"] = value; }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ZoomUseRectangleColor {
+            get { return ((bool)(this["ZoomUseRectangleColor"])); }
+            set { this["ZoomUseRectangleColor"] = value; }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ZoomAddGuideLines {
+            get { return ((bool)(this["ZoomAddGuideLines"])); }
+            set { this["ZoomAddGuideLines"] = value; }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int ZoomImagePlacement {
+            get { return ((int)(this["ZoomImagePlacement"])); }
+            set { this["ZoomImagePlacement"] = value; }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("-1")]
+        public int ZoomOutlineNativeDashStyle {
+            get { return ((int)(this["ZoomOutlineNativeDashStyle"])); }
+            set { this["ZoomOutlineNativeDashStyle"] = value; }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1")]
+        public int ZoomGuideLineExtent {
+            get { return ((int)(this["ZoomGuideLineExtent"])); }
+            set { this["ZoomGuideLineExtent"] = value; }
+        }
     }
 }

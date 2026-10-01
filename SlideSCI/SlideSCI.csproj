@@ -1,4 +1,4 @@
-<Project ToolsVersion="17.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project ToolsVersion="17.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <!--
     This section defines project-level properties.
@@ -208,6 +208,16 @@
     </Compile>
     <Compile Include="components\ScaleForm.cs">
       <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="components\ZoomImageForm.cs" />
+    <Compile Include="components\ZoomImageEntry.cs" />
+    <Compile Include="Ribbon.ZoomImages.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="components\ZoomImageGeometry.cs" />
+    <Compile Include="components\ZoomGuideLineTracker.cs" />
+    <Compile Include="components\ZoomRegionCanvas.cs">
+      <SubType>Component</SubType>
     </Compile>
     <Compile Include="components\ShapeLibraryControl.cs">
       <SubType>UserControl</SubType>

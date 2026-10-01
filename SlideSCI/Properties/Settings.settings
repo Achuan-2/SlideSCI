@@ -80,5 +80,29 @@
     <Setting Name="selectedCodeLanguage" Type="System.String" Scope="User">
       <Value Profile="(Default)">matlab</Value>
     </Setting>
+    <Setting Name="ZoomOutlineWidthPoints" Type="System.Double" Scope="User">
+      <Value Profile="(Default)">1.5</Value>
+    </Setting>
+    <Setting Name="ZoomOutlineColorArgb" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">-65536</Value>
+    </Setting>
+    <Setting Name="ZoomOutlineDashStyle" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">1</Value>
+    </Setting>
+    <Setting Name="ZoomUseRectangleColor" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="ZoomAddGuideLines" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="ZoomImagePlacement" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">0</Value>
+    </Setting>
+    <Setting Name="ZoomOutlineNativeDashStyle" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">-1</Value>
+    </Setting>
+    <Setting Name="ZoomGuideLineExtent" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">1</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

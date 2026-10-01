@@ -4883,6 +4883,144 @@ namespace SlideSCI
         {
             System.Diagnostics.Process.Start("https://www.github.com/achuan-2");
         }
+
+
+        private ZoomImageSelection GetManualZoomRectangleSelection(Shape picture, Shape rectangle)
+        {
+            double x = rectangle.Left + rectangle.Width / 2f - (picture.Left + picture.Width / 2f);
+            double y = rectangle.Top + rectangle.Height / 2f - (picture.Top + picture.Height / 2f);
+            double angle = picture.Rotation * Math.PI / 180;
+            double localCenterX = x * Math.Cos(angle) + y * Math.Sin(angle);
+            double localCenterY = -x * Math.Sin(angle) + y * Math.Cos(angle);
+            var region = new RectangleF(
+                (float)((localCenterX - rectangle.Width / 2f) / picture.Width + 0.5),
+                (float)((localCenterY - rectangle.Height / 2f) / picture.Height + 0.5),
+                rectangle.Width / picture.Width, rectangle.Height / picture.Height);
+            Office.MsoLineDashStyle nativeDash = rectangle.Line.DashStyle;
+            if (nativeDash == Office.MsoLineDashStyle.msoLineDashStyleMixed)
+            {
+                nativeDash = Office.MsoLineDashStyle.msoLineSolid;
+            }
+            var settings = Properties.Settings.Default;
+            return new ZoomImageSelection(region, ColorTranslator.FromOle(rectangle.Line.ForeColor.RGB),
+                Math.Max(0.01f, rectangle.Line.Weight), ZoomImageGeometry.GetDrawingDashStyle(nativeDash),
+                settings.ZoomUseRectangleColor, settings.ZoomAddGuideLines, ZoomImageGeometry.GetSavedPlacement(),
+                rectangle.Rotation - picture.Rotation, false, nativeDash, ZoomImageGeometry.GetSavedGuideLineExtent());
+        }
+
+        private void CopyZoomRectangleBounds(Shape source, Shape target)
+        {
+            Office.MsoTriState lockAspectRatio = target.LockAspectRatio;
+            target.LockAspectRatio = Office.MsoTriState.msoFalse;
+            target.Width = source.Width;
+            target.Height = source.Height;
+            target.Rotation = source.Rotation;
+            target.Left = source.Left;
+            target.Top = source.Top;
+            target.LockAspectRatio = lockAspectRatio;
+        }
+
+        private Action CaptureZoomRectangleRestoreAction(Shape rectangle)
+        {
+            var bounds = new RectangleF(rectangle.Left, rectangle.Top, rectangle.Width, rectangle.Height);
+            float rotation = rectangle.Rotation;
+            Office.MsoTriState aspect = rectangle.LockAspectRatio;
+            Office.MsoTriState fillVisible = rectangle.Fill.Visible;
+            Office.MsoTriState lineVisible = rectangle.Line.Visible;
+            int color = rectangle.Line.ForeColor.RGB;
+            float width = rectangle.Line.Weight;
+            float transparency = rectangle.Line.Transparency;
+            Office.MsoLineDashStyle dash = rectangle.Line.DashStyle;
+            return () =>
+            {
+                rectangle.LockAspectRatio = Office.MsoTriState.msoFalse;
+                rectangle.Width = bounds.Width;
+                rectangle.Height = bounds.Height;
+                rectangle.Rotation = rotation;
+                rectangle.Left = bounds.Left;
+                rectangle.Top = bounds.Top;
+                rectangle.LockAspectRatio = aspect;
+                rectangle.Fill.Visible = fillVisible;
+                rectangle.Line.Visible = lineVisible;
+                rectangle.Line.ForeColor.RGB = color;
+                rectangle.Line.Weight = width;
+                rectangle.Line.Transparency = transparency;
+                rectangle.Line.DashStyle = dash;
+            };
+        }
+
+        private List<Shape> AddZoomGuideLines(Slide slide, Shape picture, Shape marker, Shape zoomImage,
+            ZoomImagePlacement placement, ZoomGuideLineExtent extent, List<Shape> createdShapes)
+        {
+            PointF[] endpoints = ZoomImageGeometry.GetGuideEndpoints(
+                ZoomImageGeometry.GetCorners(new RectangleF(marker.Left, marker.Top, marker.Width, marker.Height),
+                    marker.Rotation),
+                ZoomImageGeometry.GetCorners(new RectangleF(zoomImage.Left, zoomImage.Top, zoomImage.Width, zoomImage.Height),
+                    zoomImage.Rotation), placement);
+            var guides = new List<Shape>();
+            for (int i = 0; i < endpoints.Length; i += 2)
+            {
+                PointF start = endpoints[i], end = endpoints[i + 1];
+                bool visible = extent != ZoomGuideLineExtent.InsideSourceImage ||
+                    ZoomImageGeometry.TryClipLineToRectangle(start, end,
+                        new RectangleF(picture.Left, picture.Top, picture.Width, picture.Height),
+                        picture.Rotation, out start, out end);
+                // 保留暂时没有交集的隐藏线，移动后出现交集时可重新显示。
+                if (!visible) { start = endpoints[i]; end = endpoints[i + 1]; }
+                Shape guide = slide.Shapes.AddLine(start.X, start.Y, end.X, end.Y);
+                createdShapes.Add(guide);
+                guides.Add(guide);
+                guide.Visible = visible ? Office.MsoTriState.msoTrue : Office.MsoTriState.msoFalse;
+                guide.Line.Visible = Office.MsoTriState.msoTrue;
+                guide.Line.ForeColor.RGB = marker.Line.ForeColor.RGB;
+                guide.Line.Weight = Math.Max(0.01f, marker.Line.Weight);
+                guide.Line.DashStyle = marker.Line.DashStyle;
+                guide.Line.Style = marker.Line.Style;
+                guide.Line.Transparency = marker.Line.Transparency;
+                guide.Line.BeginArrowheadStyle = Office.MsoArrowheadStyle.msoArrowheadNone;
+                guide.Line.EndArrowheadStyle = Office.MsoArrowheadStyle.msoArrowheadNone;
+            }
+            return guides;
+        }
+
+        private void ApplyZoomRectangleStyle(Shape rectangle, ZoomImageSelection selection)
+        {
+            rectangle.Fill.Visible = Office.MsoTriState.msoFalse;
+            rectangle.Line.Visible = Office.MsoTriState.msoTrue;
+            rectangle.Line.ForeColor.RGB = ColorTranslator.ToOle(selection.OutlineColor);
+            rectangle.Line.Transparency = 0;
+            rectangle.Line.Weight = selection.OutlineWidthPoints;
+            rectangle.Line.DashStyle = selection.NativeOutlineDashStyle
+                ?? ZoomImageGeometry.GetOfficeDashStyle(selection.OutlineDashStyle);
+        }
+
+        private Shape CreateZoomRegionRectangle(Slide slide, Shape picture, RectangleF region)
+        {
+            float width = picture.Width * region.Width;
+            float height = picture.Height * region.Height;
+            double offsetX = (region.Left + region.Width / 2f - 0.5f) * picture.Width;
+            double offsetY = (region.Top + region.Height / 2f - 0.5f) * picture.Height;
+            double angle = picture.Rotation * Math.PI / 180;
+
+            // 框选的是未旋转图片的局部坐标，绕图片中心旋转后映射到幻灯片坐标。
+            float centerX = picture.Left + picture.Width / 2f +
+                (float)(offsetX * Math.Cos(angle) - offsetY * Math.Sin(angle));
+            float centerY = picture.Top + picture.Height / 2f +
+                (float)(offsetX * Math.Sin(angle) + offsetY * Math.Cos(angle));
+            return slide.Shapes.AddShape(Office.MsoAutoShapeType.msoShapeRectangle,
+                centerX - width / 2f, centerY - height / 2f, width, height);
+        }
+
+        private sealed class PowerPointDialogOwner : IWin32Window
+        {
+            public IntPtr Handle { get; }
+
+            public PowerPointDialogOwner(int windowHandle)
+            {
+                Handle = new IntPtr(windowHandle);
+            }
+        }
+
         public void ExportOriginalImage_Click(object sender, RibbonControlEventArgs e)
         {
             try
