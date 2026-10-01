@@ -1323,6 +1323,7 @@ namespace SlideSCI
             this.赞赏.Image = ((System.Drawing.Image)(resources.GetObject("赞赏.Image")));
             this.赞赏.Label = "赞赏";
             this.赞赏.Name = "赞赏";
+            this.赞赏.ScreenTip = "开发不易，欢迎赞赏支持我维护插件";
             this.赞赏.ShowImage = true;
             this.赞赏.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.donate);
             // 
