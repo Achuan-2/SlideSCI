@@ -97,20 +97,6 @@ namespace SlideSCI
             Microsoft.Office.Tools.Ribbon.RibbonDropDownItem ribbonDropDownItemImpl61 = this.Factory.CreateRibbonDropDownItem();
             Microsoft.Office.Tools.Ribbon.RibbonDropDownItem ribbonDropDownItemImpl62 = this.Factory.CreateRibbonDropDownItem();
             Microsoft.Office.Tools.Ribbon.RibbonDropDownItem ribbonDropDownItemImpl63 = this.Factory.CreateRibbonDropDownItem();
-            Microsoft.Office.Tools.Ribbon.RibbonDropDownItem ribbonDropDownItemImpl64 = this.Factory.CreateRibbonDropDownItem();
-            Microsoft.Office.Tools.Ribbon.RibbonDropDownItem ribbonDropDownItemImpl65 = this.Factory.CreateRibbonDropDownItem();
-            Microsoft.Office.Tools.Ribbon.RibbonDropDownItem ribbonDropDownItemImpl66 = this.Factory.CreateRibbonDropDownItem();
-            Microsoft.Office.Tools.Ribbon.RibbonDropDownItem ribbonDropDownItemImpl67 = this.Factory.CreateRibbonDropDownItem();
-            Microsoft.Office.Tools.Ribbon.RibbonDropDownItem ribbonDropDownItemImpl68 = this.Factory.CreateRibbonDropDownItem();
-            Microsoft.Office.Tools.Ribbon.RibbonDropDownItem ribbonDropDownItemImpl69 = this.Factory.CreateRibbonDropDownItem();
-            Microsoft.Office.Tools.Ribbon.RibbonDropDownItem ribbonDropDownItemImpl70 = this.Factory.CreateRibbonDropDownItem();
-            Microsoft.Office.Tools.Ribbon.RibbonDropDownItem ribbonDropDownItemImpl71 = this.Factory.CreateRibbonDropDownItem();
-            Microsoft.Office.Tools.Ribbon.RibbonDropDownItem ribbonDropDownItemImpl72 = this.Factory.CreateRibbonDropDownItem();
-            Microsoft.Office.Tools.Ribbon.RibbonDropDownItem ribbonDropDownItemImpl73 = this.Factory.CreateRibbonDropDownItem();
-            Microsoft.Office.Tools.Ribbon.RibbonDropDownItem ribbonDropDownItemImpl74 = this.Factory.CreateRibbonDropDownItem();
-            Microsoft.Office.Tools.Ribbon.RibbonDropDownItem ribbonDropDownItemImpl75 = this.Factory.CreateRibbonDropDownItem();
-            Microsoft.Office.Tools.Ribbon.RibbonDropDownItem ribbonDropDownItemImpl76 = this.Factory.CreateRibbonDropDownItem();
-            Microsoft.Office.Tools.Ribbon.RibbonDropDownItem ribbonDropDownItemImpl77 = this.Factory.CreateRibbonDropDownItem();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Ribbon1));
             this.tab2 = this.Factory.CreateRibbonTab();
             this.图片自动对齐 = this.Factory.CreateRibbonGroup();
@@ -123,21 +109,11 @@ namespace SlideSCI
             this.imgWidthEditBpx = this.Factory.CreateRibbonComboBox();
             this.imgHeightEditBox = this.Factory.CreateRibbonComboBox();
             this.图片处理 = this.Factory.CreateRibbonGroup();
-            this.fontNameEditBox = this.Factory.CreateRibbonComboBox();
-            this.fontSizeEditBox = this.Factory.CreateRibbonComboBox();
-            this.distanceFromBottomEditBox = this.Factory.CreateRibbonComboBox();
-            this.titleTextEditBox = this.Factory.CreateRibbonEditBox();
-            this.autoGroupCheckBox = this.Factory.CreateRibbonCheckBox();
-            this.titleCenterCheckbox = this.Factory.CreateRibbonCheckBox();
             this.group1 = this.Factory.CreateRibbonGroup();
-            this.labelFontSizeEditBox = this.Factory.CreateRibbonComboBox();
-            this.labelFontNameEditBox = this.Factory.CreateRibbonComboBox();
-            this.labelTemplateComboBox = this.Factory.CreateRibbonComboBox();
-            this.labelOffsetYEditBox = this.Factory.CreateRibbonEditBox();
-            this.labelOffsetXEditBox = this.Factory.CreateRibbonEditBox();
-            this.labelBoldcheckBox = this.Factory.CreateRibbonCheckBox();
+            this.labelIndexSpinnerBox = this.Factory.CreateRibbonBox();
             this.labelIndex = this.Factory.CreateRibbonEditBox();
             this.labelIndexUpdatecheckBox = this.Factory.CreateRibbonCheckBox();
+            this.exportGroup = this.Factory.CreateRibbonGroup();
             this.group3 = this.Factory.CreateRibbonGroup();
             this.shapeLibraryGroup = this.Factory.CreateRibbonGroup();
             this.tab1 = this.Factory.CreateRibbonTab();
@@ -157,8 +133,12 @@ namespace SlideSCI
             this.imgAutoAlign = this.Factory.CreateRibbonButton();
             this.AddTitleButton = this.Factory.CreateRibbonButton();
             this.图片上标题 = this.Factory.CreateRibbonButton();
+            this.titleSettingsButton = this.Factory.CreateRibbonButton();
             this.addLabelsButton = this.Factory.CreateRibbonButton();
             this.updateLabelsButton = this.Factory.CreateRibbonButton();
+            this.labelSettingsButton = this.Factory.CreateRibbonButton();
+            this.labelIndexDecreaseButton = this.Factory.CreateRibbonButton();
+            this.labelIndexIncreaseButton = this.Factory.CreateRibbonButton();
             this.exportImageButton = this.Factory.CreateRibbonButton();
             this.导出原图 = this.Factory.CreateRibbonButton();
             this.复制大图 = this.Factory.CreateRibbonButton();
@@ -238,6 +218,8 @@ namespace SlideSCI
             this.图片自动对齐.SuspendLayout();
             this.图片处理.SuspendLayout();
             this.group1.SuspendLayout();
+            this.labelIndexSpinnerBox.SuspendLayout();
+            this.exportGroup.SuspendLayout();
             this.group3.SuspendLayout();
             this.shapeLibraryGroup.SuspendLayout();
             this.tab1.SuspendLayout();
@@ -252,6 +234,7 @@ namespace SlideSCI
             this.tab2.Groups.Add(this.图片自动对齐);
             this.tab2.Groups.Add(this.图片处理);
             this.tab2.Groups.Add(this.group1);
+            this.tab2.Groups.Add(this.exportGroup);
             this.tab2.Groups.Add(this.group3);
             this.tab2.Groups.Add(this.shapeLibraryGroup);
             this.tab2.Label = "SlideSCI";
@@ -458,134 +441,32 @@ namespace SlideSCI
             // 
             this.图片处理.Items.Add(this.AddTitleButton);
             this.图片处理.Items.Add(this.图片上标题);
-            this.图片处理.Items.Add(this.fontNameEditBox);
-            this.图片处理.Items.Add(this.fontSizeEditBox);
-            this.图片处理.Items.Add(this.distanceFromBottomEditBox);
-            this.图片处理.Items.Add(this.titleTextEditBox);
-            this.图片处理.Items.Add(this.autoGroupCheckBox);
-            this.图片处理.Items.Add(this.titleCenterCheckbox);
+            this.图片处理.Items.Add(this.titleSettingsButton);
             this.图片处理.Label = "添加图片标题";
             this.图片处理.Name = "图片处理";
-            // 
-            // fontNameEditBox
-            // 
-            this.fontNameEditBox.Label = "字体名";
-            this.fontNameEditBox.Name = "fontNameEditBox";
-            this.fontNameEditBox.Text = null;
-            // 
-            // fontSizeEditBox
-            // 
-            this.fontSizeEditBox.Label = "字体号";
-            this.fontSizeEditBox.Name = "fontSizeEditBox";
-            this.fontSizeEditBox.Text = null;
-            // 
-            // distanceFromBottomEditBox
-            // 
-            this.distanceFromBottomEditBox.Label = "图下距";
-            this.distanceFromBottomEditBox.Name = "distanceFromBottomEditBox";
-            this.distanceFromBottomEditBox.ScreenTip = "设定标题在图片下方距离";
-            this.distanceFromBottomEditBox.Text = null;
-            // 
-            // titleTextEditBox
-            // 
-            this.titleTextEditBox.Label = "标题";
-            this.titleTextEditBox.Name = "titleTextEditBox";
-            this.titleTextEditBox.Text = "图片标题";
-            // 
-            // autoGroupCheckBox
-            // 
-            this.autoGroupCheckBox.Label = "编组";
-            this.autoGroupCheckBox.Name = "autoGroupCheckBox";
-            this.autoGroupCheckBox.ScreenTip = "自动编组，且编组后自动选中";
-            // 
-            // titleCenterCheckbox
-            // 
-            this.titleCenterCheckbox.Label = "是否居中";
-            this.titleCenterCheckbox.Name = "titleCenterCheckbox";
             // 
             // group1
             // 
             this.group1.Items.Add(this.addLabelsButton);
             this.group1.Items.Add(this.updateLabelsButton);
-            this.group1.Items.Add(this.labelFontSizeEditBox);
-            this.group1.Items.Add(this.labelFontNameEditBox);
-            this.group1.Items.Add(this.labelTemplateComboBox);
-            this.group1.Items.Add(this.labelOffsetYEditBox);
-            this.group1.Items.Add(this.labelOffsetXEditBox);
-            this.group1.Items.Add(this.labelBoldcheckBox);
-            this.group1.Items.Add(this.labelIndex);
+            this.group1.Items.Add(this.labelSettingsButton);
+            this.group1.Items.Add(this.labelIndexSpinnerBox);
             this.group1.Items.Add(this.labelIndexUpdatecheckBox);
-            this.group1.Label = "添加图片标签";
+            this.group1.Label = "添加子图标签";
             this.group1.Name = "group1";
             // 
-            // labelFontSizeEditBox
+            // labelIndexSpinnerBox
             // 
-            this.labelFontSizeEditBox.Label = "字号";
-            this.labelFontSizeEditBox.Name = "labelFontSizeEditBox";
-            this.labelFontSizeEditBox.Text = null;
-            // 
-            // labelFontNameEditBox
-            // 
-            this.labelFontNameEditBox.Label = "字体";
-            this.labelFontNameEditBox.Name = "labelFontNameEditBox";
-            this.labelFontNameEditBox.Text = null;
-            // 
-            // labelTemplateComboBox
-            // 
-            ribbonDropDownItemImpl61.Label = "A";
-            ribbonDropDownItemImpl62.Label = "a";
-            ribbonDropDownItemImpl63.Label = "A)";
-            ribbonDropDownItemImpl64.Label = "a)";
-            ribbonDropDownItemImpl65.Label = "(A)";
-            ribbonDropDownItemImpl66.Label = "(a)";
-            ribbonDropDownItemImpl67.Label = "1";
-            ribbonDropDownItemImpl68.Label = "1)";
-            ribbonDropDownItemImpl69.Label = "Ⅰ";
-            ribbonDropDownItemImpl70.Label = "Ⅰ)";
-            ribbonDropDownItemImpl71.Label = "①)";
-            ribbonDropDownItemImpl72.Label = "①";
-            ribbonDropDownItemImpl73.Label = "一)";
-            ribbonDropDownItemImpl74.Label = "一";
-            this.labelTemplateComboBox.Items.Add(ribbonDropDownItemImpl61);
-            this.labelTemplateComboBox.Items.Add(ribbonDropDownItemImpl62);
-            this.labelTemplateComboBox.Items.Add(ribbonDropDownItemImpl63);
-            this.labelTemplateComboBox.Items.Add(ribbonDropDownItemImpl64);
-            this.labelTemplateComboBox.Items.Add(ribbonDropDownItemImpl65);
-            this.labelTemplateComboBox.Items.Add(ribbonDropDownItemImpl66);
-            this.labelTemplateComboBox.Items.Add(ribbonDropDownItemImpl67);
-            this.labelTemplateComboBox.Items.Add(ribbonDropDownItemImpl68);
-            this.labelTemplateComboBox.Items.Add(ribbonDropDownItemImpl69);
-            this.labelTemplateComboBox.Items.Add(ribbonDropDownItemImpl70);
-            this.labelTemplateComboBox.Items.Add(ribbonDropDownItemImpl71);
-            this.labelTemplateComboBox.Items.Add(ribbonDropDownItemImpl72);
-            this.labelTemplateComboBox.Items.Add(ribbonDropDownItemImpl73);
-            this.labelTemplateComboBox.Items.Add(ribbonDropDownItemImpl74);
-            this.labelTemplateComboBox.Label = "模板";
-            this.labelTemplateComboBox.Name = "labelTemplateComboBox";
-            this.labelTemplateComboBox.Text = "A";
-            // 
-            // labelOffsetYEditBox
-            // 
-            this.labelOffsetYEditBox.Label = "Y偏移";
-            this.labelOffsetYEditBox.Name = "labelOffsetYEditBox";
-            this.labelOffsetYEditBox.Text = null;
-            // 
-            // labelOffsetXEditBox
-            // 
-            this.labelOffsetXEditBox.Label = "X偏移";
-            this.labelOffsetXEditBox.Name = "labelOffsetXEditBox";
-            this.labelOffsetXEditBox.Text = null;
-            // 
-            // labelBoldcheckBox
-            // 
-            this.labelBoldcheckBox.Checked = true;
-            this.labelBoldcheckBox.Label = "加粗";
-            this.labelBoldcheckBox.Name = "labelBoldcheckBox";
+            this.labelIndexSpinnerBox.Items.Add(this.labelIndex);
+            this.labelIndexSpinnerBox.Items.Add(this.labelIndexDecreaseButton);
+            this.labelIndexSpinnerBox.Items.Add(this.labelIndexIncreaseButton);
+            this.labelIndexSpinnerBox.Name = "labelIndexSpinnerBox";
             // 
             // labelIndex
             // 
             this.labelIndex.Label = "编号";
             this.labelIndex.Name = "labelIndex";
+            this.labelIndex.SizeString = "00000";
             this.labelIndex.Text = "1";
             // 
             // labelIndexUpdatecheckBox
@@ -594,11 +475,16 @@ namespace SlideSCI
             this.labelIndexUpdatecheckBox.Label = "编号自动更新";
             this.labelIndexUpdatecheckBox.Name = "labelIndexUpdatecheckBox";
             // 
+            // exportGroup
+            // 
+            this.exportGroup.Items.Add(this.exportImageButton);
+            this.exportGroup.Items.Add(this.导出原图);
+            this.exportGroup.Items.Add(this.复制大图);
+            this.exportGroup.Label = "导出";
+            this.exportGroup.Name = "exportGroup";
+            // 
             // group3
             // 
-            this.group3.Items.Add(this.exportImageButton);
-            this.group3.Items.Add(this.导出原图);
-            this.group3.Items.Add(this.复制大图);
             this.group3.Items.Add(this.createZoomImageButton);
             this.group3.Items.Add(this.button1);
             this.group3.Items.Add(this.selectAllTextBoxesButton);
@@ -669,12 +555,12 @@ namespace SlideSCI
             // 
             // relativePositionOrderDropDown
             // 
-            ribbonDropDownItemImpl75.Label = "水平位置（左→右）";
-            ribbonDropDownItemImpl76.Label = "垂直位置（上→下）";
-            ribbonDropDownItemImpl77.Label = "选中顺序";
-            this.relativePositionOrderDropDown.Items.Add(ribbonDropDownItemImpl75);
-            this.relativePositionOrderDropDown.Items.Add(ribbonDropDownItemImpl76);
-            this.relativePositionOrderDropDown.Items.Add(ribbonDropDownItemImpl77);
+            ribbonDropDownItemImpl61.Label = "水平位置（左→右）";
+            ribbonDropDownItemImpl62.Label = "垂直位置（上→下）";
+            ribbonDropDownItemImpl63.Label = "选中顺序";
+            this.relativePositionOrderDropDown.Items.Add(ribbonDropDownItemImpl61);
+            this.relativePositionOrderDropDown.Items.Add(ribbonDropDownItemImpl62);
+            this.relativePositionOrderDropDown.Items.Add(ribbonDropDownItemImpl63);
             this.relativePositionOrderDropDown.Label = "顺序";
             this.relativePositionOrderDropDown.Name = "relativePositionOrderDropDown";
             this.relativePositionOrderDropDown.ScreenTip = "复制相对位置的标注顺序";
@@ -758,6 +644,16 @@ namespace SlideSCI
             this.图片上标题.ShowImage = true;
             this.图片上标题.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.AddTopTitleToImage);
             // 
+            // titleSettingsButton
+            // 
+            this.titleSettingsButton.Label = "设置";
+            this.titleSettingsButton.Name = "titleSettingsButton";
+            this.titleSettingsButton.OfficeImageId = "ControlProperties";
+            this.titleSettingsButton.ScreenTip = "图片标题设置";
+            this.titleSettingsButton.ShowImage = true;
+            this.titleSettingsButton.SuperTip = "设置标题字体、字号、图片与标题距离、标题文字、编组和居中。";
+            this.titleSettingsButton.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.titleSettingsButton_Click);
+            // 
             // addLabelsButton
             // 
             this.addLabelsButton.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
@@ -775,6 +671,30 @@ namespace SlideSCI
             this.updateLabelsButton.Name = "updateLabelsButton";
             this.updateLabelsButton.ShowImage = true;
             this.updateLabelsButton.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.updateLabelsButton_Click);
+            // 
+            // labelSettingsButton
+            // 
+            this.labelSettingsButton.Label = "设置";
+            this.labelSettingsButton.Name = "labelSettingsButton";
+            this.labelSettingsButton.OfficeImageId = "ControlProperties";
+            this.labelSettingsButton.ScreenTip = "图片标签设置";
+            this.labelSettingsButton.ShowImage = true;
+            this.labelSettingsButton.SuperTip = "设置标签字体、字号、模板、偏移和加粗。";
+            this.labelSettingsButton.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.labelSettingsButton_Click);
+            // 
+            // labelIndexDecreaseButton
+            // 
+            this.labelIndexDecreaseButton.Label = "−";
+            this.labelIndexDecreaseButton.Name = "labelIndexDecreaseButton";
+            this.labelIndexDecreaseButton.ScreenTip = "编号减 1（最小为 1）";
+            this.labelIndexDecreaseButton.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.labelIndexDecreaseButton_Click);
+            // 
+            // labelIndexIncreaseButton
+            // 
+            this.labelIndexIncreaseButton.Label = "+";
+            this.labelIndexIncreaseButton.Name = "labelIndexIncreaseButton";
+            this.labelIndexIncreaseButton.ScreenTip = "编号加 1";
+            this.labelIndexIncreaseButton.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.labelIndexIncreaseButton_Click);
             // 
             // exportImageButton
             // 
@@ -798,13 +718,17 @@ namespace SlideSCI
             this.复制大图.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.CopyOriginalPicture_Click);
             // 
             // createZoomImageButton
-            //
+            // 
+            this.createZoomImageButton.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
+            this.createZoomImageButton.Image = ((System.Drawing.Image)(resources.GetObject("createZoomImageButton.Image")));
             this.createZoomImageButton.Label = "制作放大图";
             this.createZoomImageButton.Name = "createZoomImageButton";
             this.createZoomImageButton.ScreenTip = "选择原图，添加多个放大图或编辑已有放大图";
-            this.createZoomImageButton.SuperTip = "自动加载原图关联的放大区域。点击矩形切换各自的描边、放大图和辅助线设置；添加放大图时继承当前样式。手动矩形也可载入编辑，确认后设为无填充。原图移动或缩放时矩形跟随，放大图移动时辅助线更新。";
+            this.createZoomImageButton.ShowImage = true;
+            this.createZoomImageButton.SuperTip = "自动加载原图关联的放大区域。点击矩形切换各自的描边、放大图和辅助线设置；添加放大图时继承当前样式。手动矩形也可载入编辑，确认后设为无填充。原图移动或缩放时矩形跟随" +
+    "，放大图移动时辅助线更新。";
             this.createZoomImageButton.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.createZoomImageButton_Click);
-            //
+            // 
             // button1
             // 
             this.button1.Label = "图文同缩";
@@ -1425,6 +1349,10 @@ namespace SlideSCI
             this.图片处理.PerformLayout();
             this.group1.ResumeLayout(false);
             this.group1.PerformLayout();
+            this.labelIndexSpinnerBox.ResumeLayout(false);
+            this.labelIndexSpinnerBox.PerformLayout();
+            this.exportGroup.ResumeLayout(false);
+            this.exportGroup.PerformLayout();
             this.group3.ResumeLayout(false);
             this.group3.PerformLayout();
             this.shapeLibraryGroup.ResumeLayout(false);
@@ -1449,28 +1377,24 @@ namespace SlideSCI
         internal Microsoft.Office.Tools.Ribbon.RibbonGroup 图片自动对齐;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton imgAutoAlign;
         internal Microsoft.Office.Tools.Ribbon.RibbonGroup 图片处理;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton titleSettingsButton;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton labelSettingsButton;
+        internal Microsoft.Office.Tools.Ribbon.RibbonEditBox labelIndex;
+        internal Microsoft.Office.Tools.Ribbon.RibbonBox labelIndexSpinnerBox;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton labelIndexDecreaseButton;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton labelIndexIncreaseButton;
+        internal Microsoft.Office.Tools.Ribbon.RibbonCheckBox labelIndexUpdatecheckBox;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton AddTitleButton;
-        internal Microsoft.Office.Tools.Ribbon.RibbonEditBox titleTextEditBox;
-        internal Microsoft.Office.Tools.Ribbon.RibbonCheckBox autoGroupCheckBox;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton addLabelsButton;
-        internal Microsoft.Office.Tools.Ribbon.RibbonComboBox labelTemplateComboBox;
         internal Microsoft.Office.Tools.Ribbon.RibbonDropDown imgAutoAlignSortTypeDropDown;
         internal Microsoft.Office.Tools.Ribbon.RibbonDropDown imgAutoAlignAlignTypeDropDown;
         internal Microsoft.Office.Tools.Ribbon.RibbonCheckBox excludeTextcheckBox;
         internal Microsoft.Office.Tools.Ribbon.RibbonGroup group1;
-        internal Microsoft.Office.Tools.Ribbon.RibbonCheckBox labelBoldcheckBox;
         internal Microsoft.Office.Tools.Ribbon.RibbonComboBox imgAutoAlign_rowSpace;
         internal Microsoft.Office.Tools.Ribbon.RibbonComboBox imgAutoAlign_colNum;
         internal Microsoft.Office.Tools.Ribbon.RibbonComboBox imgAutoAlign_colSpace;
-        internal Microsoft.Office.Tools.Ribbon.RibbonComboBox labelFontSizeEditBox;
-        internal Microsoft.Office.Tools.Ribbon.RibbonComboBox fontSizeEditBox;
-        internal Microsoft.Office.Tools.Ribbon.RibbonComboBox distanceFromBottomEditBox;
-        internal Microsoft.Office.Tools.Ribbon.RibbonComboBox fontNameEditBox;
-        internal Microsoft.Office.Tools.Ribbon.RibbonComboBox labelFontNameEditBox;
         internal Microsoft.Office.Tools.Ribbon.RibbonComboBox imgWidthEditBpx;
         internal Microsoft.Office.Tools.Ribbon.RibbonComboBox imgHeightEditBox;
-        internal Microsoft.Office.Tools.Ribbon.RibbonEditBox labelOffsetYEditBox;
-        internal Microsoft.Office.Tools.Ribbon.RibbonEditBox labelOffsetXEditBox;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton exportImageButton; // 添加按钮声明
         internal Microsoft.Office.Tools.Ribbon.RibbonTab tab1;
         internal Microsoft.Office.Tools.Ribbon.RibbonGroup 复制图片格式;
@@ -1549,6 +1473,7 @@ namespace SlideSCI
         internal Microsoft.Office.Tools.Ribbon.RibbonButton button4;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton button5;
         internal Microsoft.Office.Tools.Ribbon.RibbonGroup group3;
+        internal Microsoft.Office.Tools.Ribbon.RibbonGroup exportGroup;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton button1;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton selectAllTextBoxesButton;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton 赞赏;
@@ -1556,10 +1481,7 @@ namespace SlideSCI
         internal Microsoft.Office.Tools.Ribbon.RibbonButton createZoomImageButton;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton 导出原图;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton 图片上标题;
-        internal Microsoft.Office.Tools.Ribbon.RibbonCheckBox titleCenterCheckbox;
-        internal Microsoft.Office.Tools.Ribbon.RibbonEditBox labelIndex;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton updateLabelsButton;
-        internal Microsoft.Office.Tools.Ribbon.RibbonCheckBox labelIndexUpdatecheckBox;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton button8;
         internal Microsoft.Office.Tools.Ribbon.RibbonSeparator separator5;
         internal Microsoft.Office.Tools.Ribbon.RibbonSeparator separator6;

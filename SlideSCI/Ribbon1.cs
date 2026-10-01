@@ -172,23 +172,6 @@ namespace SlideSCI
             iniCombobox();
             relativePositionOrderDropDown.SelectedItemIndex = 0;
 
-            // Load Image Title Settings
-            fontNameEditBox.Text = Properties.Settings.Default.TitleFontName;
-            fontSizeEditBox.Text = Properties.Settings.Default.TitleFontSize;
-            distanceFromBottomEditBox.Text = Properties.Settings.Default.TitleDistanceFromBottom;
-            titleTextEditBox.Text = Properties.Settings.Default.TitleText;
-            autoGroupCheckBox.Checked = Properties.Settings.Default.AutoGroup;
-
-            // Load Image Label Settings
-            labelOffsetXEditBox.Text = Properties.Settings.Default.LabelOffsetX;
-            labelOffsetYEditBox.Text = Properties.Settings.Default.LabelOffsetY;
-            labelTemplateComboBox.Text = Properties.Settings.Default.LabelTemplate;
-            labelFontNameEditBox.Text = Properties.Settings.Default.LabelFontName;
-            labelFontSizeEditBox.Text = Properties.Settings.Default.LabelFontSize;
-            labelBoldcheckBox.Checked = Properties.Settings.Default.LabelBold;
-            labelIndex.Text = "1";
-            labelIndexUpdatecheckBox.Checked = true;
-
             // Load Image Auto Align Settings
             imgAutoAlignSortTypeDropDown.SelectedItemIndex = Properties
                 .Settings
@@ -204,23 +187,10 @@ namespace SlideSCI
                 .Default
                 .imgAutoAlignAlignType;
             excludeTextcheckBox.Checked = Properties.Settings.Default.imgAutoAlighExcludeText;
-            titleCenterCheckbox.Checked = Properties.Settings.Default.imgAddTitleCenter;
             // insertMarkdown
             toggleBackgroundCheckBox.Checked = Properties.Settings.Default.ToggleBackground;
 
             // Add event handlers for text changed events
-            fontNameEditBox.TextChanged += SaveSettings;
-            fontSizeEditBox.TextChanged += SaveSettings;
-            distanceFromBottomEditBox.TextChanged += SaveSettings;
-            titleTextEditBox.TextChanged += SaveSettings;
-            autoGroupCheckBox.Click += SaveSettings;
-
-            labelOffsetXEditBox.TextChanged += SaveSettings;
-            labelOffsetYEditBox.TextChanged += SaveSettings;
-            labelTemplateComboBox.TextChanged += SaveSettings;
-            labelFontNameEditBox.TextChanged += SaveSettings;
-            labelFontSizeEditBox.TextChanged += SaveSettings;
-
             imgAutoAlignSortTypeDropDown.SelectionChanged += SaveSettings;
             imgAutoAlign_colNum.TextChanged += SaveSettings;
             imgAutoAlign_colSpace.TextChanged += SaveSettings;
@@ -229,8 +199,6 @@ namespace SlideSCI
             imgHeightEditBox.TextChanged += SaveSettings;
             imgAutoAlignAlignTypeDropDown.SelectionChanged += SaveSettings;
             excludeTextcheckBox.Click += SaveSettings;
-            titleCenterCheckbox.Click += SaveSettings;
-            labelBoldcheckBox.Click += SaveSettings;
 
             toggleBackgroundCheckBox.Click += SaveSettings;
             // exportImageButton.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.exportImageButton_Click); // Already set in Designer.cs
@@ -307,45 +275,6 @@ namespace SlideSCI
         /// </summary>
         public void iniCombobox()
         {
-            // 字体名（动态获取系统中安装的所有字体，包含繁体中文及其他自定义字体）
-            List<string> FontNames = GetInstalledFontNames();
-            FreshCombobox(fontNameEditBox, FontNames);
-            FreshCombobox(labelFontNameEditBox, FontNames);
-            //字号
-            List<string> FontSizes = new List<string>()
-            {
-                "2",
-                "4",
-                "5",
-                "6",
-                "7",
-                "8",
-                "9",
-                "10",
-                "11",
-                "12",
-                "13",
-                "14",
-                "15",
-                "16",
-                "18",
-                "20",
-                "22",
-                "24",
-                "26",
-                "28",
-                "30",
-                "40",
-                "50",
-                "60",
-                "80",
-                "100",
-                "120",
-                "150",
-                "200",
-            };
-            FreshCombobox(fontSizeEditBox, FontSizes);
-            FreshCombobox(labelFontSizeEditBox, FontSizes);
             //图片宽度和高度
             List<string> PicSizes = new List<string>()
             {
@@ -380,80 +309,6 @@ namespace SlideSCI
             };
             FreshCombobox(imgWidthEditBpx, PicSizes);
             FreshCombobox(imgHeightEditBox, PicSizes);
-            //图下距离
-            List<string> PicDistance = new List<string>()
-            {
-                "0",
-                "1",
-                "2",
-                "3",
-                "4",
-                "5",
-                "6",
-                "7",
-                "8",
-                "10",
-                "11",
-                "12",
-                "13",
-                "14",
-                "15",
-                "20",
-                "25",
-                "30",
-                "35",
-                "40",
-                "45",
-                "50",
-                "55",
-                "60",
-                "65",
-                "70",
-                "75",
-                "80",
-                "90",
-                "100",
-                "120",
-                "150",
-                "200",
-                "500",
-            };
-            FreshCombobox(distanceFromBottomEditBox, PicDistance);
-            //XY偏移
-            List<string> OffsetValues = new List<string>()
-            {
-                "-40",
-                "-30",
-                "-20",
-                "-10",
-                "-15",
-                "-10",
-                "-9",
-                "-8",
-                "-7",
-                "-6",
-                "-5",
-                "-4",
-                "-3",
-                "-2",
-                "-1",
-                "0",
-                "1",
-                "2",
-                "3",
-                "4",
-                "5",
-                "6",
-                "7",
-                "8",
-                "9",
-                "10",
-                "15",
-                "20",
-                "25",
-                "30",
-                "40",
-            };
             //列间距
             List<string> columnGap = new List<string>()
             {
@@ -580,20 +435,6 @@ namespace SlideSCI
 
         private void SaveSettings(object sender, RibbonControlEventArgs e)
         {
-            // Save Image Title Settings
-            Properties.Settings.Default.TitleFontName = fontNameEditBox.Text;
-            Properties.Settings.Default.TitleFontSize = fontSizeEditBox.Text;
-            Properties.Settings.Default.TitleDistanceFromBottom = distanceFromBottomEditBox.Text;
-            Properties.Settings.Default.TitleText = titleTextEditBox.Text;
-            Properties.Settings.Default.AutoGroup = autoGroupCheckBox.Checked;
-
-            // Save Image Label Settings
-            Properties.Settings.Default.LabelOffsetX = labelOffsetXEditBox.Text;
-            Properties.Settings.Default.LabelOffsetY = labelOffsetYEditBox.Text;
-            Properties.Settings.Default.LabelTemplate = labelTemplateComboBox.Text;
-            Properties.Settings.Default.LabelFontName = labelFontNameEditBox.Text;
-            Properties.Settings.Default.LabelFontSize = labelFontSizeEditBox.Text;
-            Properties.Settings.Default.LabelBold = labelBoldcheckBox.Checked;
             // Save Image Auto Align Settings
             Properties.Settings.Default.imgAutoAlignSortType =
                 imgAutoAlignSortTypeDropDown.SelectedItemIndex;
@@ -605,7 +446,6 @@ namespace SlideSCI
             Properties.Settings.Default.imgAutoAlignAlignType =
                 imgAutoAlignAlignTypeDropDown.SelectedItemIndex;
             Properties.Settings.Default.imgAutoAlighExcludeText = excludeTextcheckBox.Checked;
-            Properties.Settings.Default.imgAddTitleCenter = titleCenterCheckbox.Checked;
             // Save insertMarkdwon
             Properties.Settings.Default.ToggleBackground = toggleBackgroundCheckBox.Checked;
 
@@ -634,6 +474,52 @@ namespace SlideSCI
             AddTitleFun(false);
         }
 
+        private void titleSettingsButton_Click(object sender, RibbonControlEventArgs e)
+        {
+            using (var dialog = new ImageTitleSettingsForm(GetInstalledFontNames()))
+            {
+                if (dialog.ShowDialog(new PowerPointDialogOwner(app.HWND)) == DialogResult.OK)
+                    dialog.SaveSettings();
+            }
+        }
+
+        private void labelSettingsButton_Click(object sender, RibbonControlEventArgs e)
+        {
+            using (var dialog = new ImageLabelSettingsForm(GetInstalledFontNames()))
+            {
+                if (dialog.ShowDialog(new PowerPointDialogOwner(app.HWND)) != DialogResult.OK) return;
+                dialog.SaveSettings();
+            }
+        }
+
+        private bool TryGetLabelStartIndex(out int startIndex)
+        {
+            startIndex = 1;
+            if (string.IsNullOrWhiteSpace(labelIndex.Text)) return true;
+            if (int.TryParse(labelIndex.Text, out startIndex) && startIndex > 0) return true;
+            MessageBox.Show("起始编号必须是大于 0 的整数。", "提示");
+            return false;
+        }
+
+        private void labelIndexDecreaseButton_Click(object sender, RibbonControlEventArgs e)
+        {
+            AdjustLabelIndex(-1);
+        }
+
+        private void labelIndexIncreaseButton_Click(object sender, RibbonControlEventArgs e)
+        {
+            AdjustLabelIndex(1);
+        }
+
+        private void AdjustLabelIndex(int step)
+        {
+            int currentIndex;
+            if (!TryGetLabelStartIndex(out currentIndex)) return;
+            // 使用 long 计算，避免最大整数再递增时溢出。
+            long nextIndex = Math.Max(1L, Math.Min(int.MaxValue, (long)currentIndex + step));
+            labelIndex.Text = nextIndex.ToString();
+        }
+
 
     /// <summary>
     /// 图片加标题
@@ -644,16 +530,16 @@ namespace SlideSCI
         PowerPoint.Application app = Globals.ThisAddIn.Application;
         Slide slide = app.ActiveWindow.View.Slide;
         Selection sel = app.ActiveWindow.Selection;
-        bool autoGroup = autoGroupCheckBox.Checked; // 自动编组
+        bool autoGroup = Properties.Settings.Default.AutoGroup; // 自动编组
         List<ShapeRange> allshapesName = new List<ShapeRange>(); // 需要编组的对象集合
         List<Shape> allshapes = new List<Shape>(); // 编组后的对象
 
         if (sel.Type == PpSelectionType.ppSelectionShapes)
         {
-            float fontSize = float.Parse(fontSizeEditBox.Text); // 字号
-            float distanceFromBottom = float.Parse(distanceFromBottomEditBox.Text); // 图下距离
-            string fontName = fontNameEditBox.Text; // 字体名称
-            string titleText = titleTextEditBox.Text; // 标题文本
+            float fontSize = float.Parse(Properties.Settings.Default.TitleFontSize); // 字号
+            float distanceFromBottom = float.Parse(Properties.Settings.Default.TitleDistanceFromBottom); // 图下距离
+            string fontName = Properties.Settings.Default.TitleFontName; // 字体名称
+            string titleText = Properties.Settings.Default.TitleText; // 标题文本
             int count = 1;
             float tolerance = 10f; // 通常图片排列错位容差，10就够用
             ShapeRange sel2 = GetSortedSelection(sel, tolerance);
@@ -695,7 +581,7 @@ namespace SlideSCI
                     titleShape.TextFrame.TextRange.Font.NameFarEast = fontName; // Ensure FarEast font is set
                     titleShape.TextFrame.TextRange.Font.Name = fontName; // Ensure font is set
                     // 标题是否居中
-                    if (titleCenterCheckbox.Checked)
+                    if (Properties.Settings.Default.imgAddTitleCenter)
                     {
                         titleShape.TextFrame.TextRange.ParagraphFormat.Alignment = PpParagraphAlignment.ppAlignCenter;
                     }
@@ -3347,34 +3233,30 @@ namespace SlideSCI
 
         private void addLabelsButton_Click(object sender, RibbonControlEventArgs e)
         {
-            string fontFamily = labelFontNameEditBox.Text; // 修改为使用新控件
+            string fontFamily = Properties.Settings.Default.LabelFontName;
             float fontSize;
-            if (!float.TryParse(labelFontSizeEditBox.Text, out fontSize)) // 修改为使用新控件
+            if (!float.TryParse(Properties.Settings.Default.LabelFontSize, out fontSize))
             {
                 MessageBox.Show("请输入有效的字体大小。");
                 return;
             }
             float labelOffsetX;
-            if (!float.TryParse(labelOffsetXEditBox.Text, out labelOffsetX))
+            if (!float.TryParse(Properties.Settings.Default.LabelOffsetX, out labelOffsetX))
             {
                 MessageBox.Show("请输入有效的X偏移量。");
                 return;
             }
             float labelOffsetY;
-            if (!float.TryParse(labelOffsetYEditBox.Text, out labelOffsetY))
+            if (!float.TryParse(Properties.Settings.Default.LabelOffsetY, out labelOffsetY))
             {
                 MessageBox.Show("请输入有效的Y偏移量。");
                 return;
             }
-            string labelTemplate = labelTemplateComboBox.Text;
+            string labelTemplate = Properties.Settings.Default.LabelTemplate;
 
             // 获取起始编号
-            int startIndex = 1;
-            if (!string.IsNullOrEmpty(labelIndex.Text) && !int.TryParse(labelIndex.Text, out startIndex))
-            {
-                MessageBox.Show("请输入有效的起始编号。");
-                return;
-            }
+            int startIndex;
+            if (!TryGetLabelStartIndex(out startIndex)) return;
 
             AddLabelsToImages(fontFamily, fontSize, labelOffsetX, labelOffsetY, labelTemplate, startIndex, true);
         }
@@ -3542,7 +3424,7 @@ namespace SlideSCI
                     textBox.TextFrame.WordWrap = Office.MsoTriState.msoFalse;
 
                     // 自动加粗
-                    if (labelBoldcheckBox.Checked)
+                    if (Properties.Settings.Default.LabelBold)
                     {
                         textBox.TextFrame.TextRange.Font.Bold = Office.MsoTriState.msoTrue;
                     }
@@ -4845,7 +4727,7 @@ namespace SlideSCI
             string str1 = imgAutoAlign_rowSpace.Text.Split(new char[] { '≈' })[1];
             if (str1 != null)
             {
-                fontSizeEditBox.Text = Regex.Replace(str1, @"[^\d.\d]", "");
+                Properties.Settings.Default.TitleFontSize = Regex.Replace(str1, @"[^\d.\d]", "");
             }
             AlignPics();
         }
@@ -6309,15 +6191,15 @@ namespace SlideSCI
                 return;
             }
 
-            string fontFamily = labelFontNameEditBox.Text;
+            string fontFamily = Properties.Settings.Default.LabelFontName;
             float fontSize;
-            if (!float.TryParse(labelFontSizeEditBox.Text, out fontSize))
+            if (!float.TryParse(Properties.Settings.Default.LabelFontSize, out fontSize))
             {
                 MessageBox.Show("请输入有效的字体大小。");
                 return;
             }
 
-            string labelTemplate = labelTemplateComboBox.Text;
+            string labelTemplate = Properties.Settings.Default.LabelTemplate;
 
             var templates = new Dictionary<string, string>
             {
@@ -6346,12 +6228,8 @@ namespace SlideSCI
             bool isNumeric = labelTemplate.StartsWith("1");
 
             // 获取起始编号
-            int startIndex = 1;
-            if (!string.IsNullOrEmpty(labelIndex.Text) && !int.TryParse(labelIndex.Text, out startIndex))
-            {
-                MessageBox.Show("请输入有效的起始编号。");
-                return;
-            }
+            int startIndex;
+            if (!TryGetLabelStartIndex(out startIndex)) return;
 
             // 过滤出文本框
             var textBoxes = new List<Shape>();
@@ -6441,7 +6319,7 @@ namespace SlideSCI
                     textBox.TextFrame.TextRange.Font.Name = fontFamily;
                     
                     // 应用加粗设置
-                    if (labelBoldcheckBox.Checked)
+                    if (Properties.Settings.Default.LabelBold)
                     {
                         textBox.TextFrame.TextRange.Font.Bold = Office.MsoTriState.msoTrue;
                     }
@@ -6490,6 +6368,11 @@ namespace SlideSCI
             }
             catch { }
             Globals.ThisAddIn.ToggleAISidebarTaskPane(contextWindow);
+        }
+
+        private void createZoomImageButton_Click(object sender, RibbonControlEventArgs e)
+        {
+
         }
     }
 }

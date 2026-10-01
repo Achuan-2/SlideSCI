@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 32 32">
+  <title>制作放大图</title>
+  <desc>蓝色原图中的局部选框，通过两条连线对应右下角的放大视图。</desc>
+  <g stroke="#1296db" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <!-- 原图与简化的图片内容。 -->
+    <rect x="2" y="3" width="20" height="18" rx="2" fill="none"/>
+    <circle cx="7" cy="8" r="1.5" fill="#1296db" stroke="none"/>
+    <path d="M3 17l5-5 4 4 4-5 5 6v3H3z" fill="#d6effa" stroke="none"/>
+    <path d="M3 17l5-5 4 4" fill="none" stroke-width="1.5"/>
+    <!-- 选区和辅助线，留白保证缩小到 32px 后仍清晰。 -->
+    <rect x="12" y="10" width="7" height="7" rx="0.5" fill="none" stroke-dasharray="2 2" stroke-width="1.5"/>
+    <path d="M19 10l10 8M12 17l6 12" fill="none" stroke-width="1.25"/>
+    <!-- 放大视图盖住原图边缘，突出前后层次。 -->
+    <rect x="18" y="18" width="12" height="12" rx="2" fill="#ffffff"/>
+    <path d="M21 24h6M24 21v6" fill="none"/>
+  </g>
+</svg>

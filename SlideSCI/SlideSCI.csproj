@@ -203,6 +203,9 @@
     <Compile Include="components\InputDialog.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="components\ImageAnnotationSettingsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="components\SpacingForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -241,6 +244,8 @@
       <DependentUpon>Ribbon1.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="app.config" />
+    <None Include="assets\制作放大图.svg" />
+    <None Include="assets\制作放大图.png" />
     <None Include="SlideSCI_TemporaryKey.pfx" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
