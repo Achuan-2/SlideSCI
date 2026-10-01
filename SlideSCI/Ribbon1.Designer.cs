@@ -798,7 +798,7 @@ namespace SlideSCI
             this.createZoomImageButton.Name = "createZoomImageButton";
             this.createZoomImageButton.ScreenTip = "选择原图，添加多个放大图或编辑已有放大图";
             this.createZoomImageButton.ShowImage = true;
-            this.createZoomImageButton.SuperTip = "自动加载原图关联的放大区域。点击矩形切换各自的描边、放大图和辅助线设置；添加放大图时继承当前样式。手动矩形也可载入编辑，确认后设为无填充。原图移动或缩放时矩形跟随" +
+            this.createZoomImageButton.SuperTip = "自动加载原图关联的放大区域。点击矩形切换各自的描边、放大图和辅助线设置；添加新放大图时继承当前样式。手动矩形也可载入编辑，确认后设为无填充。原图移动或缩放时矩形跟随" +
     "；单独移动、缩放或旋转矩形后，松开鼠标自动更新放大图内容，保留放大图位置并按新区域比例调整尺寸。放大图移动时辅助线更新。";
             this.createZoomImageButton.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.createZoomImageButton_Click);
             // 

@@ -197,7 +197,7 @@ namespace SlideSCI
             {
                 if (!loadingEntry) SelectEntry(entrySelector.SelectedItem as ZoomImageEntry);
             };
-            addEntryButton = new Button { Text = "添加放大图", AutoSize = true };
+            addEntryButton = new Button { Text = "添加新放大图", AutoSize = true };
             addEntryButton.Click += (sender, e) => AddEntry();
             var entryControls = new FlowLayoutPanel { Dock = DockStyle.Fill, WrapContents = false };
             entryControls.Controls.Add(new Label { Text = "当前放大图", AutoSize = true, Margin = new Padding(0, 7, 6, 0) });
@@ -222,20 +222,32 @@ namespace SlideSCI
                 canvas.PanToolActive = panButton.Checked;
                 canvas.Focus();
             };
-            var viewControls = new FlowLayoutPanel
+            var panHint = new Label
             {
-                Dock = DockStyle.Fill, WrapContents = false, Margin = Padding.Empty,
+                Text = "按住空格+左键可以拖动画布", AutoSize = true,
+                ForeColor = Color.DimGray, Margin = new Padding(3, 2, 0, 4)
+            };
+            var viewControls = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                ColumnCount = 3, RowCount = 2, Margin = Padding.Empty,
                 Padding = new Padding(6, 2, 0, 0)
             };
-            viewControls.Controls.Add(zoomLabel);
-            viewControls.Controls.Add(fitButton);
-            viewControls.Controls.Add(panButton);
+            viewControls.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            viewControls.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            viewControls.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            viewControls.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            viewControls.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            viewControls.Controls.Add(zoomLabel, 0, 0);
+            viewControls.Controls.Add(fitButton, 1, 0);
+            viewControls.Controls.Add(panButton, 2, 0);
+            viewControls.Controls.Add(panHint, 2, 1);
 
             var previews = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 2 };
             previews.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 60));
             previews.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 40));
             previews.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-            previews.RowStyles.Add(new RowStyle(SizeType.Absolute, 36));
+            previews.RowStyles.Add(new RowStyle(SizeType.AutoSize));
             previews.Controls.Add(canvas, 0, 0);
             previews.Controls.Add(viewControls, 0, 1);
             previews.Controls.Add(layoutPreview, 1, 0);
@@ -488,6 +500,17 @@ namespace SlideSCI
             };
             ResetLineStyleChoices();
             settings.Controls.Add(lineStyle);
+            var squareCheckBox = new CheckBox
+            {
+                Text = "正方形", Checked = canvas.KeepSquare, AutoSize = true,
+                Margin = new Padding(14, 5, 3, 0)
+            };
+            squareCheckBox.CheckedChanged += (sender, e) =>
+            {
+                canvas.KeepSquare = squareCheckBox.Checked;
+                canvas.Focus();
+            };
+            settings.Controls.Add(squareCheckBox);
             return settings;
         }
 

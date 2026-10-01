@@ -261,19 +261,14 @@ namespace SlideSCI
             if (entry.Options.UseRectangleColorForZoomImage)
             {
                 zoom.Line.Visible = Office.MsoTriState.msoTrue;
-                zoom.Line.ForeColor.RGB = marker.Line.ForeColor.RGB;
                 zoom.Line.Transparency = 0;
                 zoom.Line.Weight = marker.Line.Weight;
+                zoom.Line.ForeColor.RGB = marker.Line.ForeColor.RGB;
             }
             else if (previous?.Zoom != null && !entry.InitialOptions.UseRectangleColorForZoomImage)
             {
                 // 更新取图区域时保留用户独立设置的放大图边框。
-                zoom.Line.Visible = previous.Zoom.Line.Visible;
-                zoom.Line.ForeColor.RGB = previous.Zoom.Line.ForeColor.RGB;
-                zoom.Line.Weight = previous.Zoom.Line.Weight;
-                zoom.Line.Transparency = previous.Zoom.Line.Transparency;
-                zoom.Line.DashStyle = previous.Zoom.Line.DashStyle;
-                zoom.Line.Style = previous.Zoom.Line.Style;
+                ZoomGuideLineTracker.CopyZoomOutline(previous.Zoom, zoom);
             }
             return new ZoomImageDraft(entry, previous, marker, zoom);
         }

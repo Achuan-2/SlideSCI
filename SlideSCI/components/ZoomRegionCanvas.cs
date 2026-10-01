@@ -35,6 +35,7 @@ namespace SlideSCI
         public IList<ZoomImageEntry> Entries { get; set; }
         public ZoomImageEntry ActiveEntry { get; set; }
         public bool CanDrawRegion { get; set; } = true;
+        public bool KeepSquare { get; set; } = true;
         public bool IsEditing => dragMode != DragMode.None && dragMode != DragMode.Pan;
         public RectangleF SelectedRegion { get; private set; }
         public float RegionRotationDegrees { get; private set; }
@@ -338,6 +339,16 @@ namespace SlideSCI
             {
                 end = new PointF(Math.Max(0, Math.Min(preview.Width, end.X)),
                     Math.Max(0, Math.Min(preview.Height, end.Y)));
+                if (KeepSquare)
+                {
+                    float dx = end.X - dragStartImage.X, dy = end.Y - dragStartImage.Y;
+                    float availableWidth = dx < 0 ? dragStartImage.X : preview.Width - dragStartImage.X;
+                    float availableHeight = dy < 0 ? dragStartImage.Y : preview.Height - dragStartImage.Y;
+                    float side = Math.Min(Math.Max(Math.Abs(dx), Math.Abs(dy)),
+                        Math.Min(availableWidth, availableHeight));
+                    end = new PointF(dragStartImage.X + (dx < 0 ? -side : side),
+                        dragStartImage.Y + (dy < 0 ? -side : side));
+                }
                 region = RectangleF.FromLTRB(Math.Min(dragStartImage.X, end.X), Math.Min(dragStartImage.Y, end.Y),
                     Math.Max(dragStartImage.X, end.X), Math.Max(dragStartImage.Y, end.Y));
             }
@@ -378,6 +389,20 @@ namespace SlideSCI
             RectangleF candidate = ResizeLocalRegion(start, localDelta);
             if (!IsInsideImage(start) || IsInsideImage(candidate)) return candidate;
 
+            if (KeepSquare)
+            {
+                // 按边长约束边界，宽高同时停止增长，避免贴边时破坏正方形。
+                float minimum = Math.Min(2, Math.Min(start.Width, start.Height));
+                float maximum = candidate.Width;
+                for (int i = 0; i < 20; i++)
+                {
+                    float side = (minimum + maximum) / 2f;
+                    if (IsInsideImage(GetSquareResizeRegion(start, side))) minimum = side;
+                    else maximum = side;
+                }
+                return GetSquareResizeRegion(start, minimum);
+            }
+
             // 保持对边或对角固定，缩放到图片边缘即停止；旋转矩形也遵循相同规则。
             float first = 0, last = 1;
             for (int i = 0; i < 20; i++)
@@ -403,11 +428,33 @@ namespace SlideSCI
                 top = Math.Min(bottom - minimumHeight, top + delta.Y);
             if (resizeHandle == 4 || resizeHandle == 5 || resizeHandle == 6)
                 bottom = Math.Max(top + minimumHeight, bottom + delta.Y);
+            if (KeepSquare)
+            {
+                float side = resizeHandle == 1 || resizeHandle == 5 ? bottom - top
+                    : resizeHandle == 3 || resizeHandle == 7 ? right - left
+                    : Math.Max(right - left, bottom - top);
+                return GetSquareResizeRegion(start, side);
+            }
             var center = new PointF(start.Left + start.Width / 2f, start.Top + start.Height / 2f);
             PointF newCenter = ZoomImageGeometry.RotatePoint(new PointF((left + right) / 2f, (top + bottom) / 2f),
                 center, RegionRotationDegrees);
             return new RectangleF(newCenter.X - (right - left) / 2f, newCenter.Y - (bottom - top) / 2f,
                 right - left, bottom - top);
+        }
+
+        private RectangleF GetSquareResizeRegion(RectangleF start, float side)
+        {
+            // 角点拖动固定对角，边中点拖动固定对边中点。
+            float left = (start.Left + start.Right - side) / 2f;
+            float top = (start.Top + start.Bottom - side) / 2f;
+            if (resizeHandle == 0 || resizeHandle == 6 || resizeHandle == 7) left = start.Right - side;
+            if (resizeHandle == 2 || resizeHandle == 3 || resizeHandle == 4) left = start.Left;
+            if (resizeHandle == 0 || resizeHandle == 1 || resizeHandle == 2) top = start.Bottom - side;
+            if (resizeHandle == 4 || resizeHandle == 5 || resizeHandle == 6) top = start.Top;
+            var center = new PointF(start.Left + start.Width / 2f, start.Top + start.Height / 2f);
+            PointF newCenter = ZoomImageGeometry.RotatePoint(new PointF(left + side / 2f, top + side / 2f),
+                center, RegionRotationDegrees);
+            return new RectangleF(newCenter.X - side / 2f, newCenter.Y - side / 2f, side, side);
         }
 
         private RectangleF GetRotatedBounds(RectangleF region)

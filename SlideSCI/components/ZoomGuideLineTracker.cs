@@ -461,15 +461,31 @@ namespace SlideSCI
             }
         }
 
-        private static void CopyZoomOutline(PowerPoint.Shape source, PowerPoint.Shape target)
+        internal static void CopyZoomOutline(PowerPoint.Shape source, PowerPoint.Shape target)
         {
-            target.Line.ForeColor.RGB = source.Line.ForeColor.RGB;
-            target.Line.BackColor.RGB = source.Line.BackColor.RGB;
-            target.Line.Weight = source.Line.Weight;
-            target.Line.Transparency = source.Line.Transparency;
-            target.Line.DashStyle = source.Line.DashStyle;
-            target.Line.Style = source.Line.Style;
-            target.Line.Visible = source.Line.Visible;
+            var sourceLine = source.Line;
+            var targetLine = target.Line;
+            Office.MsoTriState visibility = sourceLine.Visible;
+            // 求交结果可能继承原图的“无轮廓”。先启用并设置线型，最后恢复颜色，
+            // 避免启用轮廓或改变样式时覆盖已经写入的颜色。
+            targetLine.Visible = Office.MsoTriState.msoTrue;
+            targetLine.Style = sourceLine.Style;
+            targetLine.DashStyle = sourceLine.DashStyle;
+            targetLine.Weight = sourceLine.Weight;
+            targetLine.Transparency = sourceLine.Transparency;
+            CopyZoomOutlineColor(sourceLine.BackColor, targetLine.BackColor);
+            CopyZoomOutlineColor(sourceLine.ForeColor, targetLine.ForeColor);
+            if (visibility == Office.MsoTriState.msoFalse) targetLine.Visible = visibility;
+        }
+
+        private static void CopyZoomOutlineColor(PowerPoint.ColorFormat source, PowerPoint.ColorFormat target)
+        {
+            // 主题色不能只保存 RGB，否则会失去主题及明暗变换信息。
+            Office.MsoThemeColorIndex theme = source.ObjectThemeColor;
+            if ((int)theme > 0) target.ObjectThemeColor = theme;
+            else target.RGB = source.RGB;
+            target.TintAndShade = source.TintAndShade;
+            target.Brightness = source.Brightness;
         }
 
         private static GeometryState SynchronizeMarker(TrackedGroup group, GeometryState state)
