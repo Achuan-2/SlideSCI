@@ -255,25 +255,7 @@ namespace SlideSCI
                 marker.Rotation = picture.Rotation + entry.Options.RegionRotationDegrees;
             }
             ApplyZoomRectangleStyle(marker, entry.Options);
-            Shape pictureCopy = picture.Duplicate()[1];
-            temporary.Add(pictureCopy);
-            ZoomGuideLineTracker.RemoveCopiedLinks(pictureCopy);
-            pictureCopy.Left = picture.Left;
-            pictureCopy.Top = picture.Top;
-            Shape mask = marker.Duplicate()[1];
-            temporary.Add(mask);
-            mask.Left = marker.Left;
-            mask.Top = marker.Top;
-            var before = new HashSet<int>(slide.Shapes.Cast<Shape>().Select(shape => shape.Id));
-            int pictureId = pictureCopy.Id, maskId = mask.Id;
-            pictureCopy.Select(Office.MsoTriState.msoTrue);
-            mask.Select(Office.MsoTriState.msoFalse);
-            app.ActiveWindow.Selection.ShapeRange.MergeShapes(Office.MsoMergeCmd.msoMergeIntersect, pictureCopy);
-            temporary.Remove(pictureCopy);
-            temporary.Remove(mask);
-            Shape zoom = slide.Shapes.Cast<Shape>().FirstOrDefault(shape => shape.Id == pictureId || shape.Id == maskId ||
-                !before.Contains(shape.Id));
-            if (zoom == null) throw new InvalidOperationException($"{entry.DisplayName}没有有效的图片相交区域。");
+            Shape zoom = ZoomGuideLineTracker.CreateCrop(slide, picture, marker);
             temporary.Add(zoom);
             if (previous?.Zoom != null) zoom.Name = previous.Zoom.Name;
             if (entry.Options.UseRectangleColorForZoomImage)

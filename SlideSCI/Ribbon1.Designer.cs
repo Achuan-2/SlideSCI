@@ -116,7 +116,6 @@ namespace SlideSCI
             this.排列 = this.Factory.CreateRibbonGroup();
             this.exportGroup = this.Factory.CreateRibbonGroup();
             this.group3 = this.Factory.CreateRibbonGroup();
-            this.shapeLibraryGroup = this.Factory.CreateRibbonGroup();
             this.tab1 = this.Factory.CreateRibbonTab();
             this.复制图片格式 = this.Factory.CreateRibbonGroup();
             this.separator6 = this.Factory.CreateRibbonSeparator();
@@ -149,10 +148,10 @@ namespace SlideSCI
             this.exportImageButton = this.Factory.CreateRibbonButton();
             this.导出原图 = this.Factory.CreateRibbonButton();
             this.复制大图 = this.Factory.CreateRibbonButton();
+            this.btnShapeLibrary = this.Factory.CreateRibbonButton();
             this.createZoomImageButton = this.Factory.CreateRibbonButton();
             this.button1 = this.Factory.CreateRibbonButton();
             this.selectAllTextBoxesButton = this.Factory.CreateRibbonButton();
-            this.btnShapeLibrary = this.Factory.CreateRibbonButton();
             this.btnAISidebar = this.Factory.CreateRibbonButton();
             this.copyShapeStyle = this.Factory.CreateRibbonSplitButton();
             this.copyShapeStyleAll = this.Factory.CreateRibbonButton();
@@ -222,7 +221,6 @@ namespace SlideSCI
             this.排列.SuspendLayout();
             this.exportGroup.SuspendLayout();
             this.group3.SuspendLayout();
-            this.shapeLibraryGroup.SuspendLayout();
             this.tab1.SuspendLayout();
             this.复制图片格式.SuspendLayout();
             this.codeGroup.SuspendLayout();
@@ -237,7 +235,6 @@ namespace SlideSCI
             this.tab2.Groups.Add(this.排列);
             this.tab2.Groups.Add(this.exportGroup);
             this.tab2.Groups.Add(this.group3);
-            this.tab2.Groups.Add(this.shapeLibraryGroup);
             this.tab2.Label = "SlideSCI";
             this.tab2.Name = "tab2";
             // 
@@ -498,18 +495,13 @@ namespace SlideSCI
             // 
             // group3
             // 
+            this.group3.Items.Add(this.btnAISidebar);
             this.group3.Items.Add(this.btnShapeLibrary);
             this.group3.Items.Add(this.createZoomImageButton);
             this.group3.Items.Add(this.button1);
             this.group3.Items.Add(this.selectAllTextBoxesButton);
             this.group3.Label = "其他";
             this.group3.Name = "group3";
-            // 
-            // shapeLibraryGroup
-            // 
-            this.shapeLibraryGroup.Items.Add(this.btnAISidebar);
-            this.shapeLibraryGroup.Label = "AI功能";
-            this.shapeLibraryGroup.Name = "shapeLibraryGroup";
             // 
             // tab1
             // 
@@ -787,34 +779,6 @@ namespace SlideSCI
             this.复制大图.Name = "复制大图";
             this.复制大图.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.CopyOriginalPicture_Click);
             // 
-            // createZoomImageButton
-            // 
-            this.createZoomImageButton.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
-            this.createZoomImageButton.Image = ((System.Drawing.Image)(resources.GetObject("createZoomImageButton.Image")));
-            this.createZoomImageButton.Label = "制作放大图";
-            this.createZoomImageButton.Name = "createZoomImageButton";
-            this.createZoomImageButton.ScreenTip = "选择原图，添加多个放大图或编辑已有放大图";
-            this.createZoomImageButton.ShowImage = true;
-            this.createZoomImageButton.SuperTip = "自动加载原图关联的放大区域。点击矩形切换各自的描边、放大图和辅助线设置；添加放大图时继承当前样式。手动矩形也可载入编辑，确认后设为无填充。原图移动或缩放时矩形跟随" +
-    "，放大图移动时辅助线更新。";
-            this.createZoomImageButton.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.createZoomImageButton_Click);
-            // 
-            // button1
-            // 
-            this.button1.Label = "图文同缩";
-            this.button1.Name = "button1";
-            this.button1.ScreenTip = "组合后，调整组合形状，文字也会同步缩放";
-            this.button1.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.pastePictureAndText);
-            // 
-            // selectAllTextBoxesButton
-            // 
-            this.selectAllTextBoxesButton.Label = "全选文本框";
-            this.selectAllTextBoxesButton.Name = "selectAllTextBoxesButton";
-            this.selectAllTextBoxesButton.OfficeImageId = "TextBoxInsert";
-            this.selectAllTextBoxesButton.ScreenTip = "全选当前幻灯片上的所有文本框";
-            this.selectAllTextBoxesButton.ShowImage = true;
-            this.selectAllTextBoxesButton.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.selectAllTextBoxesButton_Click);
-            // 
             // btnShapeLibrary
             // 
             this.btnShapeLibrary.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
@@ -825,6 +789,36 @@ namespace SlideSCI
             this.btnShapeLibrary.ScreenTip = "打开PPT素材库，支持保存、预览 and 便捷插入形状";
             this.btnShapeLibrary.ShowImage = true;
             this.btnShapeLibrary.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.btnShapeLibrary_Click);
+            // 
+            // createZoomImageButton
+            // 
+            this.createZoomImageButton.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
+            this.createZoomImageButton.Image = ((System.Drawing.Image)(resources.GetObject("createZoomImageButton.Image")));
+            this.createZoomImageButton.Label = "制作放大图";
+            this.createZoomImageButton.Name = "createZoomImageButton";
+            this.createZoomImageButton.ScreenTip = "选择原图，添加多个放大图或编辑已有放大图";
+            this.createZoomImageButton.ShowImage = true;
+            this.createZoomImageButton.SuperTip = "自动加载原图关联的放大区域。点击矩形切换各自的描边、放大图和辅助线设置；添加放大图时继承当前样式。手动矩形也可载入编辑，确认后设为无填充。原图移动或缩放时矩形跟随" +
+    "；单独移动、缩放或旋转矩形后，松开鼠标自动更新放大图内容，保留放大图位置并按新区域比例调整尺寸。放大图移动时辅助线更新。";
+            this.createZoomImageButton.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.createZoomImageButton_Click);
+            // 
+            // button1
+            // 
+            this.button1.Image = ((System.Drawing.Image)(resources.GetObject("button1.Image")));
+            this.button1.Label = "图文同缩";
+            this.button1.Name = "button1";
+            this.button1.ScreenTip = "组合后，调整组合形状，文字也会同步缩放";
+            this.button1.ShowImage = true;
+            this.button1.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.pastePictureAndText);
+            // 
+            // selectAllTextBoxesButton
+            // 
+            this.selectAllTextBoxesButton.Label = "全选文本框";
+            this.selectAllTextBoxesButton.Name = "selectAllTextBoxesButton";
+            this.selectAllTextBoxesButton.OfficeImageId = "TextBoxInsert";
+            this.selectAllTextBoxesButton.ScreenTip = "全选当前幻灯片上的所有文本框";
+            this.selectAllTextBoxesButton.ShowImage = true;
+            this.selectAllTextBoxesButton.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.selectAllTextBoxesButton_Click);
             // 
             // btnAISidebar
             // 
@@ -1371,8 +1365,6 @@ namespace SlideSCI
             this.exportGroup.PerformLayout();
             this.group3.ResumeLayout(false);
             this.group3.PerformLayout();
-            this.shapeLibraryGroup.ResumeLayout(false);
-            this.shapeLibraryGroup.PerformLayout();
             this.tab1.ResumeLayout(false);
             this.tab1.PerformLayout();
             this.复制图片格式.ResumeLayout(false);
@@ -1492,7 +1484,6 @@ namespace SlideSCI
         internal Microsoft.Office.Tools.Ribbon.RibbonButton button8;
         internal Microsoft.Office.Tools.Ribbon.RibbonSeparator separator5;
         internal Microsoft.Office.Tools.Ribbon.RibbonSeparator separator6;
-        internal Microsoft.Office.Tools.Ribbon.RibbonGroup shapeLibraryGroup;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton btnShapeLibrary;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton btnAISidebar;
         internal Microsoft.Office.Tools.Ribbon.RibbonGroup 排列;

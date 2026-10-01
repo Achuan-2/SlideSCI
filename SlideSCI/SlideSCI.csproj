@@ -246,6 +246,8 @@
     <None Include="app.config" />
     <None Include="assets\制作放大图.svg" />
     <None Include="assets\制作放大图.png" />
+    <None Include="assets\图文同缩.svg" />
+    <None Include="assets\图文同缩.png" />
     <None Include="SlideSCI_TemporaryKey.pfx" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
