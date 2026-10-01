@@ -20,24 +20,31 @@ namespace SlideSCI
                 if (app.ActiveWindow == null) { MessageBox.Show("请先打开一个演示文稿。", "提示"); return; }
                 Selection selection = app.ActiveWindow.Selection;
                 if (selection.Type != PpSelectionType.ppSelectionShapes || selection.HasChildShapeRange ||
-                    (selection.ShapeRange.Count != 1 && selection.ShapeRange.Count != 2))
+                    selection.ShapeRange.Count == 0)
                 {
-                    MessageBox.Show("请选择一张图片，或一张图片和一个普通矩形（不支持组合内的对象）。", "提示");
+                    MessageBox.Show("请选择一张或多张图片，或一张图片和一个普通矩形（不支持组合内的对象）。", "提示");
                     return;
                 }
-                Shape picture = null, rectangle = null;
-                foreach (Shape shape in selection.ShapeRange)
+                // 导出预览和裁剪都会改变当前选择，必须先保存原始对象及其顺序。
+                Shape[] selectedShapes = selection.ShapeRange.Cast<Shape>().ToArray();
+                var pictures = new List<Shape>();
+                Shape rectangle = null;
+                bool hasUnsupportedShape = false;
+                foreach (Shape shape in selectedShapes)
                 {
                     if (shape.Type == Office.MsoShapeType.msoPicture || shape.Type == Office.MsoShapeType.msoLinkedPicture)
-                        picture = shape;
+                        pictures.Add(shape);
                     else if (shape.Type == Office.MsoShapeType.msoAutoShape &&
-                        shape.AutoShapeType == Office.MsoAutoShapeType.msoShapeRectangle) rectangle = shape;
+                        shape.AutoShapeType == Office.MsoAutoShapeType.msoShapeRectangle && rectangle == null)
+                        rectangle = shape;
+                    else hasUnsupportedShape = true;
                 }
-                if (picture == null || (selection.ShapeRange.Count == 2 && rectangle == null))
+                if (pictures.Count == 0 || hasUnsupportedShape || (rectangle != null && pictures.Count != 1))
                 {
-                    MessageBox.Show("请选择一张图片，或一张图片和一个普通矩形。", "提示");
+                    MessageBox.Show("请选择一张或多张图片，或一张图片和一个普通矩形。", "提示");
                     return;
                 }
+                Shape picture = pictures[0];
                 Globals.ThisAddIn.ZoomGuideLines?.RefreshNow();
                 using (Globals.ThisAddIn.ZoomGuideLines?.Suspend())
                 {
@@ -59,15 +66,15 @@ namespace SlideSCI
                             selectedIndex = records.Count - 1;
                         }
                     }
-                    if (!TryEditZoomImages(picture, rectangle, records.Select(record => record.Entry).ToArray(),
+                    if (!TryEditZoomImages(picture, selectedShapes, records.Select(record => record.Entry).ToArray(),
                         selectedIndex, out IList<ZoomImageEntry> entries)) return;
-                    ApplyZoomImageEdits(slide, picture, records, entries);
+                    ApplySelectedZoomImageEdits(slide, pictures, records, entries);
                 }
             }
             catch (Exception ex) { MessageBox.Show($"制作放大图时出错: {ex.Message}", "操作失败"); }
         }
 
-        private bool TryEditZoomImages(Shape picture, Shape rectangle, IList<ZoomImageEntry> entries,
+        private bool TryEditZoomImages(Shape picture, IList<Shape> selectedShapes, IList<ZoomImageEntry> entries,
             int selectedIndex, out IList<ZoomImageEntry> result)
         {
             result = null;
@@ -102,14 +109,66 @@ namespace SlideSCI
                 try
                 {
                     previewCopy?.Delete();
-                    picture.Select(Office.MsoTriState.msoTrue);
-                    rectangle?.Select(Office.MsoTriState.msoFalse);
+                    for (int i = 0; i < selectedShapes.Count; i++)
+                        selectedShapes[i].Select(i == 0 ? Office.MsoTriState.msoTrue : Office.MsoTriState.msoFalse);
                 }
                 catch (COMException ex) { Debug.WriteLine($"清理放大图预览时出错: {ex.Message}"); }
                 try { if (File.Exists(previewPath)) File.Delete(previewPath); }
                 catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
                 { Debug.WriteLine($"清理放大图预览文件时出错: {ex.Message}"); }
             }
+        }
+
+        /// <summary>第一张图编辑全部条目；本次新增区域按相对坐标添加到其他所选图片。</summary>
+        private void ApplySelectedZoomImageEdits(Slide slide, IList<Shape> pictures,
+            IList<ZoomImageExistingObjects> firstOriginals, IList<ZoomImageEntry> entries)
+        {
+            ZoomImageEntry[] addedEntries = entries.Where(entry => entry.RecordKey == null).ToArray();
+            var errors = new List<string>();
+            app.StartNewUndoEntry();
+            for (int i = 0; i < pictures.Count; i++)
+            {
+                if (i > 0 && addedEntries.Length == 0) continue;
+                Shape picture = pictures[i];
+                try
+                {
+                    IList<ZoomImageExistingObjects> originals = i == 0 ? firstOriginals
+                        : ZoomGuideLineTracker.ReadExisting(slide, picture);
+                    IList<ZoomImageEntry> targetEntries = i == 0 ? entries
+                        : AppendBatchZoomEntries(originals, addedEntries);
+                    ApplyZoomImageEdits(slide, picture, originals, targetEntries);
+                }
+                catch (Exception ex)
+                {
+                    // 单张图失败时沿用原有回滚，继续处理剩余图片。
+                    errors.Add($"第 {i + 1} 张图片：{ex.Message}");
+                }
+            }
+            if (errors.Count > 0) MessageBox.Show("制作放大图时遇到以下问题：\n" +
+                string.Join("\n", errors), "操作失败");
+        }
+
+        private static IList<ZoomImageEntry> AppendBatchZoomEntries(IList<ZoomImageExistingObjects> originals,
+            IList<ZoomImageEntry> addedEntries)
+        {
+            // 保留目标图已有条目，并分配独立编号和关联，避免重复或误用第一张图的对象。
+            var result = originals.Select(record => record.Entry).ToList();
+            var names = new HashSet<string>(result.Select(entry => entry.DisplayName));
+            int nextNumber = Math.Max(result.Count + 1, result.Where(entry => entry.DisplayOrder < int.MaxValue)
+                .Select(entry => entry.DisplayOrder + 1).DefaultIfEmpty(1).Max());
+            foreach (ZoomImageEntry entry in addedEntries)
+            {
+                string name = entry.DisplayName;
+                if (names.Contains(name))
+                {
+                    while (names.Contains($"放大图 {nextNumber}")) nextNumber++;
+                    name = $"放大图 {nextNumber++}";
+                }
+                names.Add(name);
+                // Options 只含相对区域及样式；实际矩形和放大图由各自原图生成。
+                result.Add(new ZoomImageEntry(null, name, entry.Options));
+            }
+            return result;
         }
 
         /// <summary>先生成所有需要更新的对象，全部成功后再提交关联并清理旧图。</summary>
@@ -123,7 +182,6 @@ namespace SlideSCI
             bool committed = false;
             try
             {
-                app.StartNewUndoEntry();
                 foreach (ZoomImageEntry entry in entries)
                 {
                     if (!entry.HasRegion) throw new InvalidOperationException("请为每个放大图框选有效区域。");
