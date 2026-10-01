@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 32 32">
+  <title>图文同缩</title>
+  <desc>同一组合框中的图片和文字，配合右下角的双向箭头，表示图文同步缩放。</desc>
+  <g stroke="#1296db" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <!-- 组合边界留出右下角，容纳缩放箭头。 -->
+    <path d="M29 16V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v22a2 2 0 0 0 2 2h11" fill="none"/>
+    <!-- 图片内容和文字均使用路径，避免依赖本机字体。 -->
+    <rect x="7" y="7" width="13" height="10" rx="1" fill="none" stroke-width="1.5"/>
+    <circle cx="10.5" cy="10.5" r="1.2" fill="#1296db" stroke="none"/>
+    <path d="M8 16l3.5-3.5 2.5 2 3-3 2 2.5v2z" fill="#d6effa" stroke="none"/>
+    <path d="M8 16l3.5-3.5 2.5 2 3-3 2 2.5" fill="none" stroke-width="1.5"/>
+    <path d="M7 25l3-6 3 6M8 23h4" fill="none"/>
+    <!-- 双向对角箭头表示组合内的图文同步放大和缩小。 -->
+    <path d="M20 20l9 9M20 25v-5h5M24 29h5v-5" fill="none"/>
+  </g>
+</svg>
