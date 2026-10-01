@@ -72,6 +72,38 @@ namespace SlideSCI
             return corners;
         }
 
+        /// <summary>用分离轴判断两个旋转矩形是否有面积重叠，边界相接不算有效取图。</summary>
+        public static bool HasOverlap(RectangleF first, float firstRotation, RectangleF second, float secondRotation)
+        {
+            if (first.Width <= 0 || first.Height <= 0 || second.Width <= 0 || second.Height <= 0) return false;
+            PointF[] a = GetCorners(first, firstRotation), b = GetCorners(second, secondRotation);
+            foreach (PointF[] corners in new[] { a, b })
+            {
+                for (int i = 0; i < 2; i++)
+                {
+                    float axisX = -(corners[i + 1].Y - corners[i].Y);
+                    float axisY = corners[i + 1].X - corners[i].X;
+                    float length = (float)Math.Sqrt(axisX * axisX + axisY * axisY);
+                    if (length <= 0) return false;
+                    axisX /= length;
+                    axisY /= length;
+                    float aMin = float.MaxValue, aMax = float.MinValue;
+                    float bMin = float.MaxValue, bMax = float.MinValue;
+                    for (int j = 0; j < 4; j++)
+                    {
+                        float aProjection = a[j].X * axisX + a[j].Y * axisY;
+                        float bProjection = b[j].X * axisX + b[j].Y * axisY;
+                        aMin = Math.Min(aMin, aProjection);
+                        aMax = Math.Max(aMax, aProjection);
+                        bMin = Math.Min(bMin, bProjection);
+                        bMax = Math.Max(bMax, bProjection);
+                    }
+                    if (Math.Min(aMax, bMax) - Math.Max(aMin, bMin) <= 0.0001f) return false;
+                }
+            }
+            return true;
+        }
+
         // 两条辅助线的端点：起点一、终点一、起点二、终点二。
         public static PointF[] GetGuideEndpoints(PointF[] region, PointF[] zoom, ZoomImagePlacement placement)
         {

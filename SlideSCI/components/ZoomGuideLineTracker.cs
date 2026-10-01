@@ -12,7 +12,7 @@ namespace SlideSCI
 {
     /// <summary>
     /// 通过形状标签保存放大图的关联。PowerPoint 没有通用的形状位置变更事件，
-    /// 因此在 UI 线程定期检查当前页，先让放大矩形跟随原图，再更新辅助线。
+    /// 因此在 UI 线程定期检查当前页，让矩形跟随原图、重新取图并更新辅助线。
     /// </summary>
     internal sealed class ZoomGuideLineTracker : IDisposable
     {
@@ -102,21 +102,8 @@ namespace SlideSCI
                 if (group.Ambiguous || group.HasGroupedShapes || group.Picture == null ||
                     group.Picture.Id != picture.Id || group.Marker == null || group.Zoom == null) continue;
                 PowerPoint.Shape marker = group.Marker, zoom = group.Zoom;
-                RectangleF markerBounds = new RectangleF(marker.Left, marker.Top, marker.Width, marker.Height);
-                RectangleF region = ZoomImageGeometry.GetRelativeRegion(source, picture.Rotation, markerBounds);
-                Office.MsoLineDashStyle dash = marker.Line.DashStyle;
-                if (dash == Office.MsoLineDashStyle.msoLineDashStyleMixed) dash = Office.MsoLineDashStyle.msoLineSolid;
                 ZoomImageSelection saved = group.ZoomSettings;
-                bool useColor = saved?.UseRectangleColorForZoomImage ??
-                    (zoom.Line.Visible == Office.MsoTriState.msoTrue && zoom.Line.ForeColor.RGB == marker.Line.ForeColor.RGB);
-                ZoomImagePlacement placement = saved?.Placement ?? (group.Guides.Count > 0
-                    ? group.Guides[0].InitialPlacement : ZoomImageGeometry.GetRelativePlacement(source,
-                        new RectangleF(zoom.Left, zoom.Top, zoom.Width, zoom.Height), ZoomImagePlacement.Right));
-                var options = new ZoomImageSelection(region, ColorTranslator.FromOle(marker.Line.ForeColor.RGB),
-                    Math.Max(0.01f, marker.Line.Weight), ZoomImageGeometry.GetDrawingDashStyle(dash),
-                    useColor, saved?.AddGuideLines ?? group.Guides.Count > 0, placement,
-                    marker.Rotation - picture.Rotation, false, dash,
-                    saved?.GuideLineExtent ?? (group.Guides.Count > 0 ? group.Guides[0].Extent : ZoomGuideLineExtent.AcrossImages));
+                ZoomImageSelection options = ReadCurrentOptions(picture, marker, zoom, group.Guides, saved);
                 var zoomRegion = new RectangleF((zoom.Left - picture.Left) / picture.Width,
                     (zoom.Top - picture.Top) / picture.Height, zoom.Width / picture.Width, zoom.Height / picture.Height);
                 string name = group.DisplayName;
@@ -134,6 +121,67 @@ namespace SlideSCI
             }
             result.Sort((first, second) => first.Entry.DisplayOrder.CompareTo(second.Entry.DisplayOrder));
             return result;
+        }
+
+        private static ZoomImageSelection ReadCurrentOptions(PowerPoint.Shape picture, PowerPoint.Shape marker,
+            PowerPoint.Shape zoom, IList<Guide> guides, ZoomImageSelection saved)
+        {
+            var source = new RectangleF(picture.Left, picture.Top, picture.Width, picture.Height);
+            var markerBounds = new RectangleF(marker.Left, marker.Top, marker.Width, marker.Height);
+            RectangleF region = ZoomImageGeometry.GetRelativeRegion(source, picture.Rotation, markerBounds);
+            Office.MsoLineDashStyle dash = marker.Line.DashStyle;
+            if (dash == Office.MsoLineDashStyle.msoLineDashStyleMixed) dash = Office.MsoLineDashStyle.msoLineSolid;
+            bool useColor = saved?.UseRectangleColorForZoomImage ??
+                (zoom.Line.Visible == Office.MsoTriState.msoTrue && zoom.Line.ForeColor.RGB == marker.Line.ForeColor.RGB);
+            ZoomImagePlacement placement = saved?.Placement ?? (guides.Count > 0
+                ? guides[0].InitialPlacement : ZoomImageGeometry.GetRelativePlacement(source,
+                    new RectangleF(zoom.Left, zoom.Top, zoom.Width, zoom.Height), ZoomImagePlacement.Right));
+            return new ZoomImageSelection(region, ColorTranslator.FromOle(marker.Line.ForeColor.RGB),
+                Math.Max(0.01f, marker.Line.Weight), ZoomImageGeometry.GetDrawingDashStyle(dash),
+                useColor, saved?.AddGuideLines ?? guides.Count > 0, placement,
+                marker.Rotation - picture.Rotation, false, dash,
+                saved?.GuideLineExtent ?? (guides.Count > 0 ? guides[0].Extent : ZoomGuideLineExtent.AcrossImages));
+        }
+
+        /// <summary>直接对副本求交，不切换用户选区；生成失败只清理本次创建的对象。</summary>
+        internal static PowerPoint.Shape CreateCrop(PowerPoint.Slide slide, PowerPoint.Shape picture,
+            PowerPoint.Shape marker)
+        {
+            var before = new HashSet<int>(slide.Shapes.Cast<PowerPoint.Shape>().Select(shape => shape.Id));
+            bool completed = false;
+            try
+            {
+                PowerPoint.Shape pictureCopy = picture.Duplicate()[1];
+                RemoveCopiedLinks(pictureCopy);
+                pictureCopy.Left = picture.Left;
+                pictureCopy.Top = picture.Top;
+                PowerPoint.Shape mask = marker.Duplicate()[1];
+                RemoveCopiedLinks(mask);
+                mask.Left = marker.Left;
+                mask.Top = marker.Top;
+                // ZOrderPosition 也是 Shapes 集合中的索引，避免形状重名导致取错对象。
+                slide.Shapes.Range(new object[] { pictureCopy.ZOrderPosition, mask.ZOrderPosition })
+                    .MergeShapes(Office.MsoMergeCmd.msoMergeIntersect, pictureCopy);
+                PowerPoint.Shape[] created = slide.Shapes.Cast<PowerPoint.Shape>()
+                    .Where(shape => !before.Contains(shape.Id)).ToArray();
+                if (created.Length != 1 || created[0].Width <= 0 || created[0].Height <= 0)
+                    throw new InvalidOperationException("放大矩形与原图没有有效的图片相交区域。");
+                RemoveCopiedLinks(created[0]);
+                completed = true;
+                return created[0];
+            }
+            finally
+            {
+                if (!completed)
+                {
+                    foreach (PowerPoint.Shape shape in slide.Shapes.Cast<PowerPoint.Shape>()
+                        .Where(shape => !before.Contains(shape.Id)).ToArray())
+                    {
+                        try { shape.Delete(); }
+                        catch (Exception ex) { Debug.WriteLine($"清理放大图取图副本失败: {ex.Message}"); }
+                    }
+                }
+            }
         }
 
         public static void RemoveLink(string key, PowerPoint.Shape picture, PowerPoint.Shape marker,
@@ -199,7 +247,11 @@ namespace SlideSCI
                     cachedShapeCount = slide.Shapes.Count;
                     nextDiscovery = DateTime.UtcNow.AddSeconds(2);
                 }
-                foreach (TrackedGroup group in groups) UpdateGroup(group);
+                // 文字编辑和组合内选择期间不替换对象，避免打断正在进行的编辑。
+                PowerPoint.Selection selection = window.Selection;
+                bool canRefreshImage = selection.Type != PowerPoint.PpSelectionType.ppSelectionText &&
+                    !(selection.Type == PowerPoint.PpSelectionType.ppSelectionShapes && selection.HasChildShapeRange);
+                foreach (TrackedGroup group in groups) UpdateGroup(group, slide, canRefreshImage);
                 lastError = null;
             }
             catch (Exception ex)
@@ -208,7 +260,7 @@ namespace SlideSCI
                 InvalidateCache();
                 if (lastError != ex.Message)
                 {
-                    Debug.WriteLine($"更新放大图辅助线失败: {ex.Message}");
+                    Debug.WriteLine($"自动更新放大图失败: {ex.Message}");
                     lastError = ex.Message;
                 }
             }
@@ -266,6 +318,7 @@ namespace SlideSCI
                 {
                     group.LastState = old.LastState;
                     group.PendingMarkerUpdate = old.PendingMarkerUpdate;
+                    group.NextCropAttempt = old.NextCropAttempt;
                 }
                 updated.Add(group);
             }
@@ -295,10 +348,12 @@ namespace SlideSCI
             }
         }
 
-        private static void UpdateGroup(TrackedGroup group)
+        private void UpdateGroup(TrackedGroup group, PowerPoint.Slide slide, bool canRefreshImage)
         {
             var state = new GeometryState(group.Picture, group.Marker, group.Zoom);
             state = SynchronizeMarker(group, state);
+            // 独立于辅助线和几何缓存检查取图区域，关闭辅助线或上次取图失败也能更新。
+            if (canRefreshImage) state = RefreshZoomImage(group, slide, state);
             if (group.LastState != null && state.EqualsGeometry(group.LastState)) return;
             if (group.Guides.Count == 0)
             {
@@ -324,6 +379,97 @@ namespace SlideSCI
             }
             // 全部完成才记下状态；COM 操作中断时，下次可重试未完成的部分。
             group.LastState = state;
+        }
+
+        private GeometryState RefreshZoomImage(TrackedGroup group, PowerPoint.Slide slide, GeometryState state)
+        {
+            RectangleF region = ZoomImageGeometry.GetRelativeRegion(state.PictureBounds,
+                state.PictureRotation, state.MarkerBounds);
+            ZoomImageSelection current = ZoomImageEntry.WithRegion(group.ZoomSettings, region,
+                state.MarkerRotation - state.PictureRotation, false);
+            if (ZoomImageSettingsCodec.SameCrop(group.ZoomSettings, current) ||
+                DateTime.UtcNow < group.NextCropAttempt ||
+                !ZoomImageGeometry.HasOverlap(state.PictureBounds, state.PictureRotation,
+                    state.MarkerBounds, state.MarkerRotation)) return state;
+
+            PowerPoint.Shape oldZoom = group.Zoom;
+            PowerPoint.Shape replacement = null;
+            bool committed = false;
+            try
+            {
+                current = ReadCurrentOptions(group.Picture, group.Marker, group.Zoom, group.Guides, group.ZoomSettings);
+                PowerPoint.Selection selection = application.ActiveWindow.Selection;
+                PowerPoint.Shape[] selected = selection.Type == PowerPoint.PpSelectionType.ppSelectionShapes
+                    ? selection.ShapeRange.Cast<PowerPoint.Shape>().ToArray() : new PowerPoint.Shape[0];
+                int oldId = oldZoom.Id;
+                bool[] selectedZoom = selected.Select(shape => shape.Id == oldId).ToArray();
+                bool restoreSelection = selectedZoom.Any(isZoom => isZoom);
+
+                replacement = CreateCrop(slide, group.Picture, group.Marker);
+                RectangleF bounds = state.ZoomBounds;
+                // 保留原有位置及主要尺寸；宽高比随新区域变化，避免把新取图拉伸变形。
+                if (current.Placement == ZoomImagePlacement.Left || current.Placement == ZoomImagePlacement.Right)
+                    bounds.Width = bounds.Height * replacement.Width / replacement.Height;
+                else bounds.Height = bounds.Width * replacement.Height / replacement.Width;
+                SetMarkerBounds(replacement, bounds, state.ZoomRotation);
+                replacement.LockAspectRatio = oldZoom.LockAspectRatio;
+                replacement.Name = oldZoom.Name;
+                replacement.AlternativeText = oldZoom.AlternativeText;
+                replacement.Title = oldZoom.Title;
+                replacement.Visible = oldZoom.Visible;
+                CopyZoomOutline(oldZoom, replacement);
+                for (int i = 1; i <= oldZoom.Tags.Count; i++)
+                    replacement.Tags.Add(oldZoom.Tags.Name(i), oldZoom.Tags.Value(i));
+                replacement.Tags.Add(group.Key, ZoomImageSettingsCodec.Serialize(current, group.DisplayName));
+                // 放到旧图正上方，删除旧图后即占据旧图的层级。
+                int targetPosition = oldZoom.ZOrderPosition + 1;
+                while (replacement.ZOrderPosition > targetPosition)
+                    replacement.ZOrder(Office.MsoZOrderCmd.msoSendBackward);
+                int replacementId = replacement.Id;
+
+                // 新取图与元数据均完成后才删除旧图；此前任何失败都保留原有放大图。
+                oldZoom.Delete();
+                group.ReplaceZoom(replacement, replacementId, current);
+                committed = true;
+                if (restoreSelection)
+                {
+                    try
+                    {
+                        for (int i = 0; i < selected.Length; i++)
+                        {
+                            PowerPoint.Shape shape = selectedZoom[i] ? replacement : selected[i];
+                            shape.Select(i == 0 ? Office.MsoTriState.msoTrue : Office.MsoTriState.msoFalse);
+                        }
+                    }
+                    catch (Exception ex) { Debug.WriteLine($"恢复放大图选区失败: {ex.Message}"); }
+                }
+                return new GeometryState(group.Picture, group.Marker, group.Zoom);
+            }
+            catch
+            {
+                // Office 暂时繁忙时稍后重试，避免每个计时周期都生成副本。
+                group.NextCropAttempt = DateTime.UtcNow.AddSeconds(1);
+                throw;
+            }
+            finally
+            {
+                if (!committed && replacement != null)
+                {
+                    try { replacement.Delete(); }
+                    catch (Exception ex) { Debug.WriteLine($"清理未完成的放大图失败: {ex.Message}"); }
+                }
+            }
+        }
+
+        private static void CopyZoomOutline(PowerPoint.Shape source, PowerPoint.Shape target)
+        {
+            target.Line.ForeColor.RGB = source.Line.ForeColor.RGB;
+            target.Line.BackColor.RGB = source.Line.BackColor.RGB;
+            target.Line.Weight = source.Line.Weight;
+            target.Line.Transparency = source.Line.Transparency;
+            target.Line.DashStyle = source.Line.DashStyle;
+            target.Line.Style = source.Line.Style;
+            target.Line.Visible = source.Line.Visible;
         }
 
         private static GeometryState SynchronizeMarker(TrackedGroup group, GeometryState state)
@@ -508,14 +654,17 @@ namespace SlideSCI
             public string Key { get; }
             public PowerPoint.Shape Picture { get; }
             public PowerPoint.Shape Marker { get; }
-            public PowerPoint.Shape Zoom { get; }
+            public PowerPoint.Shape Zoom { get; private set; }
             private readonly int pictureId;
             private readonly int markerId;
-            private readonly int zoomId;
+            private int zoomId;
             public List<Guide> Guides { get; }
             public GeometryState LastState { get; set; }
             public MarkerAnchor Anchor { get; set; }
             public bool PendingMarkerUpdate { get; set; }
+            public ZoomImageSelection ZoomSettings { get; private set; }
+            public string DisplayName { get; }
+            public DateTime NextCropAttempt { get; set; }
 
             public TrackedGroup(string key, GroupBuilder builder)
             {
@@ -528,6 +677,24 @@ namespace SlideSCI
                 zoomId = Zoom?.Id ?? 0;
                 Guides = builder.Guides;
                 Anchor = builder.Anchor;
+                DisplayName = builder.DisplayName;
+                ZoomSettings = builder.ZoomSettings;
+                if (ZoomSettings == null || ZoomSettings.Region.Width <= 0 || ZoomSettings.Region.Height <= 0)
+                {
+                    // 旧版没有保存取图区域时，用原有矩形基准初始化，随后也能自动取图。
+                    ZoomSettings = ReadCurrentOptions(Picture, Marker, Zoom, Guides, ZoomSettings);
+                    if (Anchor != null)
+                        ZoomSettings = ZoomImageEntry.WithRegion(ZoomSettings, Anchor.Region, Anchor.RotationOffset, false);
+                    Zoom.Tags.Add(Key, ZoomImageSettingsCodec.Serialize(ZoomSettings, DisplayName));
+                }
+            }
+
+            public void ReplaceZoom(PowerPoint.Shape zoom, int id, ZoomImageSelection settings)
+            {
+                Zoom = zoom;
+                zoomId = id;
+                ZoomSettings = settings;
+                NextCropAttempt = DateTime.MinValue;
             }
 
             public bool HasSameShapes(TrackedGroup other)
