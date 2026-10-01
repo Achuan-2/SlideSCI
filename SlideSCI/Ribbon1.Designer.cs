@@ -113,6 +113,7 @@ namespace SlideSCI
             this.labelIndexSpinnerBox = this.Factory.CreateRibbonBox();
             this.labelIndex = this.Factory.CreateRibbonEditBox();
             this.labelIndexUpdatecheckBox = this.Factory.CreateRibbonCheckBox();
+            this.排列 = this.Factory.CreateRibbonGroup();
             this.exportGroup = this.Factory.CreateRibbonGroup();
             this.group3 = this.Factory.CreateRibbonGroup();
             this.shapeLibraryGroup = this.Factory.CreateRibbonGroup();
@@ -126,7 +127,6 @@ namespace SlideSCI
             this.separatorRelativePosition = this.Factory.CreateRibbonSeparator();
             this.separator3 = this.Factory.CreateRibbonSeparator();
             this.separator4 = this.Factory.CreateRibbonSeparator();
-            this.排列 = this.Factory.CreateRibbonGroup();
             this.codeGroup = this.Factory.CreateRibbonGroup();
             this.toggleBackgroundCheckBox = this.Factory.CreateRibbonCheckBox();
             this.group2 = this.Factory.CreateRibbonGroup();
@@ -139,6 +139,13 @@ namespace SlideSCI
             this.labelSettingsButton = this.Factory.CreateRibbonButton();
             this.labelIndexDecreaseButton = this.Factory.CreateRibbonButton();
             this.labelIndexIncreaseButton = this.Factory.CreateRibbonButton();
+            this.alignLeft = this.Factory.CreateRibbonButton();
+            this.alignHorizontalCenter = this.Factory.CreateRibbonButton();
+            this.alignRight = this.Factory.CreateRibbonButton();
+            this.alignTop = this.Factory.CreateRibbonButton();
+            this.alignVerticalCenter = this.Factory.CreateRibbonButton();
+            this.alignBottom = this.Factory.CreateRibbonButton();
+            this.setSpacingButton = this.Factory.CreateRibbonButton();
             this.exportImageButton = this.Factory.CreateRibbonButton();
             this.导出原图 = this.Factory.CreateRibbonButton();
             this.复制大图 = this.Factory.CreateRibbonButton();
@@ -199,13 +206,6 @@ namespace SlideSCI
             this.pasteImgHeight = this.Factory.CreateRibbonButton();
             this.copyCrop = this.Factory.CreateRibbonButton();
             this.pasteCrop = this.Factory.CreateRibbonButton();
-            this.alignLeft = this.Factory.CreateRibbonButton();
-            this.alignHorizontalCenter = this.Factory.CreateRibbonButton();
-            this.alignRight = this.Factory.CreateRibbonButton();
-            this.alignTop = this.Factory.CreateRibbonButton();
-            this.alignVerticalCenter = this.Factory.CreateRibbonButton();
-            this.alignBottom = this.Factory.CreateRibbonButton();
-            this.setSpacingButton = this.Factory.CreateRibbonButton();
             this.button2 = this.Factory.CreateRibbonButton();
             this.textboxToRichText = this.Factory.CreateRibbonButton();
             this.insertEquationButton = this.Factory.CreateRibbonButton();
@@ -219,12 +219,12 @@ namespace SlideSCI
             this.图片处理.SuspendLayout();
             this.group1.SuspendLayout();
             this.labelIndexSpinnerBox.SuspendLayout();
+            this.排列.SuspendLayout();
             this.exportGroup.SuspendLayout();
             this.group3.SuspendLayout();
             this.shapeLibraryGroup.SuspendLayout();
             this.tab1.SuspendLayout();
             this.复制图片格式.SuspendLayout();
-            this.排列.SuspendLayout();
             this.codeGroup.SuspendLayout();
             this.group2.SuspendLayout();
             this.SuspendLayout();
@@ -234,6 +234,7 @@ namespace SlideSCI
             this.tab2.Groups.Add(this.图片自动对齐);
             this.tab2.Groups.Add(this.图片处理);
             this.tab2.Groups.Add(this.group1);
+            this.tab2.Groups.Add(this.排列);
             this.tab2.Groups.Add(this.exportGroup);
             this.tab2.Groups.Add(this.group3);
             this.tab2.Groups.Add(this.shapeLibraryGroup);
@@ -251,7 +252,7 @@ namespace SlideSCI
             this.图片自动对齐.Items.Add(this.imgAutoAlign_rowSpace);
             this.图片自动对齐.Items.Add(this.imgWidthEditBpx);
             this.图片自动对齐.Items.Add(this.imgHeightEditBox);
-            this.图片自动对齐.Label = "图片自动排列";
+            this.图片自动对齐.Label = "图片一键排列";
             this.图片自动对齐.Name = "图片自动对齐";
             // 
             // imgAutoAlignSortTypeDropDown
@@ -475,6 +476,18 @@ namespace SlideSCI
             this.labelIndexUpdatecheckBox.Label = "编号自动更新";
             this.labelIndexUpdatecheckBox.Name = "labelIndexUpdatecheckBox";
             // 
+            // 排列
+            // 
+            this.排列.Items.Add(this.alignLeft);
+            this.排列.Items.Add(this.alignHorizontalCenter);
+            this.排列.Items.Add(this.alignRight);
+            this.排列.Items.Add(this.alignTop);
+            this.排列.Items.Add(this.alignVerticalCenter);
+            this.排列.Items.Add(this.alignBottom);
+            this.排列.Items.Add(this.setSpacingButton);
+            this.排列.Label = "排列增强";
+            this.排列.Name = "排列";
+            // 
             // exportGroup
             // 
             this.exportGroup.Items.Add(this.exportImageButton);
@@ -485,6 +498,7 @@ namespace SlideSCI
             // 
             // group3
             // 
+            this.group3.Items.Add(this.btnShapeLibrary);
             this.group3.Items.Add(this.createZoomImageButton);
             this.group3.Items.Add(this.button1);
             this.group3.Items.Add(this.selectAllTextBoxesButton);
@@ -493,15 +507,13 @@ namespace SlideSCI
             // 
             // shapeLibraryGroup
             // 
-            this.shapeLibraryGroup.Items.Add(this.btnShapeLibrary);
             this.shapeLibraryGroup.Items.Add(this.btnAISidebar);
-            this.shapeLibraryGroup.Label = "侧边栏";
+            this.shapeLibraryGroup.Label = "AI功能";
             this.shapeLibraryGroup.Name = "shapeLibraryGroup";
             // 
             // tab1
             // 
             this.tab1.Groups.Add(this.复制图片格式);
-            this.tab1.Groups.Add(this.排列);
             this.tab1.Groups.Add(this.codeGroup);
             this.tab1.Groups.Add(this.group2);
             this.tab1.Label = "SlideSCI(2)";
@@ -577,18 +589,6 @@ namespace SlideSCI
             // separator4
             // 
             this.separator4.Name = "separator4";
-            // 
-            // 排列
-            // 
-            this.排列.Items.Add(this.alignLeft);
-            this.排列.Items.Add(this.alignHorizontalCenter);
-            this.排列.Items.Add(this.alignRight);
-            this.排列.Items.Add(this.alignTop);
-            this.排列.Items.Add(this.alignVerticalCenter);
-            this.排列.Items.Add(this.alignBottom);
-            this.排列.Items.Add(this.setSpacingButton);
-            this.排列.Label = "排列";
-            this.排列.Name = "排列";
             // 
             // codeGroup
             // 
@@ -695,6 +695,76 @@ namespace SlideSCI
             this.labelIndexIncreaseButton.Name = "labelIndexIncreaseButton";
             this.labelIndexIncreaseButton.ScreenTip = "编号加 1";
             this.labelIndexIncreaseButton.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.labelIndexIncreaseButton_Click);
+            // 
+            // alignLeft
+            // 
+            this.alignLeft.Label = "左对齐";
+            this.alignLeft.Name = "alignLeft";
+            this.alignLeft.OfficeImageId = "ObjectsAlignLeftSmart";
+            this.alignLeft.ScreenTip = "以第一个选中的对象为基准左对齐";
+            this.alignLeft.ShowImage = true;
+            this.alignLeft.SuperTip = "选中多个对象时，第一个选中的对象保持不动，其余对象的左边缘与它对齐。仅选中一个对象时，将其左边缘对齐到幻灯片左边缘。";
+            this.alignLeft.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.alignLeft_Click);
+            // 
+            // alignHorizontalCenter
+            // 
+            this.alignHorizontalCenter.Label = "水平居中";
+            this.alignHorizontalCenter.Name = "alignHorizontalCenter";
+            this.alignHorizontalCenter.OfficeImageId = "ObjectsAlignCenterHorizontal";
+            this.alignHorizontalCenter.ScreenTip = "以第一个选中的对象为基准水平居中";
+            this.alignHorizontalCenter.ShowImage = true;
+            this.alignHorizontalCenter.SuperTip = "选中多个对象时，第一个选中的对象保持不动，其余对象的水平中心与它对齐。仅选中一个对象时，将其水平居中于幻灯片。";
+            this.alignHorizontalCenter.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.alignHorizontalCenter_Click);
+            // 
+            // alignRight
+            // 
+            this.alignRight.Label = "右对齐";
+            this.alignRight.Name = "alignRight";
+            this.alignRight.OfficeImageId = "ObjectsAlignRightSmart";
+            this.alignRight.ScreenTip = "以第一个选中的对象为基准右对齐";
+            this.alignRight.ShowImage = true;
+            this.alignRight.SuperTip = "选中多个对象时，第一个选中的对象保持不动，其余对象的右边缘与它对齐。仅选中一个对象时，将其右边缘对齐到幻灯片右边缘。";
+            this.alignRight.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.alignRight_Click);
+            // 
+            // alignTop
+            // 
+            this.alignTop.Label = "顶端对齐";
+            this.alignTop.Name = "alignTop";
+            this.alignTop.OfficeImageId = "ObjectsAlignTopSmart";
+            this.alignTop.ScreenTip = "以第一个选中的对象为基准顶端对齐";
+            this.alignTop.ShowImage = true;
+            this.alignTop.SuperTip = "选中多个对象时，第一个选中的对象保持不动，其余对象的上边缘与它对齐。仅选中一个对象时，将其上边缘对齐到幻灯片上边缘。";
+            this.alignTop.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.alignTop_Click);
+            // 
+            // alignVerticalCenter
+            // 
+            this.alignVerticalCenter.Label = "垂直居中";
+            this.alignVerticalCenter.Name = "alignVerticalCenter";
+            this.alignVerticalCenter.OfficeImageId = "ObjectsAlignMiddleVertical";
+            this.alignVerticalCenter.ScreenTip = "以第一个选中的对象为基准垂直居中";
+            this.alignVerticalCenter.ShowImage = true;
+            this.alignVerticalCenter.SuperTip = "选中多个对象时，第一个选中的对象保持不动，其余对象的垂直中心与它对齐。仅选中一个对象时，将其垂直居中于幻灯片。";
+            this.alignVerticalCenter.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.alignVerticalCenter_Click);
+            // 
+            // alignBottom
+            // 
+            this.alignBottom.Label = "底端对齐";
+            this.alignBottom.Name = "alignBottom";
+            this.alignBottom.OfficeImageId = "ObjectsAlignBottomSmart";
+            this.alignBottom.ScreenTip = "以第一个选中的对象为基准底端对齐";
+            this.alignBottom.ShowImage = true;
+            this.alignBottom.SuperTip = "选中多个对象时，第一个选中的对象保持不动，其余对象的下边缘与它对齐。仅选中一个对象时，将其下边缘对齐到幻灯片下边缘。";
+            this.alignBottom.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.alignBottom_Click);
+            // 
+            // setSpacingButton
+            // 
+            this.setSpacingButton.Label = "设置间距";
+            this.setSpacingButton.Name = "setSpacingButton";
+            this.setSpacingButton.OfficeImageId = "AlignDistributeHorizontally";
+            this.setSpacingButton.ScreenTip = "以第一个选中的对象为基准设置间距";
+            this.setSpacingButton.ShowImage = true;
+            this.setSpacingButton.SuperTip = "选中至少两个对象后，打开间距设置窗口。调整水平或垂直间距时，第一个选中的对象保持不动，其余对象按位置顺序排列。窗口内的均匀分布功能保持两端对象的位置。";
+            this.setSpacingButton.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.setSpacingButton_Click);
             // 
             // exportImageButton
             // 
@@ -1212,62 +1282,6 @@ namespace SlideSCI
             this.pasteCrop.SuperTip = "将复制的裁剪区域参数应用到选中的其他图片上，实现统一的裁剪比例和位置。";
             this.pasteCrop.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.pasteCrop_Click);
             // 
-            // alignLeft
-            // 
-            this.alignLeft.Label = "左对齐";
-            this.alignLeft.Name = "alignLeft";
-            this.alignLeft.OfficeImageId = "ObjectsAlignLeftSmart";
-            this.alignLeft.ShowImage = true;
-            this.alignLeft.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.alignLeft_Click);
-            // 
-            // alignHorizontalCenter
-            // 
-            this.alignHorizontalCenter.Label = "水平居中";
-            this.alignHorizontalCenter.Name = "alignHorizontalCenter";
-            this.alignHorizontalCenter.OfficeImageId = "ObjectsAlignCenterHorizontal";
-            this.alignHorizontalCenter.ShowImage = true;
-            this.alignHorizontalCenter.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.alignHorizontalCenter_Click);
-            // 
-            // alignRight
-            // 
-            this.alignRight.Label = "右对齐";
-            this.alignRight.Name = "alignRight";
-            this.alignRight.OfficeImageId = "ObjectsAlignRightSmart";
-            this.alignRight.ShowImage = true;
-            this.alignRight.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.alignRight_Click);
-            // 
-            // alignTop
-            // 
-            this.alignTop.Label = "顶端对齐";
-            this.alignTop.Name = "alignTop";
-            this.alignTop.OfficeImageId = "ObjectsAlignTopSmart";
-            this.alignTop.ShowImage = true;
-            this.alignTop.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.alignTop_Click);
-            // 
-            // alignVerticalCenter
-            // 
-            this.alignVerticalCenter.Label = "垂直居中";
-            this.alignVerticalCenter.Name = "alignVerticalCenter";
-            this.alignVerticalCenter.OfficeImageId = "ObjectsAlignMiddleVertical";
-            this.alignVerticalCenter.ShowImage = true;
-            this.alignVerticalCenter.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.alignVerticalCenter_Click);
-            // 
-            // alignBottom
-            // 
-            this.alignBottom.Label = "底端对齐";
-            this.alignBottom.Name = "alignBottom";
-            this.alignBottom.OfficeImageId = "ObjectsAlignBottomSmart";
-            this.alignBottom.ShowImage = true;
-            this.alignBottom.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.alignBottom_Click);
-            // 
-            // setSpacingButton
-            // 
-            this.setSpacingButton.Label = "设置间距";
-            this.setSpacingButton.Name = "setSpacingButton";
-            this.setSpacingButton.OfficeImageId = "AlignDistributeHorizontally";
-            this.setSpacingButton.ShowImage = true;
-            this.setSpacingButton.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.setSpacingButton_Click);
-            // 
             // button2
             // 
             this.button2.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
@@ -1351,6 +1365,8 @@ namespace SlideSCI
             this.group1.PerformLayout();
             this.labelIndexSpinnerBox.ResumeLayout(false);
             this.labelIndexSpinnerBox.PerformLayout();
+            this.排列.ResumeLayout(false);
+            this.排列.PerformLayout();
             this.exportGroup.ResumeLayout(false);
             this.exportGroup.PerformLayout();
             this.group3.ResumeLayout(false);
@@ -1361,8 +1377,6 @@ namespace SlideSCI
             this.tab1.PerformLayout();
             this.复制图片格式.ResumeLayout(false);
             this.复制图片格式.PerformLayout();
-            this.排列.ResumeLayout(false);
-            this.排列.PerformLayout();
             this.codeGroup.ResumeLayout(false);
             this.codeGroup.PerformLayout();
             this.group2.ResumeLayout(false);
@@ -1448,13 +1462,6 @@ namespace SlideSCI
         internal Microsoft.Office.Tools.Ribbon.RibbonButton swapPosBottomLeft;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton swapPosBottomCenter;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton swapPosBottomRight;
-        internal Microsoft.Office.Tools.Ribbon.RibbonButton alignLeft;
-        internal Microsoft.Office.Tools.Ribbon.RibbonButton alignHorizontalCenter;
-        internal Microsoft.Office.Tools.Ribbon.RibbonButton alignRight;
-        internal Microsoft.Office.Tools.Ribbon.RibbonButton alignTop;
-        internal Microsoft.Office.Tools.Ribbon.RibbonButton alignVerticalCenter;
-        internal Microsoft.Office.Tools.Ribbon.RibbonButton alignBottom;
-        internal Microsoft.Office.Tools.Ribbon.RibbonButton setSpacingButton;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton copyImgWidth;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton pasteImgWidth;
         internal Microsoft.Office.Tools.Ribbon.RibbonSeparator separator3;
@@ -1489,6 +1496,13 @@ namespace SlideSCI
         internal Microsoft.Office.Tools.Ribbon.RibbonButton btnShapeLibrary;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton btnAISidebar;
         internal Microsoft.Office.Tools.Ribbon.RibbonGroup 排列;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton alignHorizontalCenter;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton alignRight;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton alignLeft;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton alignTop;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton alignVerticalCenter;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton alignBottom;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton setSpacingButton;
     }
 
     partial class ThisRibbonCollection

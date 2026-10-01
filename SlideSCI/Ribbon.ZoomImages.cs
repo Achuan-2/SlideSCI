@@ -7,14 +7,13 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Microsoft.Office.Interop.PowerPoint;
-using Microsoft.Office.Tools.Ribbon;
 using Office = Microsoft.Office.Core;
 
 namespace SlideSCI
 {
     public partial class Ribbon1
     {
-        private void createZoomImageButton_Click(object sender, RibbonControlEventArgs e)
+        private void CreateZoomImage()
         {
             try
             {

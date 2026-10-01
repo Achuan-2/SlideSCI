@@ -6372,7 +6372,7 @@ namespace SlideSCI
 
         private void createZoomImageButton_Click(object sender, RibbonControlEventArgs e)
         {
-
+            CreateZoomImage();
         }
     }
 }
