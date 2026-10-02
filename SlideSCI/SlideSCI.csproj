@@ -217,6 +217,11 @@
     <Compile Include="Ribbon.ZoomImages.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Ribbon.PictureSources.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="components\PictureSourceInsertion.cs" />
+    <Compile Include="components\PicturePasteRibbon.cs" />
     <Compile Include="components\ZoomImageGeometry.cs" />
     <Compile Include="components\ZoomGuideLineTracker.cs" />
     <Compile Include="components\ZoomRegionCanvas.cs">

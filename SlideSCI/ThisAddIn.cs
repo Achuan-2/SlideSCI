@@ -5,6 +5,13 @@ namespace SlideSCI
         public LatexToSvgConverter LatexSvgConverter { get; private set; }
         internal ZoomGuideLineTracker ZoomGuideLines { get; private set; }
 
+        protected override Microsoft.Office.Core.IRibbonExtensibility CreateRibbonExtensibilityObject()
+        {
+            var ribbon = Globals.Factory.GetRibbonFactory().CreateRibbonManager(
+                new Microsoft.Office.Tools.Ribbon.IRibbonExtension[] { new Ribbon1() });
+            return new PicturePasteRibbon(ribbon);
+        }
+
         public static bool AreWindowsEqual(Microsoft.Office.Interop.PowerPoint.DocumentWindow win1, Microsoft.Office.Interop.PowerPoint.DocumentWindow win2)
         {
             if (win1 == null || win2 == null) return win1 == win2;

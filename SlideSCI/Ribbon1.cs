@@ -167,6 +167,7 @@ namespace SlideSCI
         private void Ribbon1_Load(object sender, RibbonUIEventArgs e)
         {
             app = Globals.ThisAddIn.Application;
+            codeGroup.Visible = !IsWpsHost();
             app.WindowSelectionChange += App_WindowSelectionChange;
 
             iniCombobox();
@@ -202,6 +203,32 @@ namespace SlideSCI
 
             toggleBackgroundCheckBox.Click += SaveSettings;
             // exportImageButton.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.exportImageButton_Click); // Already set in Designer.cs
+        }
+
+        private bool IsWpsHost()
+        {
+            // WPS 的兼容接口可能返回 PowerPoint 名称，优先检查实际宿主进程。
+            using (var process = System.Diagnostics.Process.GetCurrentProcess())
+            {
+                if (string.Equals(process.ProcessName, "wpp", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(process.ProcessName, "wps", StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            try
+            {
+                string applicationName = app.Name ?? string.Empty;
+                return applicationName.IndexOf("WPS", StringComparison.OrdinalIgnoreCase) >= 0
+                    || applicationName.IndexOf("Kingsoft", StringComparison.OrdinalIgnoreCase) >= 0
+                    || applicationName.IndexOf("金山", StringComparison.OrdinalIgnoreCase) >= 0;
+            }
+            catch (COMException)
+            {
+                // 无法读取名称时保留原有显示，避免影响其他宿主。
+                return false;
+            }
         }
 
         /// <summary>

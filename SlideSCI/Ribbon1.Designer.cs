@@ -99,6 +99,9 @@ namespace SlideSCI
             Microsoft.Office.Tools.Ribbon.RibbonDropDownItem ribbonDropDownItemImpl63 = this.Factory.CreateRibbonDropDownItem();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Ribbon1));
             this.tab2 = this.Factory.CreateRibbonTab();
+            this.pictureSourcesGroup = this.Factory.CreateRibbonGroup();
+            this.insertPicturesWithSourceButton = this.Factory.CreateRibbonButton();
+            this.openPictureSourceLocationButton = this.Factory.CreateRibbonButton();
             this.图片自动对齐 = this.Factory.CreateRibbonGroup();
             this.imgAutoAlignSortTypeDropDown = this.Factory.CreateRibbonDropDown();
             this.imgAutoAlignAlignTypeDropDown = this.Factory.CreateRibbonDropDown();
@@ -214,6 +217,7 @@ namespace SlideSCI
             this.button4 = this.Factory.CreateRibbonButton();
             this.button5 = this.Factory.CreateRibbonButton();
             this.tab2.SuspendLayout();
+            this.pictureSourcesGroup.SuspendLayout();
             this.图片自动对齐.SuspendLayout();
             this.图片处理.SuspendLayout();
             this.group1.SuspendLayout();
@@ -229,6 +233,7 @@ namespace SlideSCI
             // 
             // tab2
             // 
+            this.tab2.Groups.Add(this.pictureSourcesGroup);
             this.tab2.Groups.Add(this.图片自动对齐);
             this.tab2.Groups.Add(this.图片处理);
             this.tab2.Groups.Add(this.group1);
@@ -237,6 +242,33 @@ namespace SlideSCI
             this.tab2.Groups.Add(this.group3);
             this.tab2.Label = "SlideSCI";
             this.tab2.Name = "tab2";
+            //
+            // pictureSourcesGroup
+            //
+            this.pictureSourcesGroup.Items.Add(this.insertPicturesWithSourceButton);
+            this.pictureSourcesGroup.Items.Add(this.openPictureSourceLocationButton);
+            this.pictureSourcesGroup.Label = "图片来源";
+            this.pictureSourcesGroup.Name = "pictureSourcesGroup";
+            //
+            // insertPicturesWithSourceButton
+            //
+            this.insertPicturesWithSourceButton.Label = "插入图片";
+            this.insertPicturesWithSourceButton.Name = "insertPicturesWithSourceButton";
+            this.insertPicturesWithSourceButton.OfficeImageId = "PictureInsertFromFile";
+            this.insertPicturesWithSourceButton.ShowImage = true;
+            this.insertPicturesWithSourceButton.ScreenTip = "插入图片";
+            this.insertPicturesWithSourceButton.SuperTip = "支持一次选择多张图片，完整文件路径会自动写入各图片的替代文字，并随 PPT 保存。从资源管理器复制图片文件后，在 PPT 普通视图的幻灯片中按 Ctrl+V 或使用普通“粘贴”，也会自动记录路径。选择窗格按原文件名显示图片，同页重名自动添加序号。";
+            this.insertPicturesWithSourceButton.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.InsertPicturesWithSource_Click);
+            //
+            // openPictureSourceLocationButton
+            //
+            this.openPictureSourceLocationButton.Label = "打开原图位置";
+            this.openPictureSourceLocationButton.Name = "openPictureSourceLocationButton";
+            this.openPictureSourceLocationButton.OfficeImageId = "FileOpen";
+            this.openPictureSourceLocationButton.ShowImage = true;
+            this.openPictureSourceLocationButton.ScreenTip = "在资源管理器中定位原图";
+            this.openPictureSourceLocationButton.SuperTip = "选中一张通过本插件记录了路径的图片，打开所在文件夹并选中原文件。组合中的图片请先单独选中。";
+            this.openPictureSourceLocationButton.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.OpenPictureSourceLocation_Click);
             // 
             // 图片自动对齐
             // 
@@ -1352,6 +1384,8 @@ namespace SlideSCI
             this.Load += new Microsoft.Office.Tools.Ribbon.RibbonUIEventHandler(this.Ribbon1_Load);
             this.tab2.ResumeLayout(false);
             this.tab2.PerformLayout();
+            this.pictureSourcesGroup.ResumeLayout(false);
+            this.pictureSourcesGroup.PerformLayout();
             this.图片自动对齐.ResumeLayout(false);
             this.图片自动对齐.PerformLayout();
             this.图片处理.ResumeLayout(false);
@@ -1381,6 +1415,9 @@ namespace SlideSCI
         #endregion
 
         internal Microsoft.Office.Tools.Ribbon.RibbonTab tab2;
+        internal Microsoft.Office.Tools.Ribbon.RibbonGroup pictureSourcesGroup;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton insertPicturesWithSourceButton;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton openPictureSourceLocationButton;
         internal Microsoft.Office.Tools.Ribbon.RibbonGroup 图片自动对齐;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton imgAutoAlign;
         internal Microsoft.Office.Tools.Ribbon.RibbonGroup 图片处理;
