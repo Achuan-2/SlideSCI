@@ -4932,13 +4932,15 @@ namespace SlideSCI
 
         public void ExportOriginalImage_Click(object sender, RibbonControlEventArgs e)
         {
+            string temporaryPresentationPath = null;
             try
             {
                 // 1. 获取当前PowerPoint应用实例和选中的对象
                 var app = Globals.ThisAddIn.Application;
                 var activeWindow = app.ActiveWindow;
+                var presentation = app.ActivePresentation;
 
-                if (app.ActivePresentation == null)
+                if (presentation == null || activeWindow == null)
                 {
                     MessageBox.Show("请先打开一个演示文稿。", "操作失败", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
@@ -4964,24 +4966,20 @@ namespace SlideSCI
                 // 检查选中的是否是图片类型
 
 
-                // 2. 获取必要信息：Shape ID, Slide Object 和演示文稿路径
+                // 2. 获取选中图片和所在幻灯片的唯一 ID。
                 uint shapeId = (uint)shape.Id;
                 Slide vstoSlide = shape.Parent;
                 uint slideIdValue = (uint)vstoSlide.SlideID; // 获取幻灯片的唯一ID
 
-                // 保存演示文稿以确保图片文件嵌入正确
-                app.ActivePresentation.Save();
-                string presentationPath = app.ActivePresentation.FullName;
-
-                // 确保演示文稿已保存
-                if (string.IsNullOrEmpty(presentationPath) || !File.Exists(presentationPath))
-                {
-                    MessageBox.Show("请先保存当前演示文稿再执行导出操作。", "操作失败", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
+                // FullName 可能是云端 URL，不能用 File.Exists 判断是否已保存。
+                // 保存当前内容的本地副本供 Open XML 读取，不修改原文稿及其保存状态。
+                temporaryPresentationPath = Path.Combine(Path.GetTempPath(),
+                    "SlideSCI-original-image-" + Guid.NewGuid().ToString("N") + ".pptx");
+                presentation.SaveCopyAs(temporaryPresentationPath,
+                    PpSaveAsFileType.ppSaveAsOpenXMLPresentation, Office.MsoTriState.msoFalse);
 
                 // 3. 使用 Open XML SDK 进行操作
-                using (PresentationDocument presDoc = PresentationDocument.Open(presentationPath, false)) // false = read-only
+                using (PresentationDocument presDoc = PresentationDocument.Open(temporaryPresentationPath, false)) // false = read-only
                 {
                     PresentationPart presPart = presDoc.PresentationPart;
                     if (presPart == null)
@@ -5057,6 +5055,20 @@ namespace SlideSCI
             catch (System.Exception ex)
             {
                 MessageBox.Show($"导出过程中发生错误：\n{ex.Message}", "意外错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                try
+                {
+                    if (temporaryPresentationPath != null && File.Exists(temporaryPresentationPath))
+                    {
+                        File.Delete(temporaryPresentationPath);
+                    }
+                }
+                catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
+                {
+                    System.Diagnostics.Debug.WriteLine($"清理原图导出临时文件时出错: {ex.Message}");
+                }
             }
         }
         private void exportImageButton_Click(object sender, RibbonControlEventArgs e)
