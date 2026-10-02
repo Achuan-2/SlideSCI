@@ -16,15 +16,15 @@ namespace SlideSCI
     /// </summary>
     [ComVisible(true)]
     [ClassInterface(ClassInterfaceType.AutoDispatch)]
-    public sealed class PicturePasteRibbon : Office.IRibbonExtensibility, IReflect
+    public sealed class MediaFilePasteRibbon : Office.IRibbonExtensibility, IReflect
     {
-        private const string PasteCallback = nameof(OnPictureFilePaste);
+        private const string PasteCallback = nameof(OnMediaFilePaste);
         private readonly Office.IRibbonExtensibility ribbon;
         private readonly IReflect callbacks;
-        private readonly Type ownType = typeof(PicturePasteRibbon);
+        private readonly Type ownType = typeof(MediaFilePasteRibbon);
         private bool pasting;
 
-        internal PicturePasteRibbon(Office.IRibbonExtensibility ribbon)
+        internal MediaFilePasteRibbon(Office.IRibbonExtensibility ribbon)
         {
             this.ribbon = ribbon ?? throw new ArgumentNullException(nameof(ribbon));
             callbacks = (IReflect)ribbon;
@@ -54,16 +54,16 @@ namespace SlideSCI
             return document.ToString(SaveOptions.DisableFormatting);
         }
 
-        public void OnPictureFilePaste(Office.IRibbonControl control, ref bool cancelDefault)
+        public void OnMediaFilePaste(Office.IRibbonControl control, ref bool cancelDefault)
         {
-            // 无法确定是图片文件粘贴时，交还给 Office；不修改剪贴板内容。
+            // 剪贴板必须全部为图片或视频文件；其他情况交还给 Office，不修改剪贴板。
             cancelDefault = pasting;
             if (pasting) return;
             try
             {
                 if (!Clipboard.ContainsFileDropList()) return;
                 string[] paths = Clipboard.GetFileDropList().Cast<string>().ToArray();
-                if (paths.Length == 0 || !paths.All(PictureSourceInsertion.IsSupportedImageFile)) return;
+                if (paths.Length == 0 || !paths.All(MediaSourceInsertion.IsSupportedMediaFile)) return;
                 var application = Globals.ThisAddIn.Application;
                 if (application.Windows.Count == 0) return;
                 DocumentWindow window = application.ActiveWindow;
@@ -75,15 +75,15 @@ namespace SlideSCI
                 // 从此处起由插件负责本次插入；即使部分失败也不能再默认粘贴一次。
                 cancelDefault = true;
                 pasting = true;
-                var failures = PictureSourceInsertion.Insert(application, slide, paths);
+                var failures = MediaSourceInsertion.Insert(application, slide, paths);
                 if (failures.Count > 0)
-                    MessageBox.Show("以下图片粘贴失败：\n\n" + string.Join(Environment.NewLine, failures),
-                        "粘贴图片", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("以下图片或视频粘贴失败：\n\n" + string.Join(Environment.NewLine, failures),
+                        "粘贴图片或视频", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             catch (Exception ex)
             {
                 if (cancelDefault)
-                    MessageBox.Show($"粘贴图片时出错：{ex.Message}", "粘贴图片", MessageBoxButtons.OK,
+                    MessageBox.Show($"粘贴图片或视频时出错：{ex.Message}", "粘贴图片或视频", MessageBoxButtons.OK,
                         MessageBoxIcon.Error);
                 else
                     System.Diagnostics.Debug.WriteLine($"读取文件剪贴板失败，使用默认粘贴：{ex.Message}");

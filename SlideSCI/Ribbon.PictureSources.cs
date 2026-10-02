@@ -38,7 +38,7 @@ namespace SlideSCI
                 {
                     if (dialog.ShowDialog(new PowerPointDialogOwner(app.HWND)) != DialogResult.OK) return;
 
-                    var failures = PictureSourceInsertion.Insert(app, slide, dialog.FileNames);
+                    var failures = MediaSourceInsertion.Insert(app, slide, dialog.FileNames);
                     if (failures.Count > 0)
                         MessageBox.Show($"已插入 {dialog.FileNames.Length - failures.Count} 张图片。以下文件插入失败：\n\n" +
                             string.Join(Environment.NewLine, failures), "插入图片", MessageBoxButtons.OK,
@@ -77,14 +77,17 @@ namespace SlideSCI
 
                 string sourceLine = (shapes[1].AlternativeText ?? string.Empty)
                     .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
-                    .LastOrDefault(line => line.StartsWith(PictureSourceInsertion.PathPrefix, StringComparison.Ordinal));
+                    .LastOrDefault(line => line.StartsWith(MediaSourceInsertion.PathPrefix, StringComparison.Ordinal) ||
+                        line.StartsWith(MediaSourceInsertion.VideoPathPrefix, StringComparison.Ordinal));
                 if (sourceLine == null)
                 {
                     MessageBox.Show("这张图片没有记录原图路径。请通过“插入图片”插入，或从资源管理器复制图片文件后在幻灯片中普通粘贴。", "提示");
                     return;
                 }
 
-                string sourcePath = sourceLine.Substring(PictureSourceInsertion.PathPrefix.Length);
+                string prefix = sourceLine.StartsWith(MediaSourceInsertion.VideoPathPrefix, StringComparison.Ordinal)
+                    ? MediaSourceInsertion.VideoPathPrefix : MediaSourceInsertion.PathPrefix;
+                string sourcePath = sourceLine.Substring(prefix.Length);
                 // 替代文字可由用户编辑；只接受完整文件路径，不把内容作为命令执行。
                 if (!Path.IsPathRooted(sourcePath) || sourcePath.IndexOf('"') >= 0)
                 {

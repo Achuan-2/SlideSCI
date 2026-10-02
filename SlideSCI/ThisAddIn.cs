@@ -9,7 +9,7 @@ namespace SlideSCI
         {
             var ribbon = Globals.Factory.GetRibbonFactory().CreateRibbonManager(
                 new Microsoft.Office.Tools.Ribbon.IRibbonExtension[] { new Ribbon1() });
-            return new PicturePasteRibbon(ribbon);
+            return new MediaFilePasteRibbon(ribbon);
         }
 
         public static bool AreWindowsEqual(Microsoft.Office.Interop.PowerPoint.DocumentWindow win1, Microsoft.Office.Interop.PowerPoint.DocumentWindow win2)
