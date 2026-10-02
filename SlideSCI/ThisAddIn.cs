@@ -4,6 +4,7 @@ namespace SlideSCI
     {
         public LatexToSvgConverter LatexSvgConverter { get; private set; }
         internal ZoomGuideLineTracker ZoomGuideLines { get; private set; }
+        private MediaFileDropTracker mediaFileDrops;
 
         protected override Microsoft.Office.Core.IRibbonExtensibility CreateRibbonExtensibilityObject()
         {
@@ -90,6 +91,7 @@ namespace SlideSCI
         {
             LatexSvgConverter = new LatexToSvgConverter();
             ZoomGuideLines = new ZoomGuideLineTracker(Application);
+            mediaFileDrops = new MediaFileDropTracker(Application);
         }
 
         public void ToggleShapeLibraryTaskPane(Microsoft.Office.Interop.PowerPoint.DocumentWindow contextWindow = null)
@@ -178,6 +180,8 @@ namespace SlideSCI
 
         private void ThisAddIn_Shutdown(object sender, System.EventArgs e)
         {
+            mediaFileDrops?.Dispose();
+            mediaFileDrops = null;
             ZoomGuideLines?.Dispose();
             ZoomGuideLines = null;
         }

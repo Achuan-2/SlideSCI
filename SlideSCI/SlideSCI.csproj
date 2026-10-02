@@ -222,6 +222,8 @@
     </Compile>
     <Compile Include="components\MediaSourceInsertion.cs" />
     <Compile Include="components\MediaFilePasteRibbon.cs" />
+    <Compile Include="components\MediaFileDropTracker.cs" />
+    <Compile Include="components\MediaFileDropTarget.cs" />
     <Compile Include="components\ZoomImageGeometry.cs" />
     <Compile Include="components\ZoomGuideLineTracker.cs" />
     <Compile Include="components\ZoomRegionCanvas.cs">

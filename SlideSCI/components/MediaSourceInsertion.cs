@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using Microsoft.Office.Interop.PowerPoint;
@@ -25,7 +26,8 @@ namespace SlideSCI
             !string.IsNullOrEmpty(path) && File.Exists(path) &&
             (ImageExtensions.Contains(Path.GetExtension(path)) || VideoExtensions.Contains(Path.GetExtension(path)));
 
-        internal static IList<string> Insert(Application application, Slide slide, IEnumerable<string> paths)
+        internal static IList<string> Insert(Application application, Slide slide, IEnumerable<string> paths,
+            PointF? dropPosition = null)
         {
             var insertedNames = new List<object>();
             var failures = new List<string>();
@@ -55,8 +57,13 @@ namespace SlideSCI
                             slideHeight * 0.9f / media.Height));
                         media.LockAspectRatio = Office.MsoTriState.msoTrue;
                         if (scale < 1f) media.Width *= scale;
-                        media.Left = (slideWidth - media.Width) / 2f;
-                        media.Top = (slideHeight - media.Height) / 2f;
+                        // 拖放时以落点为中心；文件选择和粘贴仍放在页面中心。
+                        media.Left = dropPosition.HasValue
+                            ? Math.Max(0, Math.Min(slideWidth - media.Width, dropPosition.Value.X - media.Width / 2f))
+                            : (slideWidth - media.Width) / 2f;
+                        media.Top = dropPosition.HasValue
+                            ? Math.Max(0, Math.Min(slideHeight - media.Height, dropPosition.Value.Y - media.Height / 2f))
+                            : (slideHeight - media.Height) / 2f;
 
                         string description = media.AlternativeText ?? string.Empty;
                         media.AlternativeText = description +

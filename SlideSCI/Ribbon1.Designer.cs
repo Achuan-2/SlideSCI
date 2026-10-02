@@ -257,7 +257,7 @@ namespace SlideSCI
             this.insertPicturesWithSourceButton.OfficeImageId = "PictureInsertFromFile";
             this.insertPicturesWithSourceButton.ShowImage = true;
             this.insertPicturesWithSourceButton.ScreenTip = "插入图片";
-            this.insertPicturesWithSourceButton.SuperTip = "支持一次选择多张图片，完整文件路径会自动写入各图片的替代文字，并随 PPT 保存。从资源管理器复制图片或视频文件后，在 PPT 普通视图的幻灯片中按 Ctrl+V 或使用普通“粘贴”，也会自动记录路径。选择窗格按原文件名显示图片和视频，同页重名自动添加序号。";
+            this.insertPicturesWithSourceButton.SuperTip = "支持一次选择多张图片，完整文件路径会自动写入各图片的替代文字，并随 PPT 保存。从资源管理器复制图片或视频文件后，在 PPT 普通视图的幻灯片中按 Ctrl+V 或使用普通“粘贴”，也会自动记录路径；直接拖入幻灯片也支持记录。选择窗格按原文件名显示图片和视频，同页重名自动添加序号。";
             this.insertPicturesWithSourceButton.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.InsertPicturesWithSource_Click);
             //
             // openPictureSourceLocationButton
