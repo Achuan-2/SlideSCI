@@ -1,3 +1,12 @@
+## v2.2.0 / 20261003
+- ✨ 新增比例尺scalebar功能 [#74](https://github.com/Achuan-2/my_ppt_plugin/issues/74)
+- ✨ 新增伪彩功能
+- ✨ 支持导入16 bit TIFF: 支持自动调节对比度，处理为8bit数据
+
+介绍视频：https://www.bilibili.com/video/BV1JvHv6XEKQ/?spm_id_from=0.0.homepage.video_card.click
+
+
+
 ## v2.1.0 / 20261002
 - ✨ 新增图片/视频来源记录功能。点击按钮上传图片，或者粘贴、拖动文件上传图片后，会记录图片/视频来源，在「选择窗格」能正常显示图片/视频文件名，并在图片/视频的「替换文字」里记录完整路径。
 
