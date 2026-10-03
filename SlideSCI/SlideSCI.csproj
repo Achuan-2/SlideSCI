@@ -228,6 +228,23 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="components\MediaSourceInsertion.cs" />
+    <Compile Include="components\ImageFieldOfView.cs" />
+    <Compile Include="components\TiffFieldOfViewReader.cs" />
+    <Compile Include="components\LiveNumericUpDown.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="components\ScaleBarSettings.cs" />
+    <Compile Include="components\ScaleBarService.cs" />
+    <Compile Include="components\ScaleBarLayout.cs" />
+    <Compile Include="components\ScaleBarPreview.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="components\ScaleBarForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Ribbon.ScaleBars.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="components\MediaFilePasteRibbon.cs" />
     <Compile Include="components\MediaFileDropTracker.cs" />
     <Compile Include="components\MediaFileDropTarget.cs" />
@@ -262,6 +279,8 @@
     <None Include="assets\制作放大图.png" />
     <None Include="assets\伪彩.svg" />
     <None Include="assets\伪彩.png" />
+    <None Include="assets\比例尺.svg" />
+    <None Include="assets\比例尺.png" />
     <None Include="assets\图文同缩.svg" />
     <None Include="assets\图文同缩.png" />
     <None Include="SlideSCI_TemporaryKey.pfx" />

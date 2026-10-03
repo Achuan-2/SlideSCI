@@ -17,6 +17,8 @@ namespace SlideSCI
         public ZoomImageSelection InitialOptions { get; }
         public RectangleF? OriginalZoomRegion { get; }
         public float OriginalZoomRotation { get; }
+        // 仅用于设置窗口预览；持久化样式仍从实际放大图读取。
+        internal ScaleBarSettings PreviewScaleBarSettings { get; set; }
         public int DisplayOrder => int.TryParse(DisplayName.Replace("放大图 ", ""), out int number) && number > 0
             ? number : int.MaxValue;
 
@@ -38,7 +40,13 @@ namespace SlideSCI
             float rotation = 0, bool edited = true) => new ZoomImageSelection(region,
                 style.OutlineColor, style.OutlineWidthPoints, style.OutlineDashStyle,
                 style.UseRectangleColorForZoomImage, style.AddGuideLines, style.Placement,
-                rotation, edited, style.NativeOutlineDashStyle, style.GuideLineExtent);
+                rotation, edited, style.NativeOutlineDashStyle, style.GuideLineExtent, style.ScaleBarLengthMicrometers, style.ScaleBarShowText);
+
+        internal static ZoomImageSelection WithScaleBar(ZoomImageSelection style, ScaleBarSettings settings) =>
+            new ZoomImageSelection(style.Region, style.OutlineColor, style.OutlineWidthPoints, style.OutlineDashStyle,
+                style.UseRectangleColorForZoomImage, style.AddGuideLines, style.Placement, style.RegionRotationDegrees,
+                style.RegionWasEdited, style.NativeOutlineDashStyle, style.GuideLineExtent,
+                settings.LengthMicrometers, settings.ShowText);
 
         public static bool SameOptions(ZoomImageSelection first, ZoomImageSelection second) =>
             first.Region == second.Region && first.RegionRotationDegrees == second.RegionRotationDegrees &&
@@ -48,7 +56,8 @@ namespace SlideSCI
             (second.NativeOutlineDashStyle ?? ZoomImageGeometry.GetOfficeDashStyle(second.OutlineDashStyle)) &&
             first.UseRectangleColorForZoomImage == second.UseRectangleColorForZoomImage &&
             first.AddGuideLines == second.AddGuideLines && first.Placement == second.Placement &&
-            first.GuideLineExtent == second.GuideLineExtent;
+            first.GuideLineExtent == second.GuideLineExtent &&
+            first.ScaleBarLengthMicrometers == second.ScaleBarLengthMicrometers && first.ScaleBarShowText == second.ScaleBarShowText;
     }
 
     internal sealed class ZoomImageExistingObjects
@@ -86,7 +95,7 @@ namespace SlideSCI
     {
         public static string Serialize(ZoomImageSelection options, string name) => string.Join(";", new[]
         {
-            "ZOOM", "4", options.OutlineColor.ToArgb().ToString(CultureInfo.InvariantCulture),
+            "ZOOM", "6", options.OutlineColor.ToArgb().ToString(CultureInfo.InvariantCulture),
             options.OutlineWidthPoints.ToString("R", CultureInfo.InvariantCulture),
             ((int)options.OutlineDashStyle).ToString(CultureInfo.InvariantCulture),
             options.UseRectangleColorForZoomImage ? "1" : "0", options.AddGuideLines ? "1" : "0",
@@ -99,12 +108,15 @@ namespace SlideSCI
             options.Region.Width.ToString("R", CultureInfo.InvariantCulture),
             options.Region.Height.ToString("R", CultureInfo.InvariantCulture),
             options.RegionRotationDegrees.ToString("R", CultureInfo.InvariantCulture),
-            Uri.EscapeDataString(name ?? "")
+            Uri.EscapeDataString(name ?? ""),
+            options.ScaleBarLengthMicrometers?.ToString("R", CultureInfo.InvariantCulture) ?? "",
+            options.ScaleBarShowText.HasValue ? (options.ScaleBarShowText.Value ? "1" : "0") : ""
         });
 
         public static ZoomImageSelection Parse(string[] parts)
         {
-            if (!((parts.Length == 10 && parts[1] == "3") || (parts.Length == 16 && parts[1] == "4")) ||
+            if (!((parts.Length == 10 && parts[1] == "3") || (parts.Length == 16 && parts[1] == "4") ||
+                (parts.Length == 17 && parts[1] == "5") || (parts.Length == 18 && parts[1] == "6")) ||
                 !int.TryParse(parts[2], NumberStyles.Integer, CultureInfo.InvariantCulture, out int color) ||
                 !float.TryParse(parts[3], NumberStyles.Float, CultureInfo.InvariantCulture, out float width) ||
                 float.IsNaN(width) || float.IsInfinity(width) || width < 0.01f || width > 1000 ||
@@ -117,7 +129,7 @@ namespace SlideSCI
                 native != (int)Office.MsoLineDashStyle.msoLineDashStyleMixed ? (Office.MsoLineDashStyle?)native : null;
             RectangleF region = RectangleF.Empty;
             float rotation = 0;
-            if (parts[1] == "4")
+            if (parts[1] == "4" || parts[1] == "5" || parts[1] == "6")
             {
                 var values = new float[5];
                 for (int i = 0; i < values.Length; i++)
@@ -127,14 +139,28 @@ namespace SlideSCI
                 region = new RectangleF(values[0], values[1], values[2], values[3]);
                 rotation = values[4];
             }
+            double? scaleLength = null;
+            if ((parts[1] == "5" || parts[1] == "6") && parts[16].Length > 0)
+            {
+                if (!double.TryParse(parts[16], NumberStyles.Float, CultureInfo.InvariantCulture, out double value) ||
+                    !(value == 0 || ImageFieldOfView.Positive(value))) return null;
+                scaleLength = value;
+            }
+            bool? showText = null;
+            if (parts[1] == "6" && parts[17].Length > 0)
+            {
+                if (parts[17] != "0" && parts[17] != "1") return null;
+                showText = parts[17] == "1";
+            }
             return new ZoomImageSelection(region, Color.FromArgb(color), width, (DashStyle)dash,
                 parts[5] == "1", parts[6] == "1", (ZoomImagePlacement)placement, rotation, false,
-                nativeStyle, (ZoomGuideLineExtent)extent);
+                nativeStyle, (ZoomGuideLineExtent)extent, scaleLength, showText);
         }
 
         public static string ReadName(string[] parts)
         {
-            if (parts.Length != 16 || parts[1] != "4") return null;
+            if (!((parts.Length == 16 && parts[1] == "4") || (parts.Length == 17 && parts[1] == "5") ||
+                (parts.Length == 18 && parts[1] == "6"))) return null;
             try { return Uri.UnescapeDataString(parts[15]); }
             catch (UriFormatException) { return null; }
         }
@@ -153,6 +179,17 @@ namespace SlideSCI
     /// <summary>预览与生成共同使用的多图布局，新增区域沿选定方向向外排布，避免互相遮挡。</summary>
     internal static class ZoomImageLayout
     {
+        internal static string GetMagnificationText(RectangleF source, ZoomImageEntry entry, RectangleF zoom)
+        {
+            SizeF crop = GetCropSize(source, entry, null);
+            if (crop.Width <= 0 || crop.Height <= 0) return "";
+            float horizontal = zoom.Width / crop.Width;
+            float vertical = zoom.Height / crop.Height;
+            return Math.Abs(horizontal - vertical) < 0.0001f
+                ? $"{horizontal:0.##}×"
+                : $"横向 {horizontal:0.##}×，纵向 {vertical:0.##}×";
+        }
+
         public static Dictionary<ZoomImageEntry, RectangleF> Calculate(RectangleF source,
             IList<ZoomImageEntry> entries, float gap, Func<ZoomImageEntry, SizeF> getCropSize = null)
         {

@@ -22,12 +22,15 @@ namespace SlideSCI
         public float RegionRotationDegrees { get; }
         public bool RegionWasEdited { get; }
         public Office.MsoLineDashStyle? NativeOutlineDashStyle { get; }
+        public double? ScaleBarLengthMicrometers { get; }
+        public bool? ScaleBarShowText { get; }
 
         public ZoomImageSelection(RectangleF region, Color color, float widthPoints, DashStyle dashStyle,
             bool useRectangleColorForZoomImage, bool addGuideLines, ZoomImagePlacement placement,
             float regionRotationDegrees = 0, bool regionWasEdited = false,
             Office.MsoLineDashStyle? nativeOutlineDashStyle = null,
-            ZoomGuideLineExtent guideLineExtent = ZoomGuideLineExtent.AcrossImages)
+            ZoomGuideLineExtent guideLineExtent = ZoomGuideLineExtent.AcrossImages,
+            double? scaleBarLengthMicrometers = null, bool? scaleBarShowText = null)
         {
             Region = region;
             OutlineColor = color;
@@ -40,6 +43,8 @@ namespace SlideSCI
             RegionRotationDegrees = regionRotationDegrees;
             RegionWasEdited = regionWasEdited;
             NativeOutlineDashStyle = nativeOutlineDashStyle;
+            ScaleBarLengthMicrometers = scaleBarLengthMicrometers;
+            ScaleBarShowText = scaleBarShowText;
         }
     }
 
@@ -52,10 +57,16 @@ namespace SlideSCI
         private readonly CheckBox addGuideLinesCheckBox;
         private readonly ComboBox placementComboBox;
         private readonly ComboBox guideLineExtentComboBox;
+        private readonly NumericUpDown scaleBarLength;
+        private readonly CheckBox scaleBarShowText;
+        private readonly Label scaleBarAdjustmentLabel;
+        private readonly bool defaultScaleBarShowText;
+        private readonly double? defaultScaleBarLength;
         private readonly LayoutPreviewCanvas layoutPreview;
         private readonly List<ZoomImageEntry> entries = new List<ZoomImageEntry>();
         private readonly ComboBox entrySelector;
         private readonly Button addEntryButton;
+        private readonly Label magnificationLabel;
         private readonly Control settingsGroups;
         private readonly Font settingsTitleFont;
         private readonly bool hadExistingEntries;
@@ -77,7 +88,9 @@ namespace SlideSCI
             placementComboBox.SelectedIndex >= 0 ? (ZoomImagePlacement)placementComboBox.SelectedIndex : ZoomImagePlacement.Right,
             canvas.RegionRotationDegrees, canvas.RegionWasEdited, canvas.NativeOutlineDashStyle,
             guideLineExtentComboBox.SelectedIndex >= 0
-                ? (ZoomGuideLineExtent)guideLineExtentComboBox.SelectedIndex : ZoomGuideLineExtent.AcrossImages);
+                ? (ZoomGuideLineExtent)guideLineExtentComboBox.SelectedIndex : ZoomGuideLineExtent.AcrossImages,
+            scaleBarLength.Enabled ? (double?)scaleBarLength.Value : null,
+            scaleBarShowText.Enabled ? (bool?)scaleBarShowText.Checked : null);
 
         // 图片由调用者持有，关闭弹窗时不释放图片。
         public ZoomImageForm(Image preview, float pictureWidthPoints, ZoomImageSelection initialSelection = null)
@@ -86,8 +99,17 @@ namespace SlideSCI
         {
         }
 
-        public ZoomImageForm(Image preview, float pictureWidthPoints, IList<ZoomImageEntry> initialEntries, int selectedIndex)
+        public ZoomImageForm(Image preview, float pictureWidthPoints, IList<ZoomImageEntry> initialEntries, int selectedIndex,
+            double? sourceScaleBarLength = null)
+            : this(preview, pictureWidthPoints, initialEntries, selectedIndex, sourceScaleBarLength, null, null)
         {
+        }
+
+        internal ZoomImageForm(Image preview, float pictureWidthPoints, IList<ZoomImageEntry> initialEntries, int selectedIndex,
+            double? sourceScaleBarLength, SizeF? sourceVisibleFov, ScaleBarSettings sourceScaleBarSettings)
+        {
+            defaultScaleBarLength = sourceScaleBarLength;
+            defaultScaleBarShowText = sourceScaleBarSettings?.ShowText ?? true;
             if (initialEntries != null) entries.AddRange(initialEntries);
             hadExistingEntries = entries.Any(entry => entry.RecordKey != null);
             nextEntryNumber = Math.Max(entries.Count + 1, entries.Where(entry => entry.DisplayOrder < int.MaxValue)
@@ -111,7 +133,7 @@ namespace SlideSCI
             };
             layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
             layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 36));
-            layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 114));
+            layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 150));
             layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
             layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 46));
             canvas = new ZoomRegionCanvas(preview, pictureWidthPoints) { Dock = DockStyle.Fill };
@@ -126,7 +148,8 @@ namespace SlideSCI
                 canvas.NativeOutlineDashStyle = initialSelection.NativeOutlineDashStyle;
                 canvas.SetInitialRegion(initialSelection.Region, initialSelection.RegionRotationDegrees);
             }
-            layoutPreview = new LayoutPreviewCanvas(preview, pictureWidthPoints, () => entries, () => activeEntry)
+            layoutPreview = new LayoutPreviewCanvas(preview, pictureWidthPoints, () => entries, () => activeEntry,
+                sourceVisibleFov, sourceScaleBarSettings)
             {
                 Dock = DockStyle.Fill
             };
@@ -178,17 +201,39 @@ namespace SlideSCI
             });
             guideSettings.Controls.Add(guideLineExtentComboBox);
 
+            scaleBarLength = new LiveNumericUpDown
+            {
+                Minimum = 0, Maximum = 1000000000m, DecimalPlaces = 2, Width = 125,
+                Value = (decimal)Math.Max(0, Math.Min(1000000000, sourceScaleBarLength ?? 50)),
+                Enabled = sourceScaleBarLength.HasValue || entries.Any(entry => entry.Options.ScaleBarLengthMicrometers.HasValue)
+            };
+            scaleBarLength.ValueChanged += (sender, e) => RefreshPreviews();
+            scaleBarShowText = new CheckBox
+            {
+                Text = "显示比例尺文字", AutoSize = true, Checked = defaultScaleBarShowText,
+                Enabled = scaleBarLength.Enabled, Margin = new Padding(10, 5, 0, 0)
+            };
+            scaleBarShowText.CheckedChanged += (sender, e) => RefreshPreviews();
+            scaleBarAdjustmentLabel = new Label { AutoSize = true, Margin = new Padding(10, 7, 0, 0) };
+            var scaleSettings = new FlowLayoutPanel { Dock = DockStyle.Fill, WrapContents = false };
+            scaleSettings.Controls.Add(new Label { Text = "比例尺长度（μm）", AutoSize = true, Margin = new Padding(0, 7, 4, 0) });
+            scaleSettings.Controls.Add(scaleBarLength);
+            scaleSettings.Controls.Add(scaleBarShowText);
+            scaleSettings.Controls.Add(new Label { Text = "0 为隐藏，过长自动缩短至 90%", AutoSize = true, Margin = new Padding(10, 7, 0, 0) });
+            scaleSettings.Controls.Add(scaleBarAdjustmentLabel);
+
             var groupedSettings = new TableLayoutPanel
             {
-                Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 3,
+                Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 4,
                 Margin = Padding.Empty, Padding = new Padding(0, 0, 0, 6)
             };
             groupedSettings.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
             groupedSettings.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-            for (int i = 0; i < 3; i++) groupedSettings.RowStyles.Add(new RowStyle(SizeType.Percent, 100f / 3));
+            for (int i = 0; i < 4; i++) groupedSettings.RowStyles.Add(new RowStyle(SizeType.Percent, 25));
             AddSettingsRow(groupedSettings, 0, "放大矩形设置", CreateOutlineSettings());
             AddSettingsRow(groupedSettings, 1, "放大图设置", zoomSettings);
             AddSettingsRow(groupedSettings, 2, "辅助线设置", guideSettings);
+            AddSettingsRow(groupedSettings, 3, "放大图比例尺", scaleSettings);
             settingsGroups = groupedSettings;
             layout.Controls.Add(settingsGroups, 0, 1);
 
@@ -203,6 +248,11 @@ namespace SlideSCI
             entryControls.Controls.Add(new Label { Text = "当前放大图", AutoSize = true, Margin = new Padding(0, 7, 6, 0) });
             entryControls.Controls.Add(entrySelector);
             entryControls.Controls.Add(addEntryButton);
+            magnificationLabel = new Label
+            {
+                Text = "放大比例：未框选", AutoSize = true, Margin = new Padding(14, 7, 0, 0)
+            };
+            entryControls.Controls.Add(magnificationLabel);
             layout.Controls.Add(entryControls, 0, 0);
 
             var zoomLabel = new Label
@@ -269,6 +319,7 @@ namespace SlideSCI
                 SaveCurrentEntry();
                 confirmButton.Enabled = CanConfirm();
                 addEntryButton.Enabled = !canvas.IsEditing;
+                UpdatePreviewLabels();
                 layoutPreview.Invalidate();
             };
             canvas.EntryPicked += entry => SelectEntry(entry);
@@ -364,10 +415,16 @@ namespace SlideSCI
                     placementComboBox.SelectedIndex = (int)options.Placement;
                     guideLineExtentComboBox.SelectedIndex = (int)options.GuideLineExtent;
                     guideLineExtentComboBox.Enabled = options.AddGuideLines;
+                    double? length = options.ScaleBarLengthMicrometers ?? defaultScaleBarLength;
+                    scaleBarLength.Enabled = length.HasValue;
+                    scaleBarShowText.Enabled = length.HasValue;
+                    scaleBarShowText.Checked = options.ScaleBarShowText ?? entry.PreviewScaleBarSettings?.ShowText ?? defaultScaleBarShowText;
+                    if (length.HasValue) scaleBarLength.Value = (decimal)Math.Max(0, Math.Min(1000000000, length.Value));
                 }
             }
             finally { loadingEntry = false; }
             confirmButton.Enabled = CanConfirm();
+            UpdatePreviewLabels();
             canvas.Invalidate();
             layoutPreview.Invalidate();
         }
@@ -421,8 +478,22 @@ namespace SlideSCI
         {
             if (loadingEntry) return;
             SaveCurrentEntry();
+            UpdatePreviewLabels();
             canvas.Invalidate();
             layoutPreview?.Invalidate();
+        }
+
+        private void UpdatePreviewLabels()
+        {
+            magnificationLabel.Text = "放大比例：" + layoutPreview.GetMagnificationText(activeEntry);
+            try
+            {
+                ScaleBarSettings adjusted = layoutPreview.GetScaleBarSettings(activeEntry);
+                scaleBarAdjustmentLabel.Text = adjusted != null && activeEntry.Options.ScaleBarLengthMicrometers.HasValue &&
+                    adjusted.LengthMicrometers < activeEntry.Options.ScaleBarLengthMicrometers.Value
+                        ? "已调整为 " + adjusted.Label : "";
+            }
+            catch (InvalidOperationException ex) { scaleBarAdjustmentLabel.Text = ex.Message; }
         }
 
         protected override void Dispose(bool disposing)
@@ -450,7 +521,7 @@ namespace SlideSCI
             {
                 Text = "线宽（pt）", AutoSize = true, Margin = new Padding(0, 8, 4, 0)
             });
-            lineWidth = new NumericUpDown
+            lineWidth = new LiveNumericUpDown
             {
                 Minimum = 0.01M, Maximum = Math.Max(20M, (decimal)canvas.OutlineWidthPoints), Increment = 0.25M,
                 DecimalPlaces = 2, Value = (decimal)canvas.OutlineWidthPoints, Width = 70
@@ -567,17 +638,55 @@ namespace SlideSCI
             private readonly float pictureWidthPoints;
             private readonly Func<IList<ZoomImageEntry>> getEntries;
             private readonly Func<ZoomImageEntry> getActiveEntry;
+            private readonly SizeF? sourceVisibleFov;
+            private readonly ScaleBarSettings sourceScaleBarSettings;
 
             public LayoutPreviewCanvas(Image preview, float pictureWidthPoints,
-                Func<IList<ZoomImageEntry>> getEntries, Func<ZoomImageEntry> getActiveEntry)
+                Func<IList<ZoomImageEntry>> getEntries, Func<ZoomImageEntry> getActiveEntry,
+                SizeF? sourceVisibleFov, ScaleBarSettings sourceScaleBarSettings)
             {
                 this.preview = preview;
                 this.pictureWidthPoints = Math.Max(0.01f, pictureWidthPoints);
                 this.getEntries = getEntries;
                 this.getActiveEntry = getActiveEntry;
+                this.sourceVisibleFov = sourceVisibleFov;
+                this.sourceScaleBarSettings = sourceScaleBarSettings?.Copy();
                 DoubleBuffered = true;
                 ResizeRedraw = true;
                 BackColor = Color.FromArgb(245, 246, 248);
+            }
+
+            public string GetMagnificationText(ZoomImageEntry entry)
+            {
+                if (entry == null || !entry.HasRegion) return "未框选";
+                var source = new RectangleF(0, 0, preview.Width, preview.Height);
+                var positions = ZoomImageLayout.Calculate(source, getEntries(),
+                    ZoomImageGeometry.GapPoints * preview.Width / pictureWidthPoints);
+                return positions.TryGetValue(entry, out RectangleF zoom)
+                    ? ZoomImageLayout.GetMagnificationText(source, entry, zoom) : "无有效取图区域";
+            }
+
+            private SizeF? GetCropFov(ZoomImageEntry entry)
+            {
+                if (!sourceVisibleFov.HasValue) return null;
+                var source = new RectangleF(0, 0, preview.Width, preview.Height);
+                RectangleF region = entry.Options.Region;
+                var crop = new RectangleF(region.X * source.Width, region.Y * source.Height,
+                    region.Width * source.Width, region.Height * source.Height);
+                if (entry.Options.RegionRotationDegrees == 0) crop = RectangleF.Intersect(crop, source);
+                ImageFieldOfView fov = ScaleBarService.CalculateCropFov(source.Size, sourceVisibleFov.Value,
+                    crop.Size, entry.Options.RegionRotationDegrees);
+                return new SizeF((float)fov.WidthMicrometers, (float)fov.HeightMicrometers);
+            }
+
+            public ScaleBarSettings GetScaleBarSettings(ZoomImageEntry entry)
+            {
+                if (entry == null || !entry.HasRegion || !entry.Options.ScaleBarLengthMicrometers.HasValue) return null;
+                ScaleBarSettings settings = entry.PreviewScaleBarSettings ?? sourceScaleBarSettings;
+                if (settings == null) return null;
+                SizeF? fov = GetCropFov(entry);
+                if (!fov.HasValue && entry.Options.ScaleBarLengthMicrometers.Value != 0) return null;
+                return settings.ForZoom(fov ?? SizeF.Empty, entry.Options.ScaleBarLengthMicrometers, entry.Options.ScaleBarShowText);
             }
 
             protected override void OnPaint(PaintEventArgs e)
@@ -611,6 +720,9 @@ namespace SlideSCI
                 e.Graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
                 e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
                 e.Graphics.DrawImage(preview, sourceScreen);
+                if (sourceVisibleFov.HasValue && sourceScaleBarSettings != null)
+                    DrawScaleBar(e.Graphics, sourceScreen, new SizeF(source.Width / pixelsPerPoint,
+                        source.Height / pixelsPerPoint), sourceVisibleFov.Value, sourceScaleBarSettings);
                 foreach (ZoomImageEntry entry in items)
                 {
                     if (!positions.TryGetValue(entry, out RectangleF zoom)) continue;
@@ -622,6 +734,7 @@ namespace SlideSCI
                     RectangleF zoomScreen = ToScreen(zoom, scale, origin);
                     RectangleF regionScreen = ToScreen(region, scale, origin);
                     float zoomRotation = entry.PreservesLayout ? entry.OriginalZoomRotation : 0;
+                    string scaleBarHint = "";
                     GraphicsState state = e.Graphics.Save();
                     try
                     {
@@ -631,14 +744,44 @@ namespace SlideSCI
                         e.Graphics.RotateTransform(zoomRotation);
                         e.Graphics.TranslateTransform(-centerX, -centerY);
                         DrawZoomContent(e.Graphics, source, zoomScreen, crop, options.RegionRotationDegrees);
+                        try
+                        {
+                            ScaleBarSettings bar = GetScaleBarSettings(entry);
+                            if (bar != null)
+                                scaleBarHint = DrawScaleBar(e.Graphics, zoomScreen,
+                                    new SizeF(zoom.Width / pixelsPerPoint, zoom.Height / pixelsPerPoint),
+                                    GetCropFov(entry) ?? SizeF.Empty, bar);
+                        }
+                        catch (InvalidOperationException ex) { scaleBarHint = ex.Message; }
                     }
                     finally { e.Graphics.Restore(state); }
                     DrawEntryOutlines(e.Graphics, entry, sourceScreen, zoomScreen, regionScreen,
                         pixelsPerPoint * scale, zoomRotation,
                         ZoomImageGeometry.GetRelativePlacement(source, zoom, options.Placement));
-                    e.Graphics.DrawString(entry.DisplayName + (entry == getActiveEntry() ? "（当前）" : ""),
+                    string caption = entry.DisplayName + (entry == getActiveEntry() ? "（当前）" : "") +
+                        " · " + ZoomImageLayout.GetMagnificationText(source, entry, zoom);
+                    if (!string.IsNullOrEmpty(scaleBarHint)) caption += "\n" + scaleBarHint;
+                    e.Graphics.DrawString(caption,
                         Font, Brushes.DimGray, zoomScreen.Left, zoomScreen.Bottom + 2);
                 }
+            }
+
+            private static string DrawScaleBar(Graphics graphics, RectangleF destination, SizeF pictureSize,
+                SizeF visibleFov, ScaleBarSettings settings)
+            {
+                ScaleBarLayout barLayout;
+                try { barLayout = ScaleBarPreview.MeasureLayout(pictureSize, visibleFov, settings); }
+                catch (InvalidOperationException ex) { return ex.Message; }
+                GraphicsState state = graphics.Save();
+                try
+                {
+                    graphics.SetClip(destination, CombineMode.Intersect);
+                    graphics.TranslateTransform(destination.Left, destination.Top);
+                    graphics.ScaleTransform(destination.Width / pictureSize.Width, destination.Height / pictureSize.Height);
+                    ScaleBarPreview.DrawOverlay(graphics, barLayout, settings);
+                }
+                finally { graphics.Restore(state); }
+                return "";
             }
 
             private static void DrawEntryOutlines(Graphics graphics, ZoomImageEntry entry, RectangleF sourceScreen,

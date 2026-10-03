@@ -242,14 +242,14 @@ namespace SlideSCI
                 Math.Max(1, (int)Math.Round(picture.Height * scale)));
         }
 
-        private Bitmap ExportChannelPicture(PowerPoint.Shape picture, Size size)
+        private Bitmap ExportChannelPicture(PowerPoint.Shape picture, Size size, bool contentOnly = false)
         {
             string path = Path.Combine(Path.GetTempPath(), "SlideSCI-channel-source-" + Guid.NewGuid().ToString("N") + ".png");
             PowerPoint.Shape copy = null;
             string step = "创建临时图片";
             try
             {
-                copy = picture.Duplicate()[1];
+                copy = contentOnly ? ScaleBarService.DuplicateContent(picture) : picture.Duplicate()[1];
                 step = "清理临时图片关联";
                 ZoomGuideLineTracker.RemoveCopiedLinks(copy);
                 step = "移除图片旋转";

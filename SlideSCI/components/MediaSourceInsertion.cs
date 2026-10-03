@@ -69,6 +69,16 @@ namespace SlideSCI
                         media.AlternativeText = description +
                             (description.Length == 0 ? string.Empty : Environment.NewLine) +
                             (isVideo ? VideoPathPrefix : PathPrefix) + sourcePath;
+                        // 读取不到标定不影响插入；仅 TIFF 首个画面的物理宽高写入替换文字。
+                        if (!isVideo)
+                        {
+                            try
+                            {
+                                ImageFieldOfView fov = TiffFieldOfViewReader.TryRead(sourcePath);
+                                if (fov != null) ScaleBarService.WriteFov(media, fov);
+                            }
+                            catch (Exception metadataError) { Debug.WriteLine($"记录 TIFF FOV 失败：{metadataError.Message}"); }
+                        }
                         media.Name = GetAvailableName(sourcePath, usedNames);
                         usedNames.Add(media.Name);
                         insertedNames.Add(media.Name);

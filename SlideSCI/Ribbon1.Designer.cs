@@ -102,6 +102,7 @@ namespace SlideSCI
             this.pictureSourcesGroup = this.Factory.CreateRibbonGroup();
             this.insertPicturesWithSourceButton = this.Factory.CreateRibbonButton();
             this.openPictureSourceLocationButton = this.Factory.CreateRibbonButton();
+            this.scaleBarButton = this.Factory.CreateRibbonButton();
             this.图片自动对齐 = this.Factory.CreateRibbonGroup();
             this.imgAutoAlign = this.Factory.CreateRibbonButton();
             this.imgAutoAlignSortTypeDropDown = this.Factory.CreateRibbonDropDown();
@@ -275,6 +276,16 @@ namespace SlideSCI
             this.openPictureSourceLocationButton.ShowImage = true;
             this.openPictureSourceLocationButton.SuperTip = "选中一张通过本插件记录了路径的图片，打开所在文件夹并选中原文件。组合中的图片请先单独选中。";
             this.openPictureSourceLocationButton.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.OpenPictureSourceLocation_Click);
+            //
+            // scaleBarButton
+            //
+            this.scaleBarButton.Label = "比例尺";
+            this.scaleBarButton.Name = "scaleBarButton";
+            this.scaleBarButton.Image = ((System.Drawing.Image)(resources.GetObject("scaleBarButton.Image")));
+            this.scaleBarButton.ScreenTip = "添加或编辑图片比例尺";
+            this.scaleBarButton.ShowImage = true;
+            this.scaleBarButton.SuperTip = "查看和编辑 FOV 信息，并实时预览比例尺效果。支持横向/纵向、μm 长度、厚度、颜色、文字样式和四角位置，默认与图片编组。";
+            this.scaleBarButton.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.ScaleBar_Click);
             // 
             // 图片自动对齐
             // 
@@ -531,6 +542,7 @@ namespace SlideSCI
             this.imageChannelsGroup.Items.Add(this.createZoomImageButton);
             this.imageChannelsGroup.Items.Add(this.pseudoColorButton);
             this.imageChannelsGroup.Items.Add(this.mergeChannelsButton);
+            this.imageChannelsGroup.Items.Add(this.scaleBarButton);
             this.imageChannelsGroup.Label = "图片处理";
             this.imageChannelsGroup.Name = "imageChannelsGroup";
             // 
@@ -1462,6 +1474,7 @@ namespace SlideSCI
         internal Microsoft.Office.Tools.Ribbon.RibbonGroup pictureSourcesGroup;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton insertPicturesWithSourceButton;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton openPictureSourceLocationButton;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton scaleBarButton;
         internal Microsoft.Office.Tools.Ribbon.RibbonGroup 图片自动对齐;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton imgAutoAlign;
         internal Microsoft.Office.Tools.Ribbon.RibbonDropDown imgAutoAlignAlignTypeDropDown;

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 32 32">
+  <title>比例尺</title>
+  <desc>蓝色图片轮廓内的科研比例尺，端点和短刻度表达长度标定。</desc>
+  <rect x="2" y="4" width="28" height="24" rx="3" fill="#f3faff" stroke="#1296db" stroke-width="2"/>
+  <circle cx="9" cy="10" r="2.5" fill="#1296db"/>
+  <path d="M4 22l7-8 5 5 5-7 7 10v4H4z" fill="#d6effa"/>
+  <path d="M8 22h16" fill="none" stroke="#1296db" stroke-width="3"/>
+  <path d="M8 18v7M16 20v5M24 18v7" fill="none" stroke="#1296db" stroke-width="2" stroke-linecap="round"/>
+</svg>

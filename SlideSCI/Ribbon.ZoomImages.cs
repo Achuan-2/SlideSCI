@@ -32,7 +32,7 @@ namespace SlideSCI
                 bool hasUnsupportedShape = false;
                 foreach (Shape shape in selectedShapes)
                 {
-                    if (shape.Type == Office.MsoShapeType.msoPicture || shape.Type == Office.MsoShapeType.msoLinkedPicture)
+                    if (ScaleBarService.IsImage(shape))
                         pictures.Add(shape);
                     else if (shape.Type == Office.MsoShapeType.msoAutoShape &&
                         shape.AutoShapeType == Office.MsoAutoShapeType.msoShapeRectangle && rectangle == null)
@@ -82,7 +82,7 @@ namespace SlideSCI
             Shape previewCopy = null;
             try
             {
-                previewCopy = picture.Duplicate()[1];
+                previewCopy = ScaleBarService.DuplicateContent(picture);
                 ZoomGuideLineTracker.RemoveCopiedLinks(previewCopy);
                 previewCopy.Rotation = 0;
                 previewCopy.Line.Visible = Office.MsoTriState.msoFalse;
@@ -96,8 +96,12 @@ namespace SlideSCI
                 previewCopy.Delete();
                 previewCopy = null;
                 picture.Select(Office.MsoTriState.msoTrue);
+                ImageFieldOfView sourceFov = ScaleBarService.ReadFov(picture);
+                SizeF? visibleFov = sourceFov == null ? (SizeF?)null : ScaleBarService.VisibleFov(picture, sourceFov);
+                ScaleBarSettings sourceScaleBar = ScaleBarService.ReadSettings(picture);
                 using (var preview = Image.FromFile(previewPath))
-                using (var dialog = new ZoomImageForm(preview, picture.Width, entries, selectedIndex))
+                using (var dialog = new ZoomImageForm(preview, picture.Width, entries, selectedIndex,
+                    sourceScaleBar?.LengthMicrometers, visibleFov, sourceScaleBar))
                 {
                     if (dialog.ShowDialog(new PowerPointDialogOwner(app.HWND)) != DialogResult.OK) return false;
                     result = dialog.SelectedEntries;
@@ -188,6 +192,8 @@ namespace SlideSCI
                     ZoomImageExistingObjects previous = null;
                     if (entry.RecordKey != null) byKey.TryGetValue(entry.RecordKey, out previous);
                     if (previous?.Zoom != null && !previous.NeedsImageRefresh &&
+                        ScaleBarService.HasCurrentCalibration(picture, previous.Zoom) &&
+                        ScaleBarService.IsZoomScaleBarWithinLimit(previous.Zoom) &&
                         ZoomImageEntry.SameOptions(entry.Options, entry.InitialOptions) &&
                         previous.Marker.Fill.Visible == Office.MsoTriState.msoFalse &&
                         previous.Marker.Line.Visible == Office.MsoTriState.msoTrue &&
@@ -208,6 +214,16 @@ namespace SlideSCI
                     SetZoomShapeBounds(draft.Zoom, bounds, draft.Entry.PreservesLayout
                         ? draft.Entry.OriginalZoomRotation : draft.Zoom.Rotation);
                     draft.Zoom.LockAspectRatio = Office.MsoTriState.msoTrue;
+                    ScaleBarSettings bar = (draft.Previous?.Zoom == null ? null : ScaleBarService.ReadSettings(draft.Previous.Zoom))
+                        ?? ScaleBarService.ReadSettings(picture);
+                    bar = bar?.Copy();
+                    if (bar != null && draft.Entry.Options.ScaleBarLengthMicrometers.HasValue)
+                    {
+                        bar = ScaleBarService.FitZoomSettings(draft.Zoom, bar,
+                            draft.Entry.Options.ScaleBarLengthMicrometers, draft.Entry.Options.ScaleBarShowText);
+                        draft.Entry.Options = ZoomImageEntry.WithScaleBar(draft.Entry.Options, bar);
+                        draft.Zoom = ScaleBarService.Add(slide, draft.Zoom, bar, temporary);
+                    }
                     if (draft.Entry.Options.AddGuideLines)
                         draft.Guides.AddRange(AddZoomGuideLines(slide, picture, draft.Marker, draft.Zoom,
                             ZoomImageGeometry.GetRelativePlacement(source, bounds, draft.Entry.Options.Placement),
@@ -344,7 +360,11 @@ namespace SlideSCI
         private static void DeleteZoomObject(Shape shape, HashSet<int> deletedIds, List<string> errors, int? knownId = null)
         {
             if (shape == null) return;
-            try { if (deletedIds.Add(knownId ?? shape.Id)) shape.Delete(); }
+            try
+            {
+                if (deletedIds.Add(knownId ?? shape.Id))
+                    ScaleBarService.DeleteWithAnnotations((Slide)shape.Parent, shape);
+            }
             catch (COMException ex) { errors.Add(ex.Message); }
         }
 
@@ -353,7 +373,7 @@ namespace SlideSCI
             public ZoomImageEntry Entry { get; }
             public ZoomImageExistingObjects Previous { get; }
             public Shape Marker { get; }
-            public Shape Zoom { get; }
+            public Shape Zoom { get; set; }
             public List<Shape> Guides { get; } = new List<Shape>();
             public Shape TargetMarker { get; set; }
             public string LinkKey { get; set; }

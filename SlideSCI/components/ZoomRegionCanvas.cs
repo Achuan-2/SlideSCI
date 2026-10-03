@@ -117,6 +117,9 @@ namespace SlideSCI
             RectangleF image = ImageBounds;
             e.Graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
             e.Graphics.DrawImage(preview, image);
+            var source = new RectangleF(0, 0, preview.Width, preview.Height);
+            var positions = Entries == null ? null : ZoomImageLayout.Calculate(source, Entries,
+                ZoomImageGeometry.GapPoints * preview.Width / pictureWidthPoints);
             if (Entries != null)
             {
                 foreach (ZoomImageEntry entry in Entries)
@@ -131,7 +134,7 @@ namespace SlideSCI
                     {
                         e.Graphics.DrawPolygon(pen, ZoomImageGeometry.GetCorners(screen, entry.Options.RegionRotationDegrees));
                     }
-                    DrawEntryLabel(e.Graphics, entry.DisplayName, screen.Location);
+                    DrawEntryLabel(e.Graphics, GetEntryLabel(entry, source, positions), screen.Location);
                 }
             }
             if (!HasRectangle) return;
@@ -145,7 +148,8 @@ namespace SlideSCI
             {
                 e.Graphics.DrawPolygon(pen, ZoomImageGeometry.GetCorners(regionScreen, RegionRotationDegrees));
             }
-            if (ActiveEntry != null) DrawEntryLabel(e.Graphics, ActiveEntry.DisplayName, regionScreen.Location);
+            if (ActiveEntry != null)
+                DrawEntryLabel(e.Graphics, GetEntryLabel(ActiveEntry, source, positions), regionScreen.Location);
             if (dragMode != DragMode.Draw)
             {
                 using (var handlePen = new Pen(OutlineColor))
@@ -159,6 +163,12 @@ namespace SlideSCI
                 }
             }
         }
+
+        private static string GetEntryLabel(ZoomImageEntry entry, RectangleF source,
+            IDictionary<ZoomImageEntry, RectangleF> positions) =>
+            positions != null && positions.TryGetValue(entry, out RectangleF zoom)
+                ? entry.DisplayName + " · " + ZoomImageLayout.GetMagnificationText(source, entry, zoom)
+                : entry.DisplayName;
 
         protected override void OnMouseEnter(EventArgs e)
         {

@@ -115,6 +115,7 @@ namespace SlideSCI
                 }
                 assignedNames.Add(name);
                 var entry = new ZoomImageEntry(item.Key, name, options, zoomRegion, zoom.Rotation);
+                entry.PreviewScaleBarSettings = ScaleBarService.ReadSettings(zoom);
                 result.Add(new ZoomImageExistingObjects(item.Key, marker, zoom,
                     group.Guides.Select(guide => guide.Shape).ToArray(), entry, false,
                     !ZoomImageSettingsCodec.SameCrop(saved, options)));
@@ -136,11 +137,14 @@ namespace SlideSCI
             ZoomImagePlacement placement = saved?.Placement ?? (guides.Count > 0
                 ? guides[0].InitialPlacement : ZoomImageGeometry.GetRelativePlacement(source,
                     new RectangleF(zoom.Left, zoom.Top, zoom.Width, zoom.Height), ZoomImagePlacement.Right));
+            ScaleBarSettings scaleBar = ScaleBarService.ReadSettings(zoom);
             return new ZoomImageSelection(region, ColorTranslator.FromOle(marker.Line.ForeColor.RGB),
                 Math.Max(0.01f, marker.Line.Weight), ZoomImageGeometry.GetDrawingDashStyle(dash),
                 useColor, saved?.AddGuideLines ?? guides.Count > 0, placement,
                 marker.Rotation - picture.Rotation, false, dash,
-                saved?.GuideLineExtent ?? (guides.Count > 0 ? guides[0].Extent : ZoomGuideLineExtent.AcrossImages));
+                saved?.GuideLineExtent ?? (guides.Count > 0 ? guides[0].Extent : ZoomGuideLineExtent.AcrossImages),
+                scaleBar?.LengthMicrometers ?? saved?.ScaleBarLengthMicrometers,
+                scaleBar?.ShowText ?? saved?.ScaleBarShowText);
         }
 
         /// <summary>直接对副本求交，不切换用户选区；生成失败只清理本次创建的对象。</summary>
@@ -151,7 +155,7 @@ namespace SlideSCI
             bool completed = false;
             try
             {
-                PowerPoint.Shape pictureCopy = picture.Duplicate()[1];
+                PowerPoint.Shape pictureCopy = ScaleBarService.DuplicateContent(picture);
                 RemoveCopiedLinks(pictureCopy);
                 pictureCopy.Left = picture.Left;
                 pictureCopy.Top = picture.Top;
@@ -159,14 +163,15 @@ namespace SlideSCI
                 RemoveCopiedLinks(mask);
                 mask.Left = marker.Left;
                 mask.Top = marker.Top;
-                // ZOrderPosition 也是 Shapes 集合中的索引，避免形状重名导致取错对象。
-                slide.Shapes.Range(new object[] { pictureCopy.ZOrderPosition, mask.ZOrderPosition })
+                // 复制和取消编组后按 ID 查找当前集合下标，避免层级位置越界或形状重名。
+                ScaleBarService.RangeByIds(slide, new[] { pictureCopy, mask })
                     .MergeShapes(Office.MsoMergeCmd.msoMergeIntersect, pictureCopy);
                 PowerPoint.Shape[] created = slide.Shapes.Cast<PowerPoint.Shape>()
                     .Where(shape => !before.Contains(shape.Id)).ToArray();
                 if (created.Length != 1 || created[0].Width <= 0 || created[0].Height <= 0)
                     throw new InvalidOperationException("放大矩形与原图没有有效的图片相交区域。");
                 RemoveCopiedLinks(created[0]);
+                ScaleBarService.SetCropFov(picture, created[0]);
                 completed = true;
                 return created[0];
             }
@@ -342,7 +347,7 @@ namespace SlideSCI
                 builder.Add(shape, tags.Value(i));
                 builder.HasGroupedShapes |= inGroup;
             }
-            if (shape.Type == Office.MsoShapeType.msoGroup)
+            if (shape.Type == Office.MsoShapeType.msoGroup && !ScaleBarService.IsScaleGroup(shape))
             {
                 foreach (PowerPoint.Shape child in shape.GroupItems) DiscoverShapeLinks(child, true, discovered);
             }
@@ -387,13 +392,15 @@ namespace SlideSCI
                 state.PictureRotation, state.MarkerBounds);
             ZoomImageSelection current = ZoomImageEntry.WithRegion(group.ZoomSettings, region,
                 state.MarkerRotation - state.PictureRotation, false);
-            if (ZoomImageSettingsCodec.SameCrop(group.ZoomSettings, current) ||
+            if ((ZoomImageSettingsCodec.SameCrop(group.ZoomSettings, current) &&
+                 ScaleBarService.HasCurrentCalibration(group.Picture, group.Zoom)) ||
                 DateTime.UtcNow < group.NextCropAttempt ||
                 !ZoomImageGeometry.HasOverlap(state.PictureBounds, state.PictureRotation,
                     state.MarkerBounds, state.MarkerRotation)) return state;
 
             PowerPoint.Shape oldZoom = group.Zoom;
             PowerPoint.Shape replacement = null;
+            var scaleObjects = new List<PowerPoint.Shape>();
             bool committed = false;
             try
             {
@@ -406,6 +413,9 @@ namespace SlideSCI
                 bool restoreSelection = selectedZoom.Any(isZoom => isZoom);
 
                 replacement = CreateCrop(slide, group.Picture, group.Marker);
+                scaleObjects.Add(replacement);
+                ImageFieldOfView cropFov = ScaleBarService.ReadFov(replacement, false);
+                ScaleBarSettings scaleSettings = ScaleBarService.ReadSettings(oldZoom)?.Copy();
                 RectangleF bounds = state.ZoomBounds;
                 // 保留原有位置及主要尺寸；宽高比随新区域变化，避免把新取图拉伸变形。
                 if (current.Placement == ZoomImagePlacement.Left || current.Placement == ZoomImagePlacement.Right)
@@ -415,11 +425,22 @@ namespace SlideSCI
                 replacement.LockAspectRatio = oldZoom.LockAspectRatio;
                 replacement.Name = oldZoom.Name;
                 replacement.AlternativeText = oldZoom.AlternativeText;
+                if (cropFov != null) ScaleBarService.WriteFov(replacement, cropFov);
                 replacement.Title = oldZoom.Title;
                 replacement.Visible = oldZoom.Visible;
                 CopyZoomOutline(oldZoom, replacement);
                 for (int i = 1; i <= oldZoom.Tags.Count; i++)
-                    replacement.Tags.Add(oldZoom.Tags.Name(i), oldZoom.Tags.Value(i));
+                    if (!oldZoom.Tags.Name(i).StartsWith("SLIDESCI_SCALE_", StringComparison.OrdinalIgnoreCase) &&
+                        !oldZoom.Tags.Name(i).StartsWith("SLIDESCI_FOV_", StringComparison.OrdinalIgnoreCase))
+                        replacement.Tags.Add(oldZoom.Tags.Name(i), oldZoom.Tags.Value(i));
+                if (scaleSettings != null)
+                {
+                    scaleSettings = ScaleBarService.FitZoomSettings(replacement, scaleSettings,
+                        current.ScaleBarLengthMicrometers, current.ScaleBarShowText);
+                    current = ZoomImageEntry.WithScaleBar(current, scaleSettings);
+                    replacement = ScaleBarService.Add(slide, replacement, scaleSettings, scaleObjects);
+                }
+                replacement.Name = oldZoom.Name;
                 replacement.Tags.Add(group.Key, ZoomImageSettingsCodec.Serialize(current, group.DisplayName));
                 // 放到旧图正上方，删除旧图后即占据旧图的层级。
                 int targetPosition = oldZoom.ZOrderPosition + 1;
@@ -428,7 +449,7 @@ namespace SlideSCI
                 int replacementId = replacement.Id;
 
                 // 新取图与元数据均完成后才删除旧图；此前任何失败都保留原有放大图。
-                oldZoom.Delete();
+                ScaleBarService.DeleteWithAnnotations(slide, oldZoom);
                 group.ReplaceZoom(replacement, replacementId, current);
                 committed = true;
                 if (restoreSelection)
@@ -453,16 +474,15 @@ namespace SlideSCI
             }
             finally
             {
-                if (!committed && replacement != null)
-                {
-                    try { replacement.Delete(); }
-                    catch (Exception ex) { Debug.WriteLine($"清理未完成的放大图失败: {ex.Message}"); }
-                }
+                if (!committed)
+                    foreach (PowerPoint.Shape shape in scaleObjects.AsEnumerable().Reverse()) ScaleBarService.TryDelete(shape);
             }
         }
 
         internal static void CopyZoomOutline(PowerPoint.Shape source, PowerPoint.Shape target)
         {
+            source = ScaleBarService.Content(source);
+            target = ScaleBarService.Content(target);
             var sourceLine = source.Line;
             var targetLine = target.Line;
             Office.MsoTriState visibility = sourceLine.Visible;
