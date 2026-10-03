@@ -82,7 +82,7 @@ namespace SlideSCI
         }
 
         private bool TryGetChannelPictures(int minimum, int maximum, out PowerPoint.Slide slide,
-            out PowerPoint.ShapeRange originalRange, out PowerPoint.Shape[] pictures)
+            out PowerPoint.ShapeRange originalRange, out PowerPoint.Shape[] pictures, bool allowScaleGroups = false)
         {
             slide = null;
             originalRange = null;
@@ -95,17 +95,19 @@ namespace SlideSCI
             PowerPoint.Selection selection = app.ActiveWindow.Selection;
             if (selection.Type != PowerPoint.PpSelectionType.ppSelectionShapes || selection.HasChildShapeRange)
             {
-                MessageBox.Show("请选中幻灯片上的图片；组合中的图片请先取消组合。", "提示");
+                MessageBox.Show(allowScaleGroups ? "请选中图片或整个图片比例尺组合。"
+                    : "请选中幻灯片上的图片；组合中的图片请先取消组合。", "提示");
                 return false;
             }
             originalRange = selection.ShapeRange;
             // 导出临时副本会改变选区，先固定所选图片及顺序。
             pictures = GetSelectedShapesInSelectionOrder(selection).ToArray();
             if (pictures.Length < minimum || pictures.Length > maximum || pictures.Any(picture =>
-                picture.Type != Office.MsoShapeType.msoPicture && picture.Type != Office.MsoShapeType.msoLinkedPicture))
+                picture.Type != Office.MsoShapeType.msoPicture && picture.Type != Office.MsoShapeType.msoLinkedPicture &&
+                !(allowScaleGroups && ScaleBarService.IsScaleGroup(picture))))
             {
                 MessageBox.Show(maximum == int.MaxValue ? "请选择一张或多张图片。"
-                    : $"合并通道需要选择 {minimum}–{maximum} 张图片，请不要同时选择文字、形状或组合。", "提示");
+                    : $"合并通道需要选择 {minimum}–{maximum} 张图片或图片比例尺组合，请不要同时选择文字或其他形状。", "提示");
                 pictures = null;
                 return false;
             }
@@ -188,10 +190,12 @@ namespace SlideSCI
             bool committed = false;
             try
             {
-                if (!TryGetChannelPictures(2, 7, out PowerPoint.Slide slide, out _, out pictures)) return;
+                if (!TryGetChannelPictures(2, 7, out PowerPoint.Slide slide, out _, out pictures, true)) return;
                 PowerPoint.Shape first = pictures[0];
-                double aspect = first.Width / first.Height;
-                if (pictures.Any(picture => Math.Abs((picture.Width / picture.Height) / aspect - 1) > 0.005))
+                PowerPoint.Shape[] content = pictures.Select(ScaleBarService.Content).ToArray();
+                PowerPoint.Shape firstContent = content[0];
+                double aspect = firstContent.Width / firstContent.Height;
+                if (content.Any(picture => Math.Abs((picture.Width / picture.Height) / aspect - 1) > 0.005))
                 {
                     MessageBox.Show("各通道的可见画面宽高比必须一致，请先调整图片裁剪范围。\n" +
                         "合并按画面坐标叠加，不自动配准；同一比例的图片会统一到第一张图片的输出尺寸。",
@@ -206,25 +210,36 @@ namespace SlideSCI
                     return;
                 }
                 using (Globals.ThisAddIn.ZoomGuideLines?.Suspend())
-                using (Bitmap merged = ChannelImageProcessor.CreateMergeCanvas(GetChannelRasterSize(first, ChannelImageMaxPixels)))
+                using (Bitmap merged = ChannelImageProcessor.CreateMergeCanvas(GetChannelRasterSize(firstContent, ChannelImageMaxPixels)))
                 {
+                    ImageFieldOfView mergedFov = GetMergedChannelFov(pictures);
+                    ScaleBarSettings scaleBar = pictures.Select(ScaleBarService.ReadSettings).FirstOrDefault(settings => settings != null)?.Copy();
                     foreach (PowerPoint.Shape picture in pictures)
-                        using (Bitmap channel = ExportChannelPicture(picture, merged.Size))
+                        using (Bitmap channel = ExportChannelPicture(picture, merged.Size, true))
                             ChannelImageProcessor.AddChannel(merged, channel);
                     app.StartNewUndoEntry();
                     PowerPoint.Shape output = InsertChannelBitmap(slide, merged,
-                        pictures.Max(picture => picture.Left + picture.Width) + 18F, first.Top, first.Width, first.Height);
+                        pictures.Max(picture => picture.Left + picture.Width) + 18F, first.Top, firstContent.Width, firstContent.Height);
+                    var created = new List<PowerPoint.Shape> { output };
                     try
                     {
                         output.Rotation = angle;
                         output.Name = $"合并通道_{pictures.Length}通道";
                         output.AlternativeText = "合并通道（RGB 相加，超过 255 截断；不自动配准）：\n" +
                             string.Join("\n", pictures.Select(picture => picture.Name));
+                        // 输出像素已包含原图裁剪，FOV 记录当前可见画面的物理尺寸。
+                        if (mergedFov != null) ScaleBarService.WriteFov(output, mergedFov);
+                        if (scaleBar != null) output = ScaleBarService.Add(slide, output, scaleBar, created);
+                        output.Name = $"合并通道_{pictures.Length}通道";
                         output.LockAspectRatio = Office.MsoTriState.msoTrue;
                         committed = true;
                         RestoreChannelSelection(new[] { output });
                     }
-                    finally { if (!committed) TryDeleteChannelShape(output); }
+                    finally
+                    {
+                        if (!committed)
+                            foreach (PowerPoint.Shape shape in created.AsEnumerable().Reverse()) TryDeleteChannelShape(shape);
+                    }
                 }
             }
             catch (Exception ex)
@@ -232,6 +247,32 @@ namespace SlideSCI
                 MessageBox.Show($"合并通道时出错：{ex.Message}", "合并通道", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally { if (!committed && pictures != null) RestoreChannelSelection(pictures); }
+        }
+
+        /// <summary>合并后的像素画面保留已知标定；只比较各通道共同提供的方向。</summary>
+        private static ImageFieldOfView GetMergedChannelFov(IEnumerable<PowerPoint.Shape> pictures)
+        {
+            double width = 0, height = 0;
+            string unit = null;
+            foreach (PowerPoint.Shape picture in pictures)
+            {
+                ImageFieldOfView fov = ScaleBarService.ReadFov(picture);
+                if (fov == null) continue;
+                SizeF visible = ScaleBarService.VisibleFov(picture, fov);
+                if ((width > 0 && visible.Width > 0 && Math.Abs(visible.Width / width - 1) > 0.005) ||
+                    (height > 0 && visible.Height > 0 && Math.Abs(visible.Height / height - 1) > 0.005))
+                    throw new InvalidOperationException("各通道的可见 FOV 标定不一致，请先统一图片标定和裁剪范围。");
+                if (width == 0) width = visible.Width;
+                if (height == 0) height = visible.Height;
+                if (unit == null) unit = fov.Unit;
+            }
+            if (unit == null) return null;
+            double factor = ImageFieldOfView.UnitFactor(unit);
+            return new ImageFieldOfView
+            {
+                Width = width / factor, Height = height / factor, Unit = unit,
+                Source = "由合并通道的可见画面标定"
+            };
         }
 
         private static Size GetChannelRasterSize(PowerPoint.Shape picture, int maximum)
