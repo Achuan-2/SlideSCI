@@ -133,6 +133,7 @@
       <HintPath>..\packages\Markdig.Signed.0.40.0\lib\net462\Markdig.Signed.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.VisualBasic" />
+    <Reference Include="PresentationCore" />
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
@@ -228,6 +229,7 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="components\MediaSourceInsertion.cs" />
+    <Compile Include="components\TiffPictureImport.cs" />
     <Compile Include="components\ImageFieldOfView.cs" />
     <Compile Include="components\TiffFieldOfViewReader.cs" />
     <Compile Include="components\LiveNumericUpDown.cs">

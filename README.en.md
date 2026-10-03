@@ -55,6 +55,7 @@ GitHub: [https://github.com/Achuan-2/SlideSCI](https://github.com/Achuan-2/Slide
 - **Batch Add Image Titles:** Supports batch selection of images to add centered captions below them. Allows configuring auto-grouping of images and captions.
   <img alt="" src="https://s2.loli.net/2025/08/29/OoXlgpGdrtx2bEP.png" />
 
+- **Import 16-bit TIFF:** Use `SlideSCI → 图片来源 → 插入图片`, paste files copied in File Explorer, or drop them onto a slide to automatically embed 16-bit grayscale and 16-bit-per-channel RGB/RGBA TIFFs as 8-bit PNGs.
 - **Batch Add Image Labels:** For scientific figures, supports label templates (`A`, `a`, `A)`, `a)`, `1`, `1)`). Default label font is `Arial`.
 
 - **Auto-arrange Images:** Automatically aligns multiple images with configurable:

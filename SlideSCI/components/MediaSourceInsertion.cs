@@ -49,8 +49,7 @@ namespace SlideSCI
                         media = isVideo
                             ? slide.Shapes.AddMediaObject2(sourcePath, Office.MsoTriState.msoFalse,
                                 Office.MsoTriState.msoTrue, 0, 0, -1, -1)
-                            : slide.Shapes.AddPicture(sourcePath, Office.MsoTriState.msoFalse,
-                                Office.MsoTriState.msoTrue, 0, 0, -1, -1);
+                            : InsertPicture(slide, sourcePath);
                         if (isVideo && media.MediaType != PpMediaType.ppMediaTypeMovie)
                             throw new InvalidOperationException("PowerPoint 未将此文件识别为视频。");
                         float scale = Math.Min(1f, Math.Min(slideWidth * 0.9f / media.Width,
@@ -103,6 +102,13 @@ namespace SlideSCI
                 }
             }
             return failures;
+        }
+
+        private static Shape InsertPicture(Slide slide, string sourcePath)
+        {
+            using (var picture = TiffPictureImport.Prepare(sourcePath))
+                return slide.Shapes.AddPicture(picture.ImportPath, Office.MsoTriState.msoFalse,
+                    Office.MsoTriState.msoTrue, 0, 0, picture.WidthPoints, picture.HeightPoints);
         }
 
         private static string GetAvailableName(string sourcePath, ISet<string> usedNames)

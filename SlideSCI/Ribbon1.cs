@@ -6419,5 +6419,6 @@ namespace SlideSCI
         {
             CreateZoomImage();
         }
+
     }
 }
