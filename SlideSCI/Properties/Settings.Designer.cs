@@ -398,5 +398,21 @@ namespace SlideSCI.Properties {
             get { return ((int)(this["ZoomGuideLineExtent"])); }
             set { this["ZoomGuideLineExtent"] = value; }
         }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string PseudoColorArgb {
+            get { return ((string)(this["PseudoColorArgb"])); }
+            set { this["PseudoColorArgb"] = value; }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool PseudoColorKeepOriginal {
+            get { return ((bool)(this["PseudoColorKeepOriginal"])); }
+            set { this["PseudoColorKeepOriginal"] = value; }
+        }
     }
 }

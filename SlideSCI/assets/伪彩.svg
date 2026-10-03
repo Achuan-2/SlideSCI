@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 32 32">
+  <title>伪彩</title>
+  <desc>蓝色图片边框内的灰度山形映射为蓝、青、绿、黄、红伪彩。</desc>
+  <defs>
+    <linearGradient id="lut" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#2555e8"/>
+      <stop offset="0.25" stop-color="#00c8ee"/>
+      <stop offset="0.5" stop-color="#32d36b"/>
+      <stop offset="0.75" stop-color="#ffdf37"/>
+      <stop offset="1" stop-color="#ff5252"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="4" width="28" height="24" rx="3" fill="#f3faff" stroke="#1296db" stroke-width="2"/>
+  <circle cx="9" cy="10" r="2.5" fill="#d847c4"/>
+  <path d="M4 24l8-10 5 5 5-7 6 12v2H4z" fill="url(#lut)"/>
+</svg>

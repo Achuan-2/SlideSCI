@@ -181,12 +181,9 @@ namespace SlideSCI
             imgAutoAlign_colNum.Text = Properties.Settings.Default.ColNum;
             imgAutoAlign_colSpace.Text = Properties.Settings.Default.ColSpace;
             imgAutoAlign_rowSpace.Text = Properties.Settings.Default.RowSpace;
-            imgWidthEditBpx.Text = Properties.Settings.Default.ImgWidth;
-            imgHeightEditBox.Text = Properties.Settings.Default.ImgHeight;
-            imgAutoAlignAlignTypeDropDown.SelectedItemIndex = Properties
-                .Settings
-                .Default
-                .imgAutoAlignAlignType;
+            imgWidthEditBpx.Text = RemoveCmUnit(Properties.Settings.Default.ImgWidth);
+            imgHeightEditBox.Text = RemoveCmUnit(Properties.Settings.Default.ImgHeight);
+            imgAutoAlignAlignTypeDropDown.SelectedItemIndex = Properties.Settings.Default.imgAutoAlignAlignType;
             excludeTextcheckBox.Checked = Properties.Settings.Default.imgAutoAlighExcludeText;
             // insertMarkdown
             toggleBackgroundCheckBox.Checked = Properties.Settings.Default.ToggleBackground;
@@ -305,34 +302,34 @@ namespace SlideSCI
             //图片宽度和高度
             List<string> PicSizes = new List<string>()
             {
-                "0cm",
-                "0.5cm",
-                "1cm",
-                "2cm",
-                "3cm",
-                "4cm",
-                "5cm",
-                "6cm",
-                "7cm",
-                "8cm",
-                "9cm",
-                "10cm",
-                "12cm",
-                "15cm",
-                "20cm",
-                "25cm",
-                "30cm",
-                "35cm",
-                "40cm",
-                "45cm",
-                "50cm",
-                "60cm",
-                "70cm",
-                "80cm",
-                "100cm",
-                "120cm",
-                "150cm",
-                "200cm",
+                "0",
+                "0.5",
+                "1",
+                "2",
+                "3",
+                "4",
+                "5",
+                "6",
+                "7",
+                "8",
+                "9",
+                "10",
+                "12",
+                "15",
+                "20",
+                "25",
+                "30",
+                "35",
+                "40",
+                "45",
+                "50",
+                "60",
+                "70",
+                "80",
+                "100",
+                "120",
+                "150",
+                "200",
             };
             FreshCombobox(imgWidthEditBpx, PicSizes);
             FreshCombobox(imgHeightEditBox, PicSizes);
@@ -470,8 +467,7 @@ namespace SlideSCI
             Properties.Settings.Default.RowSpace = imgAutoAlign_rowSpace.Text;
             Properties.Settings.Default.ImgWidth = imgWidthEditBpx.Text;
             Properties.Settings.Default.ImgHeight = imgHeightEditBox.Text;
-            Properties.Settings.Default.imgAutoAlignAlignType =
-                imgAutoAlignAlignTypeDropDown.SelectedItemIndex;
+            Properties.Settings.Default.imgAutoAlignAlignType = imgAutoAlignAlignTypeDropDown.SelectedItemIndex;
             Properties.Settings.Default.imgAutoAlighExcludeText = excludeTextcheckBox.Checked;
             // Save insertMarkdwon
             Properties.Settings.Default.ToggleBackground = toggleBackgroundCheckBox.Checked;
@@ -1523,8 +1519,16 @@ namespace SlideSCI
         }
 
         /// <summary>
-        /// 解析厘米(cm)字符串并转换为PowerPoint点数(Points)
-        /// 1 cm = 72 / 2.54 = 28.3464593 点
+        /// 移除厘米单位，使旧设置与下拉选项统一显示为纯数字。
+        /// </summary>
+        private static string RemoveCmUnit(string text)
+        {
+            return Regex.Replace(text ?? string.Empty, @"(?i)cm|厘米|\s", "");
+        }
+
+        /// <summary>
+        /// 解析厘米(cm)字符串并转换为PowerPoint点数(Points)。
+        /// 1 cm = 72 / 2.54 = 28.3464593 点。
         /// </summary>
         private bool TryParseCmToPoints(string text, out float points)
         {
@@ -1532,7 +1536,7 @@ namespace SlideSCI
             if (string.IsNullOrWhiteSpace(text)) return false;
 
             // 移除 cm, CM, 厘米 等单位字符并清理空格
-            string cleanText = Regex.Replace(text.Trim(), @"(?i)cm|厘米|\s", "");
+            string cleanText = RemoveCmUnit(text);
             if (float.TryParse(cleanText, out float cmValue) && cmValue > 0)
             {
                 points = (float)(cmValue * 28.3464593);
@@ -1570,7 +1574,7 @@ namespace SlideSCI
 
                 if (
                     !float.TryParse(
-                        imgAutoAlign_rowSpace.Text.Split(new char[] { '(', ' ' })[0],
+                        (imgAutoAlign_rowSpace.Text ?? "").Split(new char[] { '(', ' ' })[0],
                         out rowSpace
                     )
                     || rowSpace < 0
@@ -1584,7 +1588,7 @@ namespace SlideSCI
                 var selectedImgShape = new List<Shape>();
                 foreach (Shape shape in sel.ShapeRange)
                 {
-                    // Skip text boxes if excludeTextcheckBox is checked
+                    // 按设置排除文本框、形状和媒体对象。
                     Office.MsoShapeType objType = shape.Type;
                     if (
                         excludeTextcheckBox.Checked
@@ -1657,6 +1661,8 @@ namespace SlideSCI
                         shapesToArrange.Add(shape);
                     }
                 }
+                if (shapesToArrange.Count == 0) return;
+
                 // Now Align image
                 float startX = shapesToArrange[0].Left;
                 float startY = shapesToArrange[0].Top;
@@ -4751,10 +4757,10 @@ namespace SlideSCI
 
         private void imgAutoAlign_rowSpace_TextChanged(object sender, RibbonControlEventArgs e)
         {
-            string str1 = imgAutoAlign_rowSpace.Text.Split(new char[] { '≈' })[1];
-            if (str1 != null)
+            string[] parts = (imgAutoAlign_rowSpace.Text ?? "").Split('≈');
+            if (parts.Length > 1)
             {
-                Properties.Settings.Default.TitleFontSize = Regex.Replace(str1, @"[^\d.\d]", "");
+                Properties.Settings.Default.TitleFontSize = Regex.Replace(parts[1], @"[^\d.]", "");
             }
             AlignPics();
         }

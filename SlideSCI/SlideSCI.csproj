@@ -220,6 +220,13 @@
     <Compile Include="Ribbon.PictureSources.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Ribbon.Channels.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="components\ChannelImageProcessor.cs" />
+    <Compile Include="components\PseudoColorForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="components\MediaSourceInsertion.cs" />
     <Compile Include="components\MediaFilePasteRibbon.cs" />
     <Compile Include="components\MediaFileDropTracker.cs" />
@@ -253,6 +260,8 @@
     <None Include="app.config" />
     <None Include="assets\制作放大图.svg" />
     <None Include="assets\制作放大图.png" />
+    <None Include="assets\伪彩.svg" />
+    <None Include="assets\伪彩.png" />
     <None Include="assets\图文同缩.svg" />
     <None Include="assets\图文同缩.png" />
     <None Include="SlideSCI_TemporaryKey.pfx" />

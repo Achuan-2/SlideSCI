@@ -2,6 +2,12 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="SlideSCI.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
+    <Setting Name="PseudoColorArgb" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="PseudoColorKeepOriginal" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
     <Setting Name="TitleFontName" Type="System.String" Scope="User">
       <Value Profile="(Default)">微软雅黑</Value>
     </Setting>
