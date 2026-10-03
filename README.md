@@ -200,8 +200,20 @@ Github地址：[https://github.com/Achuan-2/SlideSCI](https://github.com/Achuan-
 
 如果插件安装后无法正常运行、没有在PPT中显示，或者在开发工具→COM加载项里勾选插件，提示“未加载。加载COM加载项时出现运行错误”，请尝试安装上面的环境依赖。
 
-## 📝 使用介绍视频
+## 📝 使用介绍
 
+博客
+- [我开发了一个PPT插件！支持批量添加图片标题，复制粘贴位置、批量图片对齐！](https://www.zhihu.com/question/377291781/answer/75728785092)
+- [为了方便每周组会汇报，我写了一个ppt插件（SlideSCI），GitHub Star数破500](https://zhuanlan.zhihu.com/p/1949229789304067434)
+- [我的PPT插件800 star啦，新增标签更新功能](https://zhuanlan.zhihu.com/p/1954149983461827580)
+- [Github 800+ stars的开源PPT插件更新：插入LaTeX数学公式功能大升级，高效输入各种数学公式](https://www.zhihu.com/question/48751192/answer/1956080929509446635)
+- [我写了一个给研究生用的开源PPT插件，Github获得1k stars啦！](https://www.zhihu.com/question/432909311/answer/1961532582823985595)
+- [GitHub 2k stars的PPT开源插件大更新啦！](https://zhuanlan.zhihu.com/p/2045949794397562333)
+- [GitHub 2k stars的PPT插件更新：新增素材库功能和AI编辑PPT功能](https://zhuanlan.zhihu.com/p/2046319007821834133)
+- [为了在PPT上制作放大图，我开发了一个插件！](https://zhuanlan.zhihu.com/p/2089071868494070180?share_code=1gkp00IbBnySq&utm_psn=2089169922819733434)
+- [终于让PPT能保留上传图片的文件名了！](https://zhuanlan.zhihu.com/p/2089363380301837259)
+
+视频
 - [让AI帮我我开发了一个PPT插件！支持一键添加图片标题，复制粘贴位置、一键图片对齐、一键插入代码块、一键插入latex公式！_哔哩哔哩_bilibili](https://www.bilibili.com/video/BV15YcmeSEbq/?spm_id_from=0.0.homepage.video_card.click&vd_source=b4a1fcb6dce305e26d8d16d9cbb71304)
 - [可能是全网第一个支持插入Markdown到PPT的PPT插件_哔哩哔哩_bilibili](https://www.bilibili.com/video/BV1VXcZe2EyK/?spm_id_from=0.0.homepage.video_card.click)
 
