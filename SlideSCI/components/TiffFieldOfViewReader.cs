@@ -13,6 +13,7 @@ namespace SlideSCI
     /// <summary>仅读取 TIFF 首个 IFD 的标定信息，不解码图像或加载整个时间序列。</summary>
     internal static class TiffFieldOfViewReader
     {
+        internal const string ResolutionSource = "TIFF 分辨率（可能为打印 DPI，请核对）";
         private const int MaximumMetadataBytes = 4 * 1024 * 1024;
 
         internal static ImageFieldOfView TryRead(string path)
@@ -56,8 +57,11 @@ namespace SlideSCI
                     // 普通 TIFF 的分辨率也可能只是打印 DPI；记录来源，设置窗口提示核对。
                     double resolutionUnit = reader.Scalar(tags, 296);
                     string standardUnit = resolutionUnit == 2 ? "in" : resolutionUnit == 3 ? "cm" : null;
-                    return standardUnit == null ? null : Create(width / xResolution, height / yResolution,
-                        standardUnit, "TIFF 分辨率（可能为打印 DPI，请核对）");
+                    // 标签单位用于物理换算；显微图像的 FOV 以 μm 展示，避免 cm/in
+                    // 在两位小数的编辑窗口中变成 0.03、0.00，掩盖真实标定。
+                    double micrometersPerUnit = ImageFieldOfView.UnitFactor(standardUnit);
+                    return standardUnit == null ? null : Create(width / xResolution * micrometersPerUnit,
+                        height / yResolution * micrometersPerUnit, "μm", ResolutionSource);
                 }
             }
             catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException ||

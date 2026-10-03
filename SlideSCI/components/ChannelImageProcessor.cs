@@ -9,11 +9,11 @@ namespace SlideSCI
     /// <summary>显示图像的线性 LUT 与 RGB 饱和相加；不修改亮度范围，也不执行图像配准。</summary>
     internal static class ChannelImageProcessor
     {
-        // ImageJ Merge Channels 的 C1–C7 顺序。灰色 LUT 的亮端为白色。
-        internal static readonly string[] ColorNames = { "红", "绿", "蓝", "灰", "青", "品红", "黄" };
+        // 伪彩下拉框与默认分配使用同一顺序；名称和颜色必须按索引对应。灰色 LUT 的亮端为白色。
+        internal static readonly string[] ColorNames = { "绿", "红", "蓝", "灰", "青", "品红", "黄" };
         internal static readonly Color[] DefaultColors =
         {
-            Color.Red, Color.Lime, Color.Blue, Color.White, Color.Cyan, Color.Magenta, Color.Yellow
+            Color.Lime, Color.Red, Color.Blue, Color.White, Color.Cyan, Color.Magenta, Color.Yellow
         };
 
         internal static Bitmap Resize(Image image, Size size)

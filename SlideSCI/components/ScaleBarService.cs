@@ -45,10 +45,21 @@ namespace SlideSCI
         {
             string text = Content(shape).AlternativeText ?? "";
             ImageFieldOfView saved = ImageFieldOfView.Read(text);
-            if (saved != null || !trySource) return saved;
+            // 仅迁移旧版自动读取的 cm/in 标定，保留用户手动选择的单位。
+            bool legacyResolution = saved != null && saved.Source == TiffFieldOfViewReader.ResolutionSource &&
+                (saved.Unit == "cm" || saved.Unit == "in");
+            if (legacyResolution)
+                saved = new ImageFieldOfView
+                {
+                    Width = saved.WidthMicrometers, Height = saved.HeightMicrometers,
+                    Unit = "μm", Source = saved.Source
+                };
+            if ((saved != null && !legacyResolution) || !trySource) return saved;
             string path = text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
                 .LastOrDefault(line => line.StartsWith(MediaSourceInsertion.PathPrefix, StringComparison.Ordinal));
-            return path == null ? null : TiffFieldOfViewReader.TryRead(path.Substring(MediaSourceInsertion.PathPrefix.Length));
+            // 旧标定优先重读原文件，恢复可能在厘米显示时丢失的精度；原图不可用则换算保存值。
+            return (path == null ? null : TiffFieldOfViewReader.TryRead(path.Substring(MediaSourceInsertion.PathPrefix.Length)))
+                ?? saved;
         }
         internal static ScaleBarSettings ReadSettings(PowerPoint.Shape shape)
         {
