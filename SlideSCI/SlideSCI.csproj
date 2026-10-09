@@ -33,7 +33,7 @@
     <PublishUrl>D:\Code\SlideSCI\SlideSCI\publish\</PublishUrl>
     <InstallUrl />
     <TargetCulture>zh-chs</TargetCulture>
-    <ApplicationVersion>1.2.0.0</ApplicationVersion>
+    <ApplicationVersion>2.2.2.0</ApplicationVersion>
     <AutoIncrementApplicationRevision>false</AutoIncrementApplicationRevision>
     <UpdateEnabled>true</UpdateEnabled>
     <UpdateInterval>7</UpdateInterval>
@@ -330,10 +330,12 @@
     <SignManifests>true</SignManifests>
   </PropertyGroup>
   <PropertyGroup>
-    <ManifestKeyFile>SlideSCI_TemporaryKey.pfx</ManifestKeyFile>
+    <!-- Manifest signing uses the current user's code-signing certificate store. -->
+    <ManifestKeyFile />
   </PropertyGroup>
   <PropertyGroup>
-    <ManifestCertificateThumbprint>E146EF3F86D8CBCC8922F6AF9A30BBEEEE1EC5AE</ManifestCertificateThumbprint>
+    <ManifestCertificateThumbprint>E3DBC9C6ED5D5928755F1C2B8A13FE05215DA6E1</ManifestCertificateThumbprint>
+    <ManifestTimestampUrl>http://timestamp.digicert.com</ManifestTimestampUrl>
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>true</SignAssembly>

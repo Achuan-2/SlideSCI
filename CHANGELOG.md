@@ -1,3 +1,7 @@
+## v2.2.2 / 20261009
+- 🐛 更换已过期的 VSTO 签名证书，新证书有效期至 2036-10-09，并为签名添加时间戳。
+- 🐛 安装包包含 DocumentFormat.OpenXml.dll 和 DocumentFormat.OpenXml.Framework.dll，修复依赖缺失。
+
 ## v2.2.0 / 20261003
 - ✨ 新增比例尺scalebar功能 [#74](https://github.com/Achuan-2/my_ppt_plugin/issues/74)
 - ✨ 新增伪彩功能
