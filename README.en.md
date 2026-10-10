@@ -128,13 +128,6 @@ Troubleshooting:
   Best for single-line formulas. For complex multi-line formulas, use [IguanaTex](https://github.com/Jonathan-LeRoux/IguanaTex).  
   See examples of PPT-specific LaTeX syntax [here](https://github.com/Achuan-2/my_ppt_plugin/issues/7).
 
-## ❤️ Support My Work
-
-If you like my plugin, please consider giving a star to the GitHub repository and making a donation. This will encourage me to continue improving this plugin.
-
-![](https://fastly.jsdelivr.net/gh/Achuan-2/PicBed/assets/20241118182532-2024-11-18.png)
-
-See the list of donors here: https://fastly.jsdelivr.net/gh/Achuan-2/PicBed/assets/20241128221208-2024-11-28.png
 
 
 ## 👨‍💻 Feedback
@@ -152,3 +145,10 @@ If you encounter any problems during use, you can provide feedback through the f
 * Thanks to Visual Studio Tools For Office for providing development support
 * Thanks to the donors
 * Thanks to all users who provided suggestions and feedback
+
+
+## ❤️ Buy me a coffee
+
+If you find this plugin useful, you're welcome to buy me a coffee. Your support helps me maintain and improve this plugin and develop new ones.
+
+[Buy me a coffee](https://pancake.waffo.ai/store/achuan-2-fdbho4ye/product/PROD_3F7Aa7c2NQlz9KmxcgxjQ7?type=onetime&currency=USD)
