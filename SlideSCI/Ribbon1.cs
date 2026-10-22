@@ -2079,6 +2079,8 @@ namespace SlideSCI
                             500
                         );
 
+                        // Newer PowerPoint versions reject EquationInsertNew on an empty text selection.
+                        textBox.TextFrame.TextRange.Text = "x";
                         // Select the newly inserted textbox
                         textBox.Select();
                         app.ActiveWindow.Selection.TextRange.Select();
@@ -2089,7 +2091,7 @@ namespace SlideSCI
                         equationShape
                             .TextFrame.TextRange.Characters(
                                 1,
-                                equationShape.TextFrame.TextRange.Text.Length - 1
+                                Math.Max(1, equationShape.TextFrame.TextRange.Text.Length)
                             )
                             .Text = "\u24C9";
 
@@ -2100,7 +2102,7 @@ namespace SlideSCI
                         equationShape2
                             .TextFrame.TextRange.Characters(
                                 1,
-                                equationShape2.TextFrame.TextRange.Text.Length - 1
+                                Math.Max(1, equationShape2.TextFrame.TextRange.Text.Length)
                             )
                             .Text = latexInput;
 
@@ -2934,6 +2936,8 @@ namespace SlideSCI
                 500
             );
 
+            // Newer PowerPoint versions reject EquationInsertNew on an empty text selection.
+            textBox.TextFrame.TextRange.Text = "x";
             // Select the newly inserted textbox
             textBox.Select();
             app.ActiveWindow.Selection.TextRange.Select();
@@ -2944,7 +2948,7 @@ namespace SlideSCI
             equationShape
                 .TextFrame.TextRange.Characters(
                     1,
-                    equationShape.TextFrame.TextRange.Text.Length - 1
+                    Math.Max(1, equationShape.TextFrame.TextRange.Text.Length)
                 )
                 .Text = "\u24C9";
 
@@ -2955,7 +2959,7 @@ namespace SlideSCI
             equationShape2
                 .TextFrame.TextRange.Characters(
                     1,
-                    equationShape2.TextFrame.TextRange.Text.Length - 1
+                    Math.Max(1, equationShape2.TextFrame.TextRange.Text.Length)
                 )
                 .Text = mathContent;
 
