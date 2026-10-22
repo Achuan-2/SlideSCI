@@ -33,7 +33,7 @@
     <PublishUrl>D:\Code\SlideSCI\SlideSCI\publish\</PublishUrl>
     <InstallUrl />
     <TargetCulture>zh-chs</TargetCulture>
-    <ApplicationVersion>2.2.2.0</ApplicationVersion>
+    <ApplicationVersion>2.2.3.0</ApplicationVersion>
     <AutoIncrementApplicationRevision>false</AutoIncrementApplicationRevision>
     <UpdateEnabled>true</UpdateEnabled>
     <UpdateInterval>7</UpdateInterval>

@@ -1,3 +1,6 @@
+## v2.2.3 / 20261022
+- 🐛 修复新版 PowerPoint 插入 Markdown 公式块和「插入 LaTeX 文字」时可能出现的 HRESULT E_FAIL。[#77](https://github.com/Achuan-2/SlideSCI/issues/77)
+
 ## v2.2.2 / 20261009
 - 🐛 更换已过期的 VSTO 签名证书，新证书有效期至 2036-10-09，并为签名添加时间戳。
 - 🐛 安装包包含 DocumentFormat.OpenXml.dll 和 DocumentFormat.OpenXml.Framework.dll，修复依赖缺失。
