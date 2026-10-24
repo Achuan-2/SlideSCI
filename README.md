@@ -135,19 +135,14 @@ Github地址：[https://github.com/Achuan-2/SlideSCI](https://github.com/Achuan-
 
   <img  alt="image" src="https://github.com/user-attachments/assets/d33eba81-4241-4ec6-bc73-057087be8a5e" />
 
-  如果数学公式比较复杂，PPT原生不支持，可以选择「插入LaTeX svg」，支持更多latex公式样式，只需要简单配置下node.js环境即可使用，而不需要像IguanaTeX等插件除了安装LaTeX环境还要安装很多插件才能实现latex转svg，本插件的安装简单很多
+  如果数学公式比较复杂，PPT原生不支持，可以选择「插入LaTeX svg」，使用内置 MathJax 支持更多公式样式，无需安装 Node.js 或 LaTeX 环境。
   <img  alt="PixPin_2025-09-30_10-21-00" src="https://github.com/user-attachments/assets/4d7732b2-47da-41e1-bb22-ddfceab4604b" />
   插入的svg的图片提示文字会保留原始LaTeX代码，方便修改后再插入
   <img  alt="PixPin_2025-09-30_10-25-48" src="https://github.com/user-attachments/assets/b5bbeaf1-8b12-44b1-9664-4591741e83ea" />
 
 
 
-  > 配置「插入LaTeX svg」功能的方法
-  >
-  > - 配置[Node.js](https://nodejs.org/zh-cn/)环境
-  > - 进入插件安装文件夹的`latex-converter`文件夹，默认为`%APPDATA%\Achuan-2\SlideSCI\latex-converter`
-  > - 打开命令行，运行`npm install`安装环境
-  > - 配置完成，可以使用「插入LaTeX svg」功能
+  > 「插入LaTeX svg」所需资源随插件内置，安装后可直接使用。首次使用需要初始化转换引擎，后续插入会复用引擎。
 
 
 - **支持插入Markdown文本**：可以直接把markdown整篇笔记一口气全部粘贴到PPT里！并按原文顺序排列！  
@@ -171,7 +166,9 @@ Github地址：[https://github.com/Achuan-2/SlideSCI](https://github.com/Achuan-
       - 默认限制500px宽度，添加1pt黑色边框
     - 数学公式特别处理：
 
-      - 独立文本框，支持PPT直接再编辑
+      - 行内公式与正文一起保留，块级公式独立文本框，支持PPT直接再编辑
+      - Markdown 公式内置 KaTeX 转换，无需安装 Node.js 或 pnpm
+      - 支持范围以 KaTeX 为准，不支持的公式会保留源码并提示
     - 引述块特别处理：
 
       - 独立文本框，添加黑色边框
@@ -263,6 +260,7 @@ Github地址：[https://github.com/Achuan-2/SlideSCI](https://github.com/Achuan-
 - [jph00/latex-ppt](https://github.com/jph00/latex-ppt): LaTeX in PowerPoint 支持
 - [Markdig](https://github.com/xoofx/markdig): Markdown 解析支持
 - [MathJax](https://github.com/mathjax/MathJax): 数学公式转SVG支持
+- [KaTeX](https://github.com/KaTeX/KaTeX) 与 [Jint](https://github.com/sebastienros/jint): 无需 Node.js 的 Markdown 公式转 MathML 支持
 - 感谢 Visual Studio Tools For Office 提供的开发支持
 - 感谢所有提供建议反馈以及捐赠赞赏的用户
 

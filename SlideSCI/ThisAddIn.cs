@@ -3,6 +3,7 @@ namespace SlideSCI
     public partial class ThisAddIn
     {
         public LatexToSvgConverter LatexSvgConverter { get; private set; }
+        public LatexMathMlConverter LatexMathMlConverter { get; private set; }
         internal ZoomGuideLineTracker ZoomGuideLines { get; private set; }
         private MediaFileDropTracker mediaFileDrops;
 
@@ -90,7 +91,8 @@ namespace SlideSCI
         private void ThisAddIn_Startup(object sender, System.EventArgs e)
         {
             LatexSvgConverter = new LatexToSvgConverter();
-            LatexSvgConverter.WarmUpAsync();
+            LatexMathMlConverter = new LatexMathMlConverter();
+            LatexMathMlConverter.WarmUpAsync();
             ZoomGuideLines = new ZoomGuideLineTracker(Application);
             mediaFileDrops = new MediaFileDropTracker(Application);
         }
@@ -181,6 +183,8 @@ namespace SlideSCI
 
         private void ThisAddIn_Shutdown(object sender, System.EventArgs e)
         {
+            LatexMathMlConverter?.Dispose();
+            LatexMathMlConverter = null;
             LatexSvgConverter?.Dispose();
             LatexSvgConverter = null;
             mediaFileDrops?.Dispose();

@@ -6,9 +6,13 @@
     "license": "MIT",
     "main": "latex-to-svg.js",
     "scripts": {
-        "convert": "node latex-to-svg.js"
+        "convert": "node latex-to-svg.js",
+        "build:svg": "esbuild mathjax-svg-entry.js --bundle --platform=browser --format=iife --target=es2018 --minify --legal-comments=eof --outfile=mathjax/mathjax-svg.min.js"
     },
     "dependencies": {
-        "mathjax-full": "^3.2.2"
+        "mathjax-full": "3.2.2"
+    },
+    "devDependencies": {
+        "esbuild": "0.25.12"
     }
 }

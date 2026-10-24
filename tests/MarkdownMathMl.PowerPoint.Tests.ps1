@@ -64,7 +64,7 @@ try {
         try { $xml = [xml]$reader.ReadToEnd() } finally { $reader.Dispose() }
         $ns = [Xml.XmlNamespaceManager]::new($xml.NameTable)
         $ns.AddNamespace('m', 'http://schemas.openxmlformats.org/officeDocument/2006/math')
-        foreach ($mapping in @(@('oMath', 'Math'), @('sSup', 'Sup'), @('sSubSup', 'SubSup'), @('f', 'Fraction'))) {
+        foreach ($mapping in @(@('oMath', 'Math'), @('sSup', 'Sup'), @('sSubSup', 'SubSup'), @('f', 'Fraction'), @('m', 'Matrix'))) {
             if ($xml.SelectNodes('//m:' + $mapping[0], $ns).Count -ne $fixture.($mapping[1])) {
                 throw "Native Office Math structure $($mapping[0]) failed for $($fixture.Name)."
             }

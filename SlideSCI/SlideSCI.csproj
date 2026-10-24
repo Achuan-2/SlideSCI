@@ -123,6 +123,12 @@
   -->
   <ItemGroup>
     <Reference Include="Accessibility" />
+    <Reference Include="Acornima, Version=1.7.0.0, Culture=neutral, PublicKeyToken=496b38436bb9edeb, processorArchitecture=MSIL">
+      <HintPath>..\packages\Acornima.1.7.0\lib\net462\Acornima.dll</HintPath>
+    </Reference>
+    <Reference Include="Jint, Version=4.16.0.0, Culture=neutral, PublicKeyToken=2e92ba9c8d81157f, processorArchitecture=MSIL">
+      <HintPath>..\packages\Jint.4.16.0\lib\net462\Jint.dll</HintPath>
+    </Reference>
     <Reference Include="DocumentFormat.OpenXml, Version=3.3.0.0, Culture=neutral, PublicKeyToken=8fb06cb64d019a17, processorArchitecture=MSIL">
       <HintPath>..\packages\DocumentFormat.OpenXml.3.3.0\lib\net46\DocumentFormat.OpenXml.dll</HintPath>
     </Reference>
@@ -138,10 +144,19 @@
       <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
+    </Reference>
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Net.Http" />
+    <Reference Include="System.Memory, Version=4.0.1.2, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Memory.4.5.5\lib\net461\System.Memory.dll</HintPath>
+    </Reference>
     <Reference Include="System.Numerics" />
+    <Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
+    </Reference>
     <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=6.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.6.1.0\lib\net462\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
     </Reference>
@@ -201,6 +216,7 @@
     <Compile Include="components\CodeHighlighter.cs" />
     <Compile Include="components\CSharpExecutor.cs" />
     <Compile Include="components\LatexToSvgConverter.cs" />
+    <Compile Include="components\LatexMathMlConverter.cs" />
     <Compile Include="components\InputDialog.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -315,10 +331,16 @@
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="latex-converter\latex-to-svg.js">
+    <EmbeddedResource Include="latex-converter\katex\katex.min.js">
+      <LogicalName>SlideSCI.KaTeX.katex.min.js</LogicalName>
+    </EmbeddedResource>
+    <Content Include="latex-converter\katex\*-LICENSE.txt;latex-converter\katex\*-NOTICE.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="latex-converter\package.json">
+    <EmbeddedResource Include="latex-converter\mathjax\mathjax-svg.min.js">
+      <LogicalName>SlideSCI.MathJax.svg.min.js</LogicalName>
+    </EmbeddedResource>
+    <Content Include="latex-converter\mathjax\*-LICENSE.txt;latex-converter\mathjax\*-NOTICE.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

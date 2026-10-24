@@ -2516,7 +2516,7 @@ namespace SlideSCI
 
             try
             {
-                var converter = Globals.ThisAddIn.LatexSvgConverter ?? new LatexToSvgConverter();
+                var converter = Globals.ThisAddIn.LatexMathMlConverter ?? new LatexMathMlConverter();
                 string[] mathMl = converter.ConvertLatexToMathMl(formulas.Select(formula => formula.Content).ToArray());
                 for (int i = 0; i < formulas.Count; i++)
                 {
@@ -6164,8 +6164,8 @@ namespace SlideSCI
                 catch (FileNotFoundException fnfEx)
                 {
                     MessageBox.Show(
-                        $"{fnfEx.Message}\n请在插件目录下的 latex-converter 文件夹中执行 npm install。",
-                        "脚本缺失",
+                        $"{fnfEx.Message}\n请重新安装完整插件。",
+                        "资源缺失",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Error
                     );

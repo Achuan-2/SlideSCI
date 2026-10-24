@@ -1,221 +1,92 @@
 using System;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
-using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
+using System.Xml;
+using Jint;
 
 namespace SlideSCI
 {
-    public class LatexToSvgConverter : IDisposable
+    /// <summary>Runs the bundled MathJax SVG renderer in-process, without Node.js.</summary>
+    public sealed class LatexToSvgConverter : IDisposable
     {
-        private readonly string _nodeExecutable;
-        private readonly string _scriptPath;
-        private readonly string _workingDirectory;
-        private readonly int _startupTimeoutMilliseconds;
-        private readonly int _requestTimeoutMilliseconds;
+        private const string ScriptResourceName = "SlideSCI.MathJax.svg.min.js";
         private readonly object _sync = new object();
         private readonly CancellationTokenSource _shutdown = new CancellationTokenSource();
-        private Process _worker;
-        private StreamWriter _input;
-        private Task<string> _errorOutput;
+        private Engine _engine;
         private Task _warmupTask;
         private int _disposeStarted;
-
-        public LatexToSvgConverter(string nodeExecutable = "node", string workingDirectory = null,
-            int startupTimeoutMilliseconds = 15000, int requestTimeoutMilliseconds = 10000)
-        {
-            if (startupTimeoutMilliseconds <= 0 || requestTimeoutMilliseconds <= 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(startupTimeoutMilliseconds), "转换超时必须大于零。");
-            }
-            _nodeExecutable = string.IsNullOrWhiteSpace(nodeExecutable) ? "node" : nodeExecutable;
-            string baseDirectory = AppDomain.CurrentDomain.BaseDirectory
-                ?? AppDomain.CurrentDomain.SetupInformation.ApplicationBase ?? string.Empty;
-            _workingDirectory = workingDirectory ?? Path.Combine(baseDirectory, "latex-converter");
-            _scriptPath = Path.Combine(_workingDirectory, "latex-to-svg.js");
-            _startupTimeoutMilliseconds = startupTimeoutMilliseconds;
-            _requestTimeoutMilliseconds = requestTimeoutMilliseconds;
-        }
 
         public Task WarmUpAsync()
         {
             lock (_sync)
             {
                 ThrowIfDisposed();
-                if (_warmupTask == null)
+                return _warmupTask ?? (_warmupTask = Task.Run(() =>
                 {
-                    _warmupTask = Task.Run(() =>
-                    {
-                        lock (_sync)
-                        {
-                            if (_disposeStarted != 0) return;
-                            try
-                            {
-                                // Prime serialization and the request path as well as loading MathJax.
-                                ConvertBatch(new[] { "x" }, true);
-                            }
-                            catch (Exception ex)
-                            {
-                                // Startup must remain silent; report missing dependencies only on actual use.
-                                Debug.WriteLine("SlideSCI formula warmup: " + ex.Message);
-                            }
-                        }
-                    });
-                }
-                return _warmupTask;
+                    try { ConvertLatexToSvg("x"); }
+                    catch (Exception ex) { Debug.WriteLine("SlideSCI MathJax warmup: " + ex.Message); }
+                }));
             }
         }
 
         public string ConvertLatexToSvg(string latexCode)
         {
-            return ConvertBatch(new[] { latexCode }, false)[0];
-        }
+            if (string.IsNullOrWhiteSpace(latexCode))
+                throw new ArgumentException("LaTeX 公式不能为空。", nameof(latexCode));
 
-        public string ConvertLatexToMathMl(string latexCode)
-        {
-            return ConvertBatch(new[] { latexCode }, true)[0];
-        }
+            string text = latexCode.Trim();
+            bool display = text.StartsWith(@"\[") || text.StartsWith("$$")
+                || text.Contains(@"\\")
+                || Regex.IsMatch(text, @"\\begin\s*\{(align|equation|gather|multline|cases|matrix)");
+            string source = NormalizeLatex(text);
+            if (string.IsNullOrWhiteSpace(source))
+                throw new ArgumentException("LaTeX 公式不能为空。", nameof(latexCode));
 
-        public string[] ConvertLatexToMathMl(string[] latexCodes)
-        {
-            if (latexCodes == null || latexCodes.Length == 0) return new string[0];
-            return ConvertBatch(latexCodes, true);
-        }
-
-        private string[] ConvertBatch(string[] latexCodes, bool mathMl)
-        {
-            if (Array.Exists(latexCodes, string.IsNullOrWhiteSpace))
-            {
-                throw new ArgumentException("LaTeX 公式不能为空。", nameof(latexCodes));
-            }
             lock (_sync)
             {
                 ThrowIfDisposed();
-                EnsureWorkerStarted();
-                WorkerResponse response;
-                try
-                {
-                    string request = JsonConvert.SerializeObject(new
-                    {
-                        sources = latexCodes,
-                        mathMl,
-                        display = mathMl ? (bool?)false : null
-                    }, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
-                    _input.WriteLine(request);
-                    response = ReadResponse(_requestTimeoutMilliseconds, "转换公式");
-                }
-                catch (Exception ex)
-                {
-                    StopWorker();
-                    throw new InvalidOperationException("公式转换进程通信失败：" + ex.GetBaseException().Message, ex);
-                }
-                // A TeX error is an ordinary response. Keep the worker alive for the next request.
-                if (!response.Ok)
-                {
-                    throw new InvalidOperationException(response.Error ?? "LaTeX 转换失败。");
-                }
-                if (response.Results == null || response.Results.Length != latexCodes.Length
-                    || Array.Exists(response.Results, string.IsNullOrWhiteSpace))
-                {
-                    StopWorker();
-                    throw new InvalidOperationException("公式转换结果不完整。");
-                }
-                return response.Results;
+                EnsureInitialized();
+                string result = _engine.Invoke("slideSciToSvg", source, display).ToString();
+                var xml = new XmlDocument { XmlResolver = null };
+                xml.LoadXml(result);
+                if (xml.DocumentElement?.LocalName != "svg"
+                    || xml.DocumentElement.NamespaceURI != "http://www.w3.org/2000/svg")
+                    throw new InvalidOperationException("MathJax 未生成有效 SVG。");
+                return result;
             }
         }
 
-        private void EnsureWorkerStarted()
+        private static string NormalizeLatex(string text)
         {
-            if (_worker != null && !_worker.HasExited) return;
-            StopWorker();
-            if (!File.Exists(_scriptPath))
-            {
-                throw new FileNotFoundException("未找到 LaTeX 转换脚本，请确认 latex-converter 文件夹已部署。", _scriptPath);
-            }
+            if (text.Length >= 4 && ((text.StartsWith("$$") && text.EndsWith("$$"))
+                || (text.StartsWith(@"\(") && text.EndsWith(@"\)"))
+                || (text.StartsWith(@"\[") && text.EndsWith(@"\]"))))
+                return text.Substring(2, text.Length - 4).Trim();
+            return text.Length >= 2 && text.StartsWith("$") && text.EndsWith("$")
+                ? text.Substring(1, text.Length - 2).Trim() : text;
+        }
+
+        private void EnsureInitialized()
+        {
+            if (_engine != null) return;
+            var engine = new Engine(options => options
+                .TimeoutInterval(TimeSpan.FromSeconds(15))
+                .CancellationToken(_shutdown.Token)
+                .LimitMemory(256 * 1024 * 1024)
+                .LimitRecursion(512));
             try
             {
-                _worker = Process.Start(new ProcessStartInfo
+                using (Stream stream = typeof(LatexToSvgConverter).Assembly.GetManifestResourceStream(ScriptResourceName))
                 {
-                    FileName = _nodeExecutable,
-                    Arguments = "\"" + _scriptPath + "\" --server",
-                    UseShellExecute = false,
-                    RedirectStandardInput = true,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    CreateNoWindow = true,
-                    StandardOutputEncoding = Encoding.UTF8,
-                    StandardErrorEncoding = Encoding.UTF8,
-                    WorkingDirectory = _workingDirectory,
-                });
-                if (_worker == null) throw new InvalidOperationException("无法启动 Node.js 公式转换进程。");
-                _errorOutput = _worker.StandardError.ReadToEndAsync();
-                _input = new StreamWriter(_worker.StandardInput.BaseStream, new UTF8Encoding(false)) { AutoFlush = true };
-                WorkerResponse ready = ReadResponse(_startupTimeoutMilliseconds, "初始化公式转换器");
-                if (!ready.Ready) throw new InvalidDataException("公式转换器未返回就绪状态。");
-            }
-            catch (Exception ex)
-            {
-                string error = GetWorkerError();
-                StopWorker();
-                if (ex is Win32Exception win32 && win32.NativeErrorCode == 2)
-                {
-                    throw new InvalidOperationException("找不到 Node.js，请确认已安装并添加到系统 PATH。", ex);
+                    if (stream == null) throw new InvalidOperationException("插件缺少内置 MathJax 资源，请重新安装完整插件。");
+                    using (var reader = new StreamReader(stream)) { engine.Execute(reader.ReadToEnd(), "mathjax-svg.min.js"); }
                 }
-                if (!string.IsNullOrWhiteSpace(error))
-                {
-                    throw new InvalidOperationException("公式转换器初始化失败：" + error, ex);
-                }
-                throw;
+                _engine = engine;
             }
-        }
-
-        private WorkerResponse ReadResponse(int timeoutMilliseconds, string operation)
-        {
-            Task<string> read = _worker.StandardOutput.ReadLineAsync();
-            if (!read.Wait(timeoutMilliseconds, _shutdown.Token))
-            {
-                throw new TimeoutException(operation + "超时，请重试。");
-            }
-            string line = read.GetAwaiter().GetResult();
-            if (line == null)
-            {
-                // stdout and stderr close independently; let the error drain before reporting startup failure.
-                try { _errorOutput?.Wait(200, _shutdown.Token); } catch (AggregateException) { }
-                throw new IOException("公式转换进程已退出。" + GetWorkerError());
-            }
-            return JsonConvert.DeserializeObject<WorkerResponse>(line)
-                ?? throw new InvalidDataException("公式转换器返回了空响应。");
-        }
-
-        private string GetWorkerError()
-        {
-            if (_errorOutput == null || _errorOutput.Status != TaskStatus.RanToCompletion) return string.Empty;
-            string error = _errorOutput.Result.Trim();
-            return error.Length <= 2000 ? error : error.Substring(0, 2000);
-        }
-
-        private void StopWorker()
-        {
-            try { _input?.Dispose(); } catch (IOException) { }
-            _input = null;
-            if (_worker != null)
-            {
-                try
-                {
-                    if (!_worker.HasExited && !_worker.WaitForExit(250))
-                    {
-                        _worker.Kill();
-                        _worker.WaitForExit(1000);
-                    }
-                }
-                catch (InvalidOperationException) { }
-                catch (Win32Exception) { }
-                finally { _worker.Dispose(); _worker = null; }
-            }
-            _errorOutput = null;
+            catch { engine.Dispose(); throw; }
         }
 
         private void ThrowIfDisposed()
@@ -227,16 +98,8 @@ namespace SlideSCI
         {
             if (Interlocked.Exchange(ref _disposeStarted, 1) != 0) return;
             _shutdown.Cancel();
-            lock (_sync) { StopWorker(); }
+            lock (_sync) { _engine?.Dispose(); _engine = null; }
             _shutdown.Dispose();
-        }
-
-        private sealed class WorkerResponse
-        {
-            public bool Ready { get; set; }
-            public bool Ok { get; set; }
-            public string[] Results { get; set; }
-            public string Error { get; set; }
         }
     }
 }
