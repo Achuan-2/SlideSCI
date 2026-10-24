@@ -1,3 +1,9 @@
+## v2.2.4 / 20261024
+- 🐛 修复 Markdown 行内公式插入失败、上标未正确渲染及公式与正文混排时内容丢失的问题，公式以 PowerPoint 原生可编辑格式插入。
+- ✨ 内置 Markdown 和 LaTeX SVG 公式转换引擎，无需安装 Node.js、pnpm 或 LaTeX 环境。
+- ⚡ Markdown 公式转换引擎启动时后台预热，SVG 转换复用引擎，减少重复初始化；不支持的 Markdown 公式保留源码并提示。
+- 🐛 修复 SVG 证明树等公式中的横线因缺少样式而不显示的问题。
+
 ## v2.2.3 / 20261022
 - 🐛 修复新版 PowerPoint 插入 Markdown 公式块和「插入 LaTeX 文字」时可能出现的 HRESULT E_FAIL。[#77](https://github.com/Achuan-2/SlideSCI/issues/77)
 
