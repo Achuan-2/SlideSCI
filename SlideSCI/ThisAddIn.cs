@@ -90,6 +90,7 @@ namespace SlideSCI
         private void ThisAddIn_Startup(object sender, System.EventArgs e)
         {
             LatexSvgConverter = new LatexToSvgConverter();
+            LatexSvgConverter.WarmUpAsync();
             ZoomGuideLines = new ZoomGuideLineTracker(Application);
             mediaFileDrops = new MediaFileDropTracker(Application);
         }
@@ -180,6 +181,8 @@ namespace SlideSCI
 
         private void ThisAddIn_Shutdown(object sender, System.EventArgs e)
         {
+            LatexSvgConverter?.Dispose();
+            LatexSvgConverter = null;
             mediaFileDrops?.Dispose();
             mediaFileDrops = null;
             ZoomGuideLines?.Dispose();

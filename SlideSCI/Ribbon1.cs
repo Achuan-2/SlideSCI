@@ -2394,85 +2394,68 @@ namespace SlideSCI
                     }
                     else
                     {
-                        string html = ProcessMarkdown(segment.Content, width);
+                        string html = ProcessMarkdown(
+                            segment.Content, out string clipboardText,
+                            out List<InlineMathFormula> inlineMathFormulas, width);
                         if (!string.IsNullOrEmpty(html))
                         {
-                            // Add retry mechanism for clipboard operations
-                            int retryCount = 3;
-                            while (retryCount > 0)
+                            html = RenderInlineMathFormulas(html, inlineMathFormulas, out bool mathRendered);
+                            Shape textShape = PasteMarkdownText(slide, clipboardText, html);
+                            textShape.Width = width;
+                            textShape.Left = left;
+                            textShape.Top = currentTop;
+
+                            if (!mathRendered)
                             {
-                                try
+                                RestoreInlineMathSources(textShape, inlineMathFormulas);
+                            }
+                            if (inlineMathFormulas.Count > 0)
+                            {
+                                // Let the textbox grow vertically to fit native fractions and scripts.
+                                textShape.TextFrame.AutoSize = PpAutoSize.ppAutoSizeShapeToFitText;
+                            }
+                            shape = textShape;
+
+                            if (textShape.TextFrame.HasText == Office.MsoTriState.msoTrue)
+                            {
+                                TextRange textRange = textShape.TextFrame.TextRange;
+                                foreach (TextRange paragraph in textRange.Paragraphs(-1))
                                 {
-                                    CopyHtmlToClipBoard(segment.Content, html);
-                                    System.Threading.Thread.Sleep(100); // Add 100ms delay
-                                    ShapeRange textContent = slide.Shapes.Paste();
-
-                                    if (textContent != null && textContent.Count > 0)
+                                    if (paragraph.ParagraphFormat.Bullet.Type != PpBulletType.ppBulletNone)
                                     {
-                                        Shape textShape = textContent[1];
-                                        textShape.Width = width;
-                                        textShape.Left = left;
-                                        textShape.Top = currentTop;
-                                        shape = textShape;
+                                        // 保存列表样式
+                                        PpBulletType ppBulletType = paragraph.ParagraphFormat.Bullet.Type;
+                                        int character = paragraph.ParagraphFormat.Bullet.Character;
+                                        int startValue = paragraph.ParagraphFormat.Bullet.StartValue; // 有序列表的编号
+                                        PpNumberedBulletStyle stype = paragraph.ParagraphFormat.Bullet.Style; // 有序列表的样式
 
-                                        // Process inline math formulas
-                                        ProcessInlineMathFormulas(textShape);
-
-                                        if (textShape.TextFrame.HasText == Office.MsoTriState.msoTrue)
+                                        paragraph.ParagraphFormat.Bullet.Type = ppBulletType;
+                                        paragraph.ParagraphFormat.Bullet.Character = character;
+                                        if (ppBulletType == PpBulletType.ppBulletNumbered)
                                         {
-                                            TextRange textRange = textShape.TextFrame.TextRange;
-                                            foreach (TextRange paragraph in textRange.Paragraphs(-1))
-                                            {
-                                                if (paragraph.ParagraphFormat.Bullet.Type != PpBulletType.ppBulletNone)
-                                                {
-                                                    // 保存列表样式
-                                                    PpBulletType ppBulletType = paragraph.ParagraphFormat.Bullet.Type;
-                                                    int character = paragraph.ParagraphFormat.Bullet.Character;
-                                                    int startValue = paragraph.ParagraphFormat.Bullet.StartValue; // 有序列表的编号
-                                                    PpNumberedBulletStyle stype = paragraph.ParagraphFormat.Bullet.Style; // 有序列表的样式
-
-                                                    paragraph.ParagraphFormat.Bullet.Type = ppBulletType;
-                                                    paragraph.ParagraphFormat.Bullet.Character = character;
-                                                    if (ppBulletType == PpBulletType.ppBulletNumbered)
-                                                    {
-                                                        paragraph.ParagraphFormat.Bullet.StartValue = startValue;
-                                                        paragraph.ParagraphFormat.Bullet.Style = stype;
-                                                    }
-                                                    // 列表样式不受后面字体样式的干扰
-                                                    paragraph.ParagraphFormat.Bullet.UseTextFont = Office.MsoTriState.msoFalse;
-                                                    paragraph.ParagraphFormat.Bullet.UseTextColor = Office.MsoTriState.msoFalse;
-                                                    paragraph.ParagraphFormat.Bullet.Font.Bold = Office.MsoTriState.msoFalse;
-                                                    paragraph.ParagraphFormat.Bullet.Font.Italic = Office.MsoTriState.msoFalse;
-
-                                                    string text = paragraph.Text.Trim();
-                                                    if (text.StartsWith("- [x]"))
-                                                    {
-                                                        char myCharacter = (char)9745; // ☑
-                                                        paragraph.ParagraphFormat.Bullet.Character = myCharacter;
-                                                        paragraph.Text = text.Substring(5).Trim(); // Remove "- [x]"
-                                                    }
-                                                    else if (text.StartsWith("- [ ]"))
-                                                    {
-                                                        char myCharacter = (char)9744; // ☐
-                                                        paragraph.ParagraphFormat.Bullet.Character = myCharacter;
-                                                        paragraph.Text = text.Substring(5).Trim(); // Remove "- [ ]"
-                                                    }
-                                                }
-                                            }
+                                            paragraph.ParagraphFormat.Bullet.StartValue = startValue;
+                                            paragraph.ParagraphFormat.Bullet.Style = stype;
                                         }
-                                        break; // Success, exit retry loop
+                                        // 列表样式不受后面字体样式的干扰
+                                        paragraph.ParagraphFormat.Bullet.UseTextFont = Office.MsoTriState.msoFalse;
+                                        paragraph.ParagraphFormat.Bullet.UseTextColor = Office.MsoTriState.msoFalse;
+                                        paragraph.ParagraphFormat.Bullet.Font.Bold = Office.MsoTriState.msoFalse;
+                                        paragraph.ParagraphFormat.Bullet.Font.Italic = Office.MsoTriState.msoFalse;
+
+                                        string text = paragraph.Text.Trim();
+                                        if (text.StartsWith("- [x]"))
+                                        {
+                                            char myCharacter = (char)9745; // ☑
+                                            paragraph.ParagraphFormat.Bullet.Character = myCharacter;
+                                            paragraph.Text = text.Substring(5).Trim(); // Remove "- [x]"
+                                        }
+                                        else if (text.StartsWith("- [ ]"))
+                                        {
+                                            char myCharacter = (char)9744; // ☐
+                                            paragraph.ParagraphFormat.Bullet.Character = myCharacter;
+                                            paragraph.Text = text.Substring(5).Trim(); // Remove "- [ ]"
+                                        }
                                     }
-                                }
-                                catch (System.Runtime.InteropServices.COMException)
-                                {
-                                    retryCount--;
-                                    if (retryCount <= 0)
-                                    {
-                                        MessageBox.Show(
-                                            $"无法粘贴内容: {segment.Content.Substring(0, Math.Min(30, segment.Content.Length))}..."
-                                        );
-                                    }
-                                    System.Threading.Thread.Sleep(200); // Wait longer before retry
                                 }
                             }
                         }
@@ -2495,81 +2478,75 @@ namespace SlideSCI
         }
 
 
-        private void ProcessInlineMathFormulas(Shape textShape)
+        private Shape PasteMarkdownText(Slide slide, string clipboardText, string html)
         {
-            TextRange textRange = textShape.TextFrame.TextRange;
-            string text = textRange.Text;
-            // Regex pattern to find math expressions between $ signs
-            var matches = Regex.Matches(text, @"\$([^$\n]+?)\$");
-            // matches.Count如果=0，说明没有匹配到，直接返回
-            if (matches.Count == 0)
+            for (int attempt = 1; attempt <= 3; attempt++)
             {
-                return;
+                try
+                {
+                    CopyHtmlToClipBoard(clipboardText, html);
+                    System.Threading.Thread.Sleep(100);
+                    // MathML in HTML is imported directly as editable Office Math.
+                    ShapeRange pastedShapes = slide.Shapes.PasteSpecial(PpPasteDataType.ppPasteHTML);
+                    if (pastedShapes != null && pastedShapes.Count > 0)
+                    {
+                        return pastedShapes[1];
+                    }
+                }
+                catch (COMException ex)
+                {
+                    if (attempt == 3)
+                    {
+                        throw new InvalidOperationException("无法粘贴 Markdown 文本。", ex);
+                    }
+                }
+                System.Threading.Thread.Sleep(200);
             }
-            // 创建tempShape，如果不创建，行内数学公式包括分式就不会正常转化
-            Shape tempShape = InsertMathBlock("a", 0, 0);
-            // 删除mathShape
-            tempShape.Delete();
 
-            // Process matches in reverse order to maintain correct indices
-            for (int i = matches.Count - 1; i >= 0; i--)
+            throw new InvalidOperationException("粘贴 Markdown 后未返回文本框。");
+        }
+
+        private string RenderInlineMathFormulas(string html, List<InlineMathFormula> formulas, out bool rendered)
+        {
+            rendered = formulas.Count == 0;
+            if (rendered)
             {
-                var match = matches[i];
-                int start = match.Index + 1; // 1-based start index of the match (e.g., the first '$')
-                int length = match.Length; // Length of the matched string (e.g., "$formula$")
-                string formula = match.Groups[1].Value; // Content within $...$ (e.g., "formula")
+                return html;
+            }
 
-                // Check if we need to insert a space AFTER the formula (after the second '$')
-                int endIdxInText = match.Index + match.Length; // index in string right after $formula$
-                bool needSpaceAfter = false;
-                if (endIdxInText < text.Length)
+            try
+            {
+                var converter = Globals.ThisAddIn.LatexSvgConverter ?? new LatexToSvgConverter();
+                string[] mathMl = converter.ConvertLatexToMathMl(formulas.Select(formula => formula.Content).ToArray());
+                for (int i = 0; i < formulas.Count; i++)
                 {
-                    char nextChar = text[endIdxInText];
-                    if (!char.IsWhiteSpace(nextChar))
-                    {
-                        needSpaceAfter = true;
-                    }
+                    string token = formulas[i].Token;
+                    // Office trims ordinary HTML spaces at math boundaries; preserve existing separation.
+                    html = html.Replace(" " + token, "&#160;" + token)
+                        .Replace(token + " ", token + "&#160;")
+                        .Replace(token, mathMl[i]);
                 }
+                rendered = true;
+                return html;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"行内公式转换失败，将保留公式源码和正文：{ex.Message}");
+                return html;
+            }
+        }
 
-                // Check if we need to insert a space BEFORE the formula (before the first '$')
-                int startIdxInText = match.Index; // index of the first '$' in string
-                bool needSpaceBefore = false;
-                if (startIdxInText > 0)
+        private void RestoreInlineMathSources(Shape textShape, List<InlineMathFormula> formulas)
+        {
+            foreach (InlineMathFormula formula in formulas)
+            {
+                // Native Find keeps offsets correct even when the paragraph contains math objects.
+                Office.TextRange2 range = textShape.TextFrame2.TextRange.Find(
+                    formula.Token, 0, Office.MsoTriState.msoTrue, Office.MsoTriState.msoFalse);
+                if (range != null)
                 {
-                    char prevChar = text[startIdxInText - 1];
-                    if (!char.IsWhiteSpace(prevChar))
-                    {
-                        needSpaceBefore = true;
-                    }
+                    range.Text = formula.Source;
                 }
-
-                if (needSpaceAfter)
-                {
-                    textRange.Characters(start + length, 0).InsertBefore(" ");
-                    textRange = textShape.TextFrame.TextRange; // Refresh textRange to keep in sync
-                }
-
-                int formulaStart = start;
-                if (needSpaceBefore)
-                {
-                    textRange.Characters(start, 0).InsertBefore(" ");
-                    textRange = textShape.TextFrame.TextRange; // Refresh textRange to keep in sync
-                    formulaStart = start + 1;
-                }
-
-                // Select the range "$formula$"
-                TextRange selectedRange = textRange.Characters(formulaStart, length);
-                // Replace its text with "formula"
-                selectedRange.Text = formula;
-                textRange = textShape.TextFrame.TextRange; // Refresh textRange after replacement
-
-                // Select and convert the formula range precisely
-                TextRange newSelectedRange = textRange.Characters(formulaStart, formula.Length);
-                newSelectedRange.Select();
-                app.CommandBars.ExecuteMso("EquationInsertNew");
-
-                app.CommandBars.ExecuteMso("EquationProfessional");
-                textRange = textShape.TextFrame.TextRange; // Refresh textRange after converting to equation
             }
         }
 
@@ -2936,6 +2913,20 @@ namespace SlideSCI
                 500
             );
 
+            try
+            {
+                return InitializeMathBlock(textBox, mathContent, left, top);
+            }
+            catch
+            {
+                // A failed initialization must not leave the temporary equation on the slide.
+                textBox.Delete();
+                throw;
+            }
+        }
+
+        private Shape InitializeMathBlock(Shape textBox, string mathContent, float left, float top)
+        {
             // Newer PowerPoint versions reject EquationInsertNew on an empty text selection.
             textBox.TextFrame.TextRange.Text = "x";
             // Select the newly inserted textbox
@@ -3019,51 +3010,51 @@ namespace SlideSCI
             return textBox;
         }
 
-        private string ProcessMarkdown(string markdown, float width = 500)
+        private class InlineMathFormula
+        {
+            public string Token { get; set; }
+            public string Source { get; set; }
+            public string Content { get; set; }
+        }
+
+        private string ProtectInlineMath(string markdown, out List<InlineMathFormula> formulas)
+        {
+            var protectedFormulas = new List<InlineMathFormula>();
+            string tokenPrefix = "SlideSCIMath" + Guid.NewGuid().ToString("N");
+            // Keep code spans literal. Escaped dollars and display math are not inline delimiters.
+            string pattern = @"(?<ticks>`+)(?!`)(?:(?!\k<ticks>)[^\r\n])*?\k<ticks>(?!`)|"
+                + @"(?<![\\$])\$(?!\$)(?<formula>(?:\\[^\r\n]|[^$\\\r\n])+?)\$(?!\$)";
+            string result = Regex.Replace(markdown, pattern, match =>
+            {
+                if (!match.Groups["formula"].Success)
+                {
+                    return match.Value;
+                }
+
+                string token = tokenPrefix + "Z" + protectedFormulas.Count + "End";
+                protectedFormulas.Add(new InlineMathFormula
+                {
+                    Token = token,
+                    Source = match.Value,
+                    Content = match.Groups["formula"].Value
+                });
+                return token;
+            });
+            formulas = protectedFormulas;
+            return result;
+        }
+
+        private string ProcessMarkdown(string markdown, out string clipboardText,
+            out List<InlineMathFormula> inlineMathFormulas, float width = 500)
         {
             var codeBlockRegex = new Regex(@"```.*?\r?\n(.*?)\r?\n```", RegexOptions.Singleline);
 
             markdown = codeBlockRegex.Replace(markdown, string.Empty);
 
-            // Pre-process inline math formulas to add spaces before and after if they are not already present.
-            // This ensures Markdig's Mathematics extension flanking rules are satisfied so they are parsed as math spans.
-            markdown = Regex.Replace(markdown, @"(?<!\$)\$([^$\n]+?)\$(?!\$)", m =>
-            {
-                string formula = m.Value;
-                int index = m.Index;
-
-                bool needSpaceBefore = false;
-                if (index > 0)
-                {
-                    char prevChar = markdown[index - 1];
-                    if (!char.IsWhiteSpace(prevChar))
-                    {
-                        needSpaceBefore = true;
-                    }
-                }
-
-                bool needSpaceAfter = false;
-                int endIdx = index + m.Length;
-                if (endIdx < markdown.Length)
-                {
-                    char nextChar = markdown[endIdx];
-                    if (!char.IsWhiteSpace(nextChar))
-                    {
-                        needSpaceAfter = true;
-                    }
-                }
-
-                string result = formula;
-                if (needSpaceBefore)
-                {
-                    result = " " + result;
-                }
-                if (needSpaceAfter)
-                {
-                    result = result + " ";
-                }
-                return result;
-            });
+            // Neither Markdig nor Office's HTML paste should interpret the formula source.
+            // Protect the UnicodeText fallback too: newer Office versions auto-convert $...$ on paste.
+            markdown = ProtectInlineMath(markdown, out inlineMathFormulas);
+            clipboardText = markdown;
 
             // Pre-process bold delimiters to bypass CommonMark punctuation flanking restrictions in Chinese/full-width brackets context
             markdown = Regex.Replace(markdown, @"\*\*((?:(?!\*\*).)+?)\*\*", "<strong>$1</strong>", RegexOptions.Singleline);
@@ -3093,14 +3084,6 @@ namespace SlideSCI
 
             html = $"<div style='font-family: 微软雅黑;'>{html}</div>";
 
-            // 把<span class="math">\(...\)</span>转换$...$
-            html = Regex.Replace(
-                html,
-                @"<span class=""math"">\\\((.+?)\\\)</span>",
-                m => $"${m.Groups[1].Value}$"
-            );
-            // 弹窗显示
-            //MessageBox.Show($"Markdown转换: {html}");
             return html;
         }
 
